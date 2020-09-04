@@ -27,7 +27,7 @@
 				"part": 5,
 				"_comment": "Chord 2",
 				"patch": 25,
-				"bank": 8
+				"bank_msb": 8
 			},
 			{
 				"part": 6,

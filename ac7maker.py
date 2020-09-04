@@ -15,14 +15,14 @@ import mido
 
 # Default instrument allocations. Ordered by part number
 instruments = [
-  {'patch': 0,  'bank': 120},
-  {'patch': 0,  'bank': 120},
-  {'patch': 33, 'bank': 0},
-  {'patch': 0,  'bank': 0},
-  {'patch': 25, 'bank': 0},
-  {'patch': 27, 'bank': 0},
-  {'patch': 49, 'bank': 0},
-  {'patch': 61, 'bank': 0}
+  {'patch': 0,  'bank_msb': 120},
+  {'patch': 0,  'bank_msb': 120},
+  {'patch': 33, 'bank_msb': 0},
+  {'patch': 0,  'bank_msb': 0},
+  {'patch': 25, 'bank_msb': 0},
+  {'patch': 27, 'bank_msb': 0},
+  {'patch': 49, 'bank_msb': 0},
+  {'patch': 61, 'bank_msb': 0}
 ]
 
 # Set up a mixer table element for given part number. The file format
