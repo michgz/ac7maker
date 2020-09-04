@@ -31,11 +31,11 @@ instruments = [
 def ac7make_mixer_element(pt, b):
   g = b''
   pt_patch = b['rhythm']['parts'][pt].get('patch', -1)
-  pt_bank = b['rhythm']['parts'][pt].get('bank', -1)
+  pt_bank = b['rhythm']['parts'][pt].get('bank_msb', -1)
   if pt_patch < 0 or pt_bank < 0:
     # Not specified correctly - use defaults for that part
     pt_patch = instruments[pt]['patch']
-    pt_bank = instruments[pt]['bank']
+    pt_bank = instruments[pt]['bank_msb']
   g = g + struct.pack('B', pt_patch)
   g = g + struct.pack('B', pt_bank)
   g = g + struct.pack('B', b['rhythm']['parts'][pt].get('volume', 100))  # volume
