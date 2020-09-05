@@ -17,39 +17,64 @@ def consume_midi_time(b, pos):
 
 def consume_midi_event(b, pos):
   p = pos
-  if b[p] == 0xFF:
+  evt = b[p]
+  if evt == 0xFF:
     # Meta-event
     n = b[p+2]
-    return (b[p+1], p+3+n)
-  elif b[p] == 0xF0:
+    if b[p+1]==0x51 and n==3:
+      # Tempo
+      x = 0x10000*b[p+3] + 0x100*b[p+4] + b[p+5]
+      tempo = round(60000000.0 / float(x))
+      # Note this is tempo per quarter note. Depending on the time signature,
+      # may need to adjust to eighth notes.
+      e = {'event':'tempo_change', 'absolute_time':0, 'value':tempo}
+      return (e, p+3+n)
+    else:
+      e = {'event':'metadata', 'absolute_time':0, 'data': b''}
+    return (e, p+3+n)
+  elif evt == 0xF0:
     # System exclusive
     n = b[p+1]
-    return (0, p+2+n)
-  elif b[p]&0xF0 == 0xB0:
-    # Controller
-    return (0xB0, p+3)
-  elif b[p]&0xF0 == 0xC0:
-    # Patch change
-    return (0xC0, p+2)
-  elif b[p]&0xF0 == 0x80:
-    # Note off
-    return (0x80, p+3)
-  elif b[p]&0xF0 == 0x90:
-    # Note on
-    return (0x90, p+3)
+    e = {'event':'sysex', 'absolute_time':0, 'data': b''}
+    return (e, p+2+n)
+  else:
+    if evt&0xF0 == 0xB0:
+      # Controller
+      e = {'event':'control_change', 'absolute_time':0, 'channel':evt&0x0F, 'controller':b[p+1], 'value':b[p+2]}
+      return (e, p+3)
+    elif evt&0xF0 == 0xC0:
+      # Patch change
+      e = {'event':'patch_change', 'absolute_time':0, 'channel':evt&0x0F, 'patch':b[p+1]}
+      return (e, p+2)
+    elif evt&0xF0 == 0x80:
+      # Note off
+      e = {'event':'note_off', 'absolute_time':0, 'channel':evt&0x0F, 'note':b[p+1], 'velocity':b[p+2]}
+      return (e, p+3)
+    elif evt&0xF0 == 0x90:
+      # Note on
+      e = {'event':'note_on', 'absolute_time':0, 'channel':evt&0x0F, 'note':b[p+1], 'velocity':b[p+2]}
+      return (e, p+3)
+    elif evt&0xF0 == 0xE0:
+      # Pitch bend
+      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':evt&0x0F, 'bend':b[p+1]}
+      return (e, p+3)
     
-  return (0,p)
-    
+  print("Unknown event {0:02X}".format(evt))
+  sys.exit(0)
+
   
 def process_track(b):
     
     pos = 0
+    total_time = 0
     while pos < len(b):
     
       (c, pos) = consume_midi_time(b, pos)
       (d, pos) = consume_midi_event(b, pos)
-      print("{0:02X} {1:02X}".format(c,d))
-    print("-- end of track --")
+      d['absolute_time'] = total_time
+      print("{0:02X} {1}".format(c,d['event']))
+      total_time += c
+    print("-- end of track --; end time = {0:X}".format(total_time))
 
 
   
@@ -85,5 +110,6 @@ def midifile_read(b):
 
 if __name__=="__main__":
   with open("MLTREC10.MID", "rb") as f1:
+  #with open('Alan Walker - Faded (Original Mix) (midi by Carlo Prato) (www.cprato.com).mid','rb') as f1:
     b = f1.read()
   midifile_read(b)
