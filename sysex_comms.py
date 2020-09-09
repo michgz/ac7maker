@@ -20,7 +20,7 @@
 ## Functions:
 #
 #   upload_ac7(dest_num, data)
-#   =====================
+#   ==========================
 #
 # Uploads an AC7 rhythm to the keyboard. Parameters:
 #
@@ -37,6 +37,25 @@
 #      x = f.read()
 #    upload_ac7(294, x)
 #
+#
+#   download_ac7(src_num)
+#   =====================
+#
+# Downloads an AC7 rhythm from the keyboard. Parameter:
+#
+#   src_num:   Number of the source. Must lie in the user area, i.e.
+#               values 294-343 inclusive.
+#
+#       Returns:
+#
+#   Byte array in "HBR" format. That is, it is identical to the format
+#     of an .AC7 file as saved by the keyboard. It should be possible to
+#     write to an .AC7 file which can be loaded into a keyboard by USB.
+#
+# Example:
+#
+#    with open("MyRhythm.AC7", "wb") as f:
+#      f.write(download_ac7(294))
 #
 
 import time
@@ -69,14 +88,18 @@ DEVICE_ID = b"\x44\x19\x01\x7F"
 is_busy = False
 must_send_ack = False
 have_got_ack = False
+have_got_ess = False
 
 so_far = b''
 
+total_rxed = b''
 
 def handle_pkt(p):
   global is_busy
   global must_send_ack
   global have_got_ack
+  global have_got_ess
+  global total_rxed
   if len(p) < 7:
     print("BAD PACKET!!")
     return
@@ -90,6 +113,9 @@ def handle_pkt(p):
     is_busy = False
     if type_of_pkt == 0xA:
       have_got_ack = True
+    if type_of_pkt == 0xD:
+      have_got_ack = True
+      have_got_ess = True
     
     
   if type_of_pkt == 3 or type_of_pkt == 5:   # This takes a CRC
@@ -99,6 +125,10 @@ def handle_pkt(p):
     crc_compare = c[0] + (1<<7)*c[1] + (1<<14)*c[2] + (1<<21)*c[3] + (1<<28)*c[4]
     if crc.crcValue == crc_compare:
       must_send_ack = True
+      if type_of_pkt == 5:
+        have_got_ack = True # This one must look like an ACK
+        mm = midi_7bit_to_8bit(p[12:-6])
+        total_rxed += mm
     else:
       print("BAD CRC!!!")
 
@@ -144,7 +174,7 @@ def wait_for_ack(f):
     if have_got_ack:
       # Success!
       return
-    time.sleep(0.2)
+    time.sleep(0.02)
     if time.monotonic() > st + 4.0:
       # Timed out. Completely exit the program
       print("SYSEX communication timed out. Exiting ...")
@@ -171,13 +201,15 @@ def make_packet(tx=False,
     else:
       command = 0
   w += struct.pack('<B', command)
-  if command == 0xA:
-    return w + b'\x00\x00\x00\x00\xf7'
+  
   if command == 0x8:
     return w + struct.pack('<B', sub_command) + b'\xf7'
-
+  
   w += struct.pack('<2B', category, memory)
   w += struct.pack('<2B', parameter_set%128, parameter_set//128)
+  
+  if command == 0xA:
+    return w + b'\xf7'
   
   if command == 5:
     w += struct.pack('<2B', length%128, length//128)
@@ -263,6 +295,72 @@ def upload_ac7(dest_num, data):
 
   os.close(f)
 
+
+
+
+
+
+
+def download_ac7(src_num):
+
+  global have_got_ess
+  global total_rxed
+
+  if src_num < 294 or src_num > 343:
+    print("Incorrect source number")
+    raise Exception
+  pp = src_num - 294
+
+
+  # Open the device
+  f = os.open(DEVICE_NAME, os.O_RDWR)
+
+
+  # Flush the input queue
+  parse_response(os.read(f, 20))
+  time.sleep(0.4)
+
+
+  total_rxed = b''
+
+
+  # Send the SBS command
+
+  pkt = make_packet(command = 8, sub_command = 2)
+  #print(pkt)
+  os.write(f, pkt)  # SBS(HBR)
+  wait_for_ack(f)
+
+
+  pkt = make_packet(command = 4, parameter_set=pp, category=30, memory=1)
+  #print(pkt)
+  os.write(f, pkt)  # HBR
+
+
+  have_got_ess = False
+
+
+  while True:
+
+
+    wait_for_ack(f)
+    
+    if have_got_ess:
+      break
+    
+    
+    pkt = make_packet(parameter_set=pp, category=30, memory=1, command=0xa)
+    os.write(f, pkt)
+
+
+
+  # Send EBS (no ACK expected)
+  os.write(f, make_packet(parameter_set=pp, category=30, memory=1, command=0xe))
+  time.sleep(0.3)
+
+  os.close(f)
+  
+  return total_rxed
 
 
 if __name__=="__main__":
