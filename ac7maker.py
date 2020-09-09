@@ -26,6 +26,48 @@ instruments = [
   {'patch': 61, 'bank_msb': 0}
 ]
 
+
+# Table of possible specifications for "conversion_table". 16 possibilities
+# are given, corresponding to encodings 0-15. In fact, integers up to
+# 255 are accepted by the keyboard, but most of them give glitchy results
+# and are probably of no use.
+conversions = [
+  "Bass Basic",
+  "Bass 7th",
+  "Basic",
+  "Var2",
+  "Var3",
+  "Var4",
+  "7th",
+  "Minor",
+  "Phrase",
+  "Bass Minor",
+  "Penta",
+  "Intro n-minor",
+  "Intro m-minor",
+  "Intro h-minor",
+  "Intro no Change",
+  "Intro dorian"
+]
+
+# Table of possible specifications for "inversion". 8 possibilities are
+# given, corresponding to encodings 0-7. Only 3 are documented, the 5 
+# other integer values are accepted by the keyboard and give potentially
+# interesting results.
+# TODO: add a way to select the undocumented values.
+inversions = [
+  "Off",
+  "",
+  "On",
+  "",
+  "7th",
+  "",
+  "",
+  ""
+]
+
+
+
 # Set up a mixer table element for given part number. The file format
 # gives us the capability to change all settings for each element also,
 # but here just give the elements the same values.
@@ -124,45 +166,6 @@ def ac7make_drum(drums, start_addr):
   g1 = g1 + struct.pack('<I', 10 + len(g2) + len(g3))
   g1 = g1 + struct.pack('<H', number_of_parts)
   return (g1 + g2 + g3)
-
-# Table of possible specifications for "conversion_table". 16 possibilities
-# are given, corresponding to integers 0-15. In fact, integers up to
-# 255 are accepted by the keyboard, but most of them give glitchy results
-# and are probably of no use.
-conversions = [
-  "Bass Basic",
-  "Bass 7th",
-  "Basic",
-  "Var2",
-  "Var3",
-  "Var4",
-  "7th",
-  "Minor",
-  "Phrase",
-  "Bass Minor",
-  "Penta",
-  "Intro n-minor",
-  "Intro m-minor",
-  "Intro h-minor",
-  "Intro no Change",
-  "Intro dorian"
-]
-
-# Table of possible specifications for "inversion". 8 possibilities are
-# given, corresponding to integers 0-7. Only 3 are documented, the 5 
-# other integer values are accepted by the keyboard and give potentially
-# interesting results.
-# TODO: add a way to select the undocumented values.
-inversions = [
-  "Off",
-  "",
-  "On",
-  "",
-  "7th",
-  "",
-  "",
-  ""
-]
 
 
 def ac7make_chord_conversion(tk):
