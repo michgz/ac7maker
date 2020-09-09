@@ -29,6 +29,9 @@ def consume_midi_event(b, pos):
       # may need to adjust to eighth notes.
       e = {'event':'tempo_change', 'absolute_time':0, 'value':tempo}
       return (e, p+3+n)
+    elif b[p+1]==0x2F and n==0:
+      e = {'event':'track_end', 'absolute_time':0}
+      return (e, p+3+n)
     else:
       e = {'event':'metadata', 'absolute_time':0, 'data': b''}
     return (e, p+3+n)
@@ -77,8 +80,6 @@ def process_track(b):
     print("-- end of track --; end time = {0:X}".format(total_time))
 
 
-  
-  
 
 
 def midifile_read(b):
@@ -88,6 +89,8 @@ def midifile_read(b):
     return b''
   x = struct.unpack('>I', b[pos+4:pos+8])[0]  # Length of header
   num_trks = struct.unpack('>H', b[pos+10:pos+12])[0]  # Number of tracks in file
+  division = struct.unpack('>H', b[pos+12:pos+14])[0]  # Number of ticks per quarter note (1 quarter note = 24 MIDI clocks)
+  print("Division = {0}".format(division))
   
   pos += 8 + x
   
