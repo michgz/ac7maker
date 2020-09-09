@@ -263,7 +263,7 @@ def ac7make_track_data(tk):
 def ac7make_time_jump(t):
   return struct.pack('<3B', t%256, 0xFF, t//256)
 
-def ac7make_midi_to_ac7(trk):
+def ac7make_midi_to_ac7(trk, end_time):
   # Changes digested midi data into AC7 track data
   print("Got track of length {0}".format(len(trk)))
   print(trk)
@@ -274,23 +274,25 @@ def ac7make_midi_to_ac7(trk):
       v = evt['velocity']
       if v == 0:
         v = 1  # AC7 doesn't allow on velocity of 0
-      time_d = round(evt['absolute_time'] - latest_time)
+      time_d = round(4.0*(evt['absolute_time'] - latest_time))
       if time_d > 255:
         b += ac7make_time_jump(time_d)
         time_d = 0
       b += struct.pack('<3B', time_d, evt['note'], v)
       latest_time = evt['absolute_time']
     elif evt['event'] == 'note_off':
-      time_d = round(evt['absolute_time'] - latest_time)
+      time_d = round(4.0*(evt['absolute_time'] - latest_time))
       if time_d > 255:
         b += ac7make_time_jump(time_d)
         time_d = 0
       b += struct.pack('<3B', time_d, evt['note'], 0x00)
       latest_time = evt['absolute_time']
+  time_d = end_time - round(4.0*latest_time)
+  if time_d > 255:
+    b += ac7make_time_jump(time_d)
+    time_d = 0
+  b += struct.pack('<3B', time_d, 0xFC, 0x00) # End-of-track indicator
   return b
-
-
-
 
 
 
@@ -299,9 +301,9 @@ def ac7make_other_element(pt, el, b, midi_trks):
   # 02 70 00   -- something to do with break points, split tables, etc.
   # 80 FF 04   -- wait whole length
   # 00 FC 00   -- end of track
-  if (el == 0 or el == 5 or el == 6 or el == 11):
+  if (el == 1 or el == 6 or el == 7 or el == 12):
     # An intro or outro element
-    if (pt == 0):
+    if (pt == 3):
       # Bass
       g1 = b'\x0b\x40\x00'
     else:
@@ -311,17 +313,19 @@ def ac7make_other_element(pt, el, b, midi_trks):
     #  g1 += b'\x00\xe5\x00'
   else:
     # An ordinary variation/fill
-    if (pt == 0):
+    if (pt == 3):
       # Bass
       g1 = b'\x00\x40\x00'
     else:
       # Chords
       g1 = b'\x02\x70\x00'
-    if midi_trks != None:
-      g1 += ac7make_midi_to_ac7(midi_trks[1])  # First non-system track in the array
-    #if pt == 2 and el == 1:
-      #return b'\x02\x70\x00\x00\xe5\x00\x00\x24\x42\x00\x2b\x53\x00\x30\x47\x00\x34\x3e\x00\x37\x49\x00\x3c\x3a\x00\x34\x3e\x00\x30\x47\x00\x2b\x53\x8a\x37\x00\x01\x2b\x00\x00\x30\x00\x00\x3c\x00\x00\x30\x00\x00\x2b\x00\x02\x34\x00\x00\x34\x00\x01\x24\x00\x2f\x2b\x4f\x01\x37\x44\x01\x30\x4a\x00\x24\x47\x00\x3c\x3d\x00\x34\x3f\x1f\x30\x00\x01\x2b\x00\x01\x37\x00\x01\x24\x00\x00\x3c\x00\x02\x34\x00\x35\x24\x36\x00\x2b\x4c\x01\x37\x44\x00\x34\x3f\x00\x3c\x35\x00\x30\x50\x38\x2b\x00\x00\x37\x00\x00\x30\x00\x01\x34\x00\x01\x3c\x00\x01\x24\x00\x2c\xfc\x00'
-  return g1 + b'\x80\xff\x04\x00\xfc\x00'
+  if midi_trks != None:
+    g1 += b'\x00\xe5\x00'  # Optional. This makes the track editable, probably a good thing..
+    total_midi_clks = 1*4*96   # 96 * number of quarter notes
+    g1 += ac7make_midi_to_ac7(midi_trks[1], total_midi_clks)  # First non-system track in the array
+  else:
+    g1 += b'\x80\xff\x04\x00\xfc\x00'
+  return g1
 
 
 def ac7make_other(others, start_addr):
@@ -413,9 +417,9 @@ def ac7make_element(b, elements, start_addr):
   g1 = b''
   g3 = b''
   for ee in elements:
-    g3 += ee
+    g3 += b'ELMT' + struct.pack('<H', 6 + len(ee)) + ee
     g1 += struct.pack('<I', addr)
-    addr = addr + len(ee)
+    addr = addr + 6 + len(ee)
   g0 += struct.pack('<H', 7 + len(g1) + len(g2) + len(g3))
   g0 += struct.pack('B', number_of_parts)
   return g0 + g1 + g2 + g3

@@ -42,8 +42,8 @@ trk += make_time(0) + b'\xb0\x07\x7f'    # Volume
 trk += make_time(0) + b'\xb0\x0a\x40'    # Pan
 trk += make_time(0) + b'\xb0\x00\x0F\x00\xb0\x20\x00\x00\xc0\x60'   # Set patch to EDM SE WHITE
 
-trk += make_time(0) + b'\x90\x24\x4e'  # Note on
-trk += make_time(1440) + b'\x80\x24\x7f'  # Note off
+trk += make_time(0) + b'\x90\x48\x4e'  # Note on
+trk += make_time(1440) + b'\x80\x48\x7f'  # Note off
 trk += make_time(480) + b'\xff\x2f\x00'  # EOT
 
 trks.append(trk)
