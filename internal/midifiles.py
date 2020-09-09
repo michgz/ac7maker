@@ -70,14 +70,17 @@ def process_track(b):
     
     pos = 0
     total_time = 0
+    trk = []
     while pos < len(b):
     
       (c, pos) = consume_midi_time(b, pos)
       (d, pos) = consume_midi_event(b, pos)
-      d['absolute_time'] = total_time
-      print("{0:02X} {1}".format(c,d['event']))
       total_time += c
+      d['absolute_time'] = total_time / 20.0
+      print("{0:02X} {1}".format(c,d['event']))
+      trk.append(d)
     print("-- end of track --; end time = {0:X}".format(total_time))
+    return trk
 
 
 
@@ -92,6 +95,8 @@ def midifile_read(b):
   division = struct.unpack('>H', b[pos+12:pos+14])[0]  # Number of ticks per quarter note (1 quarter note = 24 MIDI clocks)
   print("Division = {0}".format(division))
   
+  trks = []
+  
   pos += 8 + x
   
   for t in range(num_trks):
@@ -105,6 +110,10 @@ def midifile_read(b):
     #print(x)
     
     pos += 8 + x
+    
+    trks.append(trk)
+    
+  return trks
     
 
 

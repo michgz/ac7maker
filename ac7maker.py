@@ -7,6 +7,8 @@ import struct
 #import operator
 import sys
 
+import internal.midifiles
+
 # Import one non-standard module. Can be installed by:
 #
 #   pip3 install mido
@@ -128,7 +130,7 @@ def ac7make_element_has_other(b, el):
 
 
 
-def ac7make_drum_element(pt, el, b):
+def ac7make_drum_element(pt, el, b, midi_trks):
   for track in b["rhythm"]["tracks"]:
     if track["part"]==1 or track["part"]==2:
       if track["part"]==(pt+1) and track["element"]==(el+1):
@@ -257,7 +259,42 @@ def ac7make_track_data(tk):
   return b''
 
 
-def ac7make_other_element(pt, el, b):
+
+def ac7make_time_jump(t):
+  return struct.pack('<3B', t%256, 0xFF, t//256)
+
+def ac7make_midi_to_ac7(trk):
+  # Changes digested midi data into AC7 track data
+  print("Got track of length {0}".format(len(trk)))
+  print(trk)
+  latest_time = 0
+  b = b''
+  for evt in trk:
+    if evt['event'] == 'note_on':
+      v = evt['velocity']
+      if v == 0:
+        v = 1  # AC7 doesn't allow on velocity of 0
+      time_d = round(evt['absolute_time'] - latest_time)
+      if time_d > 255:
+        b += ac7make_time_jump(time_d)
+        time_d = 0
+      b += struct.pack('<3B', time_d, evt['note'], v)
+      latest_time = evt['absolute_time']
+    elif evt['event'] == 'note_off':
+      time_d = round(evt['absolute_time'] - latest_time)
+      if time_d > 255:
+        b += ac7make_time_jump(time_d)
+        time_d = 0
+      b += struct.pack('<3B', time_d, evt['note'], 0x00)
+      latest_time = evt['absolute_time']
+  return b
+
+
+
+
+
+
+def ac7make_other_element(pt, el, b, midi_trks):
   # A default track that has three elements:
   # 02 70 00   -- something to do with break points, split tables, etc.
   # 80 FF 04   -- wait whole length
@@ -280,8 +317,10 @@ def ac7make_other_element(pt, el, b):
     else:
       # Chords
       g1 = b'\x02\x70\x00'
-    if pt == 2 and el == 1:
-      return b'\x02\x70\x00\x00\xe5\x00\x00\x24\x42\x00\x2b\x53\x00\x30\x47\x00\x34\x3e\x00\x37\x49\x00\x3c\x3a\x00\x34\x3e\x00\x30\x47\x00\x2b\x53\x8a\x37\x00\x01\x2b\x00\x00\x30\x00\x00\x3c\x00\x00\x30\x00\x00\x2b\x00\x02\x34\x00\x00\x34\x00\x01\x24\x00\x2f\x2b\x4f\x01\x37\x44\x01\x30\x4a\x00\x24\x47\x00\x3c\x3d\x00\x34\x3f\x1f\x30\x00\x01\x2b\x00\x01\x37\x00\x01\x24\x00\x00\x3c\x00\x02\x34\x00\x35\x24\x36\x00\x2b\x4c\x01\x37\x44\x00\x34\x3f\x00\x3c\x35\x00\x30\x50\x38\x2b\x00\x00\x37\x00\x00\x30\x00\x01\x34\x00\x01\x3c\x00\x01\x24\x00\x2c\xfc\x00'
+    if midi_trks != None:
+      g1 += ac7make_midi_to_ac7(midi_trks[1])  # First non-system track in the array
+    #if pt == 2 and el == 1:
+      #return b'\x02\x70\x00\x00\xe5\x00\x00\x24\x42\x00\x2b\x53\x00\x30\x47\x00\x34\x3e\x00\x37\x49\x00\x3c\x3a\x00\x34\x3e\x00\x30\x47\x00\x2b\x53\x8a\x37\x00\x01\x2b\x00\x00\x30\x00\x00\x3c\x00\x00\x30\x00\x00\x2b\x00\x02\x34\x00\x00\x34\x00\x01\x24\x00\x2f\x2b\x4f\x01\x37\x44\x01\x30\x4a\x00\x24\x47\x00\x3c\x3d\x00\x34\x3f\x1f\x30\x00\x01\x2b\x00\x01\x37\x00\x01\x24\x00\x00\x3c\x00\x02\x34\x00\x35\x24\x36\x00\x2b\x4c\x01\x37\x44\x00\x34\x3f\x00\x3c\x35\x00\x30\x50\x38\x2b\x00\x00\x37\x00\x00\x30\x00\x01\x34\x00\x01\x3c\x00\x01\x24\x00\x2c\xfc\x00'
   return g1 + b'\x80\xff\x04\x00\xfc\x00'
 
 
@@ -408,15 +447,22 @@ def ac7maker(b):
       num_trk = 0
       for trk in b["rhythm"]["tracks"]:
         if trk.get("element", -1)==el and trk.get("part", -1)==pt:
+          print("Got non-empty track at element={0} part={1}".format(el, pt))
+          print("File name = ")
+          print(trk["source_file"])
+          with open(trk["source_file"], "rb") as f3:
+            bm = internal.midifiles.midifile_read(f3.read())
+          print(bm)
+          
           # Found a non-empty track to add. Add it
           e_22 += ac7make_track_element(pt)
     
           if ac7make_is_drum_part(pt):
             e_20 += struct.pack('<H', len(drums) + 0x8000)
-            drums.append(ac7make_drum_element(pt, el, b))
+            drums.append(ac7make_drum_element(pt, el, b, bm))
           else:
             e_20 += struct.pack('<H', len(others) + 0x8000)
-            others.append(ac7make_other_element(pt, el, b))
+            others.append(ac7make_other_element(pt, el, b, bm))
           
           if num_trk == 0:
             # This is the first track for this element/part combo
@@ -434,10 +480,10 @@ def ac7maker(b):
   
         if ac7make_is_drum_part(pt):
           e_20 += struct.pack('<H', len(drums) + 0x8000)
-          drums.append(ac7make_drum_element(pt, el, b))
+          drums.append(ac7make_drum_element(pt, el, b, None))
         else:
           e_20 += struct.pack('<H', len(others) + 0x8000)
-          others.append(ac7make_other_element(pt, el, b))
+          others.append(ac7make_other_element(pt, el, b, None))
           
         e_21 += struct.pack('<H', len(mixers) + 0x8000)
         mixers.append(ac7make_mixer_element(pt, b))
@@ -595,12 +641,11 @@ if __name__=="__main__":
     # No output filename; send to standard out
     with open(sys.argv[1], "r") as f1:
       b = json.load(f1)
-    sys.stdout.write(ac7maker(b))
+    sys.stdout.write(str(ac7maker(b), sys.stdout.encoding))
   else:
     # Has an output filename. Write to it.
     with open(sys.argv[1], "r") as f1:
       b = json.load(f1)
     with open(sys.argv[2], "wb") as f2:
       f2.write(ac7maker(b))
-      b = json.load(f1)
 
