@@ -40,6 +40,7 @@ trk = b''
 
 trk += make_time(0) + b'\xb0\x07\x7f'    # Volume
 trk += make_time(0) + b'\xb0\x0a\x40'    # Pan
+trk += make_time(0) + b'\xb0\x48\x00'    # Release time to 0 -- this is specific to Edmonton SE White instrument
 trk += make_time(0) + b'\xb0\x00\x0F\x00\xb0\x20\x00\x00\xc0\x60'   # Set patch to EDM SE WHITE
 
 trk += make_time(0) + b'\x90\x48\x4e'  # Note on

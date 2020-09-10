@@ -263,6 +263,18 @@ def ac7make_track_data(tk):
 def ac7make_time_jump(t):
   return struct.pack('<3B', t%256, 0xFF, t//256)
 
+
+def ac7make_track_event(e):
+  if e['event'] == 'control_change':
+    if e['controller'] == 0x48:  # Release time
+      return struct.pack('<2B', 0xBD, e['value'])
+    # ... other controllers not done yet.
+
+  # If we get here, no recognised events. Return an empty string
+  return b''
+
+
+
 def ac7make_midi_to_ac7(trk, end_time):
   # Changes digested midi data into AC7 track data
   print("Got track of length {0}".format(len(trk)))
@@ -287,6 +299,17 @@ def ac7make_midi_to_ac7(trk, end_time):
         time_d = 0
       b += struct.pack('<3B', time_d, evt['note'], 0x00)
       latest_time = evt['absolute_time']
+    else:
+      d = ac7make_track_event(evt)
+      if len(d)==2:
+        time_d = round(4.0*(evt['absolute_time'] - latest_time))
+        if time_d > 255:
+          b += ac7make_time_jump(time_d)
+          b += b'\x00' + d
+        else:
+          b += struct.pack('<B', time_d) + d
+        latest_time = evt['absolute_time']
+      
   time_d = end_time - round(4.0*latest_time)
   if time_d > 255:
     b += ac7make_time_jump(time_d)
