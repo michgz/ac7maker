@@ -22,8 +22,8 @@
 			{
 				"part": 4,
 				"_comment": "Chord 1",
-				"patch": 96,
-				"bank_msb": 15,
+				"patch": 60,
+				"bank_msb": 65,
 				"reverb_send": 0
 			},
 			{
@@ -51,7 +51,7 @@
 			{
 				"element": 2,
 				"_comment": "Variation 1",
-				"var_35": [11,0,5,96,74,15]
+				"var_35": [11,0,5,127,127,0]
 			},
 			{
 				"element": 3,
