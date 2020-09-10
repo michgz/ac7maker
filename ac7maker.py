@@ -530,6 +530,9 @@ def ac7maker(b):
     el_00 += ac7make_element_atom(0x30, struct.pack('<8B', 0, 0, 0, 0, 0, 0, 0, 0))  # Delay send values
     el_00 += ac7make_element_atom(253, b'')  # Start of AiX-specific data (currently none)
     el_00 += ac7make_element_atom(254, b'')  # Start of CTX-specific data (currently none)
+    h = b["rhythm"]["elements"][el-1].get("var_35", [])
+    if len(h) == 6:
+      el_00 += ac7make_element_atom(0x35, struct.pack('<6B', h[0], h[1], h[2], h[3], h[4], h[5]))  # Tone control parameters
     el_00 += ac7make_element_atom(255, b'')  # End
     elements.append(el_00)
 
