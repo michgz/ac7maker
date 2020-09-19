@@ -43,8 +43,8 @@ trk += make_time(0) + b'\xb0\x0a\x40'    # Pan
 trk += make_time(0) + b'\xb0\x48\x00'    # Release time to 0 -- this is specific to Edmonton SE White instrument
 trk += make_time(0) + b'\xb0\x00\x0F\x00\xb0\x20\x00\x00\xc0\x60'   # Set patch to EDM SE WHITE
 
-trk += make_time(0) + b'\x90\x48\x4e'  # Note on
-trk += make_time(1440) + b'\x80\x48\x7f'  # Note off
+trk += make_time(0) + b'\x90\x30\x4e'  # Note on
+trk += make_time(1440) + b'\x80\x30\x7f'  # Note off
 trk += make_time(480) + b'\xff\x2f\x00'  # EOT
 
 trks.append(trk)
@@ -53,3 +53,36 @@ trks.append(trk)
 with open("midi-01.mid", "wb") as f1:
   f1.write(make_midi_from_tracks(trks))
 
+
+
+trks = []
+
+trk = b''
+trk += make_time(0) + b'\xff\x58\x04\x04\x02\x18\x08'   # Time signature
+trk += make_time(0) + b'\xff\x51\x03\x07\xa1\x20'   # Tempo to 120 bpm
+trk += make_time(1920) + b'\xff\x2f\x00'  # EOT
+
+trks.append(trk)
+
+
+trk = b''
+
+trk += make_time(0) + b'\xb0\x07\x7f'    # Volume
+trk += make_time(0) + b'\xb0\x0a\x40'    # Pan
+trk += make_time(0) + b'\xb0\x00\x78\x00\xb0\x20\x00\x00\xc0\x01'   # Set patch to STD KIT 2
+
+trk += make_time(0) + b'\x90\x28\x56'  # Note on
+trk += make_time(360) + b'\x80\x28\x7f'  # Note off
+trk += make_time(120) + b'\x90\x28\x4e'  # Note on
+trk += make_time(360) + b'\x80\x28\x7f'  # Note off
+trk += make_time(120) + b'\x90\x28\x53'  # Note on
+trk += make_time(360) + b'\x80\x28\x7f'  # Note off
+trk += make_time(120) + b'\x90\x28\x4c'  # Note on
+trk += make_time(360) + b'\x80\x28\x7f'  # Note off
+trk += make_time(120) + b'\xff\x2f\x00'  # EOT
+
+trks.append(trk)
+
+
+with open("midi-03.mid", "wb") as f1:
+  f1.write(make_midi_from_tracks(trks))

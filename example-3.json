@@ -1,0 +1,110 @@
+{
+	"name": "example-3",
+	"target_model": "CT-X3000",
+	"target_family": "CT-X",
+	"rhythm": {
+		"name": "Pyth123",
+		"volume": 127,
+		"parts_number": 8,
+		"parts": [
+			{
+				"part": 1,
+				"_comment": "Percussion"
+			},
+			{
+				"part": 2,
+				"_comment": "Drums"
+				"patch": 1,
+				"bank_msb": 120,
+				"reverb_send": 0
+			},
+			{
+				"part": 3,
+				"_comment": "Bass"
+			},
+			{
+				"part": 4,
+				"_comment": "Chord 1",
+			},
+			{
+				"part": 5,
+				"_comment": "Chord 2"
+			},
+			{
+				"part": 6,
+				"_comment": "Chord 3"
+			},
+			{
+				"part": 7,
+				"_comment": "Chord 4"
+			},
+			{
+				"part": 8,
+				"_comment": "Chord 5"
+			}
+		],
+		"elements": [
+			{
+				"element": 1,
+				"_comment": "Intro 1"
+			},
+			{
+				"element": 2,
+				"_comment": "Variation 1",
+				"var_33": [9,40,0,0,96,64,0]
+			},
+			{
+				"element": 3,
+				"_comment": "Variation 2"
+			},
+			{
+				"element": 4,
+				"_comment": "Fill 1"
+			},
+			{
+				"element": 5,
+				"_comment": "Fill 2"
+			},
+			{
+				"element": 6,
+				"_comment": "Ending 1"
+			},
+			{
+				"element": 7,
+				"_comment": "Intro 2 (unused)"
+			},
+			{
+				"element": 8,
+				"_comment": "Variation 3",
+				"omit": 1
+			},
+			{
+				"element": 9,
+				"_comment": "Variation 4",
+				"omit": 1
+			},
+			{
+				"element": 10,
+				"_comment": "Fill 3",
+				"omit": 1
+			},
+			{
+				"element": 11,
+				"_comment": "Fill 4",
+				"omit": 1
+			},
+			{
+				"element": 12,
+				"_comment": "Ending 2 (unused)"
+			}
+		],
+		"tracks": [
+			{
+				"part": 2,
+				"element": 2,
+				"source_file": "midi-03.mid",
+				"source_channel": 0
+			}
+		]
+	}
+}
