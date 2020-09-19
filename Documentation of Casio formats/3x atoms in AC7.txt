@@ -1,0 +1,208 @@
+Introduction
+============
+
+The following is a documentation of the AiX-specific (or possibly CTX-specific)
+atoms found in the ELMT blocks within an AC7 rhythm file. The atom types for
+these lie in the range 30h - 3Fh.
+
+This may not be a complete summary, it is just the ones that I've found so far.
+
+
+30h : Delay sends
+=================
+
+Location:           Before FDh atom
+Payload length:     8
+Usage:              Defines delay send values for each part.
+Atom structure:     30h     Atom type
+                    8       Payload length
+                    <byte>  Delay send for part 1. Possible values: 0 - 127
+                    <byte>  Delay send for part 2. Possible values: 0 - 127
+                    <byte>  Delay send for part 3. Possible values: 0 - 127
+                    <byte>  Delay send for part 4. Possible values: 0 - 127
+                    <byte>  Delay send for part 5. Possible values: 0 - 127
+                    <byte>  Delay send for part 6. Possible values: 0 - 127
+                    <byte>  Delay send for part 7. Possible values: 0 - 127
+                    <byte>  Delay send for part 8. Possible values: 0 - 127
+
+
+31h : Drum sound substitution
+=============================
+
+Location:           After FEh atom (multiple instances allowed)
+Payload length:     6
+Usage:              Substitutes an individual drum sound from a patch other than
+                    the one selected in the mixer. Both the patch containing the
+                    substituted sound and the selected patch for the part must
+                    be drum patches.
+Atom structure:     31h     Atom type
+                    6       Payload length
+                    <byte>  MIDI channel number of the part to apply the
+                            substitution to. Since it must have a drum patch
+                            selected, in practise it will only ever be value 8
+                            or 9 (i.e. part 1 or part 2).
+                    <byte>  MIDI note number to apply the subsitution to. Possible
+                            values 0 - 127.
+                    <byte>  "bank_msb" value for the patch which contains the
+                            substituted sound. Always 120.
+                    <byte>  Possibly an index. Usually 0.
+                    <byte>  "patch" value for the patch which contains the
+                            substituted sound. Possible values 0 - 127.
+                    <byte>  MIDI note number of the substituted sound. Possible
+                            values: 0 - 127
+
+
+32h : Drum sound effects
+========================
+
+Location:           After FEh atom (multiple instances allowed)
+Payload length:     4
+Usage:              Applies an effect to an individual drum sound. The effects
+                    are similar to those controlled by "MIDI CC" controllers,
+                    except applied to only one sound from the channel rather
+                    than the whole channel. The selected patch for the part must
+                    be a drum patch.
+Atom structure:     32h     Atom type
+                    4       Payload length
+                    <byte>  Effect to apply. Possible values 0 - 11. Some of the
+                            effects are:
+                                2   Fine tuning
+                                5   Attack time
+                                9   Volume
+                                10  Pan
+                                11  Expression
+                    <byte>  MIDI channel number of the part to apply the effect
+                            to. Since it must have a drum patch selected, in
+                            practise it will only ever be value 8 or 9 (i.e. part
+                            1 or part 2).
+                    <byte>  MIDI note number to apply the effect to. Possible
+                            values 0 - 127.
+                    <byte>  Value of the effect. Possible values 0 - 127.
+
+
+33h : Drum sound EQ
+===================
+
+Location:           After FEh atom (multiple instances allowed)
+Payload length:     7
+Usage:              Applies equalisation to an individual drum sound. The selected
+                    patch for the part must be a drum patch.
+Atom structure:     33h     Atom type
+                    7       Payload length
+                    <byte>  MIDI channel number of the part to apply the
+                            equalisation to. Since it must have a drum patch
+                            selected, in practise it will only ever be value 8
+                            or 9 (i.e. part 1 or part 2).
+                    <byte>  MIDI note number to apply the equalisation to.
+                            Possible values 0 - 127.
+                    <byte>  Possibly an index. Usually 0.
+                    <byte>  Specifies the EQ type. Some possible values:
+                                0   Low-pass filter
+                                2   High-pass filter
+                    <byte>  Parameter 1. Often frequency
+                    <byte>  Parameter 2. Often unused (set to 64)
+                    <byte>  Parameter 3. Often unused (set to 0)
+
+
+35h : Melody sound EQ
+=====================
+
+Location:           After FEh atom (multiple instances allowed)
+Payload length:     6
+Usage:              Applies equalisation to a melody (i.e. non-drum) part. The
+                    selected patch for the part must not be a drum patch.
+Atom structure:     35h     Atom type
+                    6       Payload length
+                    <byte>  MIDI channel number of the part to apply the
+                            equalisation to. Possible values 8 - 15.
+                    <byte>  Possibly an index. Usually 0.
+                    <byte>  Specifies the EQ type. Possible values 0 - 7. Some
+                            of the available types are:
+                                0   Bass boost
+                                1   Bass shelf filter
+                                2   Band pass filter
+                                5   Notch filter
+                                6   Notch filter
+                                7   Treble shelf filter
+                    <byte>  Parameter 1. Possible values 0 -127. Often frequency
+                            (see Note 1).
+                    <byte>  Parameter 2. Possible values 0 - 127. Often cut/boost
+                            (see Note 2).
+                    <byte>  Parameter 3. Possible values 0 - 15.
+
+Note 1: when Parameter 1 is used to represent frequency (e.g. roll-off frequency,
+center frequency, etc., depending on the type of EQ) then the specified value x
+is related to the frequency f in Hz by a power law relation:
+
+    x = 127 * (f / 10000Hz) ^ 3.14      [TODO: verify this!]
+
+Note 2: when Parameter 2 is used to represent cut/boost, then the relation is
+approximately as follows:
+
+    x = 0: cut -12.7dB
+    x = 64: no cut/boost
+    x = 127: boost +12.7dB
+
+
+36h : DSP chain definition
+==========================
+
+Adds/removes a DSP chain to a certain part. The payload can take one of three
+different forms:
+
+
+Location:           After FDh atom (multiple instances allowed)
+Payload length:     4
+Usage:              Clears the DSP chain for the channel, for example if the patch
+                    selected for the part has its own DSP definition. Possibly
+                    optional?
+Atom structure:     36h     Atom type
+                    4       Payload length
+                    <byte>  Always 0.
+                    <byte>  MIDI channel number of the part to remove the DSP
+                            chain from. Possible values 8 - 15.
+                    <byte>  Always 0.
+                    <byte>  Always 0.
+
+
+Location:           After FDh atom (multiple instances allowed)
+Payload length:     4
+Usage:              Adds an effect to a DSP chain.
+Atom structure:     36h     Atom type
+                    4       Payload length
+                    <byte>  Always 0.
+                    <byte>  MIDI channel number of the part to add the DSP effect
+                            to. Possible values 8 - 15.
+                    <byte>  Position in the DSP chain to add the effect to.
+                            Possible values 0 - 3.
+                    <byte>  Effect type. Possible values 1 - 31. The values used
+                            here are the same as used in the .TON tone definition
+                            files.
+
+
+Location:           After FDh atom (multiple instances allowed)
+Payload length:     6
+Usage:              Changes an effect parameter within a DSP chain.
+Atom structure:     36h     Atom type
+                    6       Payload length
+                    <byte>  Always 1.
+                    <byte>  MIDI channel number of the part to make the change
+                            to. Possible values 8 - 15.
+                    <byte>  Position in the DSP chain of the effect which is to
+                            be changed. Possible values 0 - 3.
+                    <byte>  Effect type of the effect which is to be changed.
+                            Possible values 1 - 31 (see above).
+                    <byte>  Number of the parameter to be changed. Possible
+                            values 0 - 13. This uses the same ordering as the
+                            parameter list given in consumer documentation,
+                            starting with 0 as the first parameter and ending
+                            with "WetLevel" and "DryLevel" (see Note 3).
+                    <byte>  Value of the parameter. Possible values 0 - 127.
+
+
+Note 3: the exception is Delay (effect type 19), where parameter number 0 has no
+effect (in consumer documentation, the first parameter is "Time"), and two extra
+parameters are added after "WetLevel" and "DryLevel":
+
+    Parameter 12: Time (100's). Possible values 0 - 10.
+    Parameter 13: Time (1's). Possible values 0 - 99.

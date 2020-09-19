@@ -1,0 +1,188 @@
+Note that a .TON file (as saved by CT-X keyboard) consists of a 32-byte header
+followed by a tone definition saved in bulk form. To get the offset of a parameter
+within the .TON file, add 32 to the "Offset in Bulk" value.
+
+
+Parameter       Offset in Bulk      Size (bits)     Meaning
+0               1A6h-1B2h           12 characters   Name
+
+
+================================================================================
+Parameters 1-20 (bulk offsets 0-81h) relate to Sound A, used for playing note-on
+events.
+
+Parameters 21-40 (bulk offsets 88h-12Fh) relate to Sound B, used for various
+other events depending on the specific tone.
+
+(Parameters here are given as offsets relative to 0 or 20. Offset in Bulk is given
+relative to 00h or 88h).
+
++1              +81h                7               Tone timbre type. Possible values:
+                                                        0   Melody
+                                                        2   Drum
+                                                        4   Piano
+                                                        6   Hex layer/"Versatile"
++2              +82h                14              Wavetable selector
++3              +84h                7               
++4              +85h                7               
++5              +86h                7               Velocity sense
++6 Block 0      +02h                8               
+   Block 1      +06h                8               
+   Block 2      +0Ah                8               
++7 Block 0      +00h-+01h           10              
+   Block 1      +04h-+05h           10              
+   Block 2      +08h-+09h           10              
++8              +1Ch                8               
++9              +1Dh                8               
++10 Block 0     +0Eh                8               
+    Block 1     +12h
+    Block 2     +16h                8               
++11 Block 0     +10h-+11h           10              
+    Block 1     +14h-+15h           10              
+    Block 2     +18h-+19h           10              
++12 Block 0     +2Ah                8               
+    Block 1     +2Eh                8               
+    Block 2     +32h                8               
++13 Block 0     +28h-+29h           10              
+    Block 1     +2Ch-+2Dh           10              
+    Block 2     +30h-+31h           10              
++14             +7Eh                7               Cutoff frequency
++15             +7Fh                7               Cutoff resonance
++16             +80h                7               
++17 Block 0     +46h                8               
+    Block 1     +4Ah                8               
+    Block 2     +4Eh                8               
+    Block 3     +52h                8               
+    Block 4     +56h                8               
+    Block 5     +5Ah                8               
+    Block 6     +5Eh                8               
++18 Block 0     +44h-+45h           10              
+    Block 1     +48h-+49h           10              
+    Block 2     +4Ch-+4Dh           10              
+    Block 3     +50h-+51H           10              
+    Block 4     +54h-+55h           10              
+    Block 5     +58h-+59h           10              
+    Block 6     +5Ch-+5Dh           10              
++19 Block 0     +62h                8               
+    Block 1     +66h                8               
+    Block 2     +6Ah                8               
+    Block 3     +6Eh                8               
+    Block 4     +72h                8               
+    Block 5     +76h                8               
+    Block 6     +7Ah                8               
++20 Block 0     +60h-+61h           10              
+    Block 1     +64h-+65h           10              Attack time
+    Block 2     +68h-+69h           10              
+    Block 3     +6Ch-+6DH           10              
+    Block 4     +70h-+71h           10              
+    Block 5     +74h-+75h           10              Release time
+    Block 6     +78h-+79h           10              
+================================================================================
+
+continuing...
+
+41              1A5h (bit 7)        1               =1 if Sound B used for note-off
+42              1A5h (bit 6)        1               
+43              1A5h (bits 1-3)     3               Octave shift
+44              1A5h (bit 0)        1               Enable DSP
+45              1B6h                7               Volume
+46              1B7h                7               
+47              1B8h                7               
+48              1B9h                7               
+49              1BAh                7               
+50              1BBh                7               
+51              1BCh                7               
+52              1BDh                7               
+53              1BEh                7               
+54              1BFh                7               
+55              1A4h (bit 7??)      1               
+56              110h                7               Chorus send
+57              111h                7               Reverb send
+58              112h                7               Delay send
+59              124h (bits 4-7)     4               Vibrato type
+60              113h                7               Vibrato rate
+61              114h                7               Vibrato delay
+62              115h                7               
+63              116h                7               
+64              117h                7               
+
+65              118h                7               
+66              124h (bits 0-3)     4               
+
+================================================================================
+Parameters 67-70 (offsets 119h-11Ch)
+Parameters 71-74 (offsets 11Dh-120h)
+
++0              +0                  7               
++1              +1                  7               
++2              +2                  7               
++3              +3                  7               
+================================================================================
+
+continuing...
+
+75              121h                7               
+76              122h                7               
+77              123h                7               
+78              1C0h                7               
+79              1C1h                7               
+80              1A4h (bit 3)        1               
+81              1A4h (bit 7??)      1               
+82              1A4h (bit 1)        1               
+83              1A4h (bit 0)        1               
+84              126h-135h           16 characters   DSP chain name
+85 Block 0      136h                8               DSP effect 1
+   Block 1      148h                8               DSP effect 2
+   Block 2      15Ah                8               DSP effect 3
+   Block 3      16Ch                8               DSP effect 4
+86 Block 0      137h                7               
+   Block 1      149h                7               
+   Block 2      15Bh                7               
+   Block 3      16Dh                7               
+87 Block 0      138h-147h           16 bytes        DSP parameters 1
+   Block 1      14Ah-159h           16 bytes        DSP parameters 2
+   Block 2      15Ch-16Bh           16 bytes        DSP parameters 3
+   Block 3      16Eh-17Dh           16 bytes        DSP parameters 4
+88              17Fh (bit 7)        1               
+89              17Fh (bit 3)        1               
+90              17Fh (bit 2)        1               
+91              17Fh (bit ?)        1               
+92              17Fh (bit 5)        1               
+93              180h                7               
+94              17Eh (bit 4)        1               
+95              17Eh (bit 3)        1               
+96              17Eh (bit 2)        1               
+97              181h                7               
+98              182h                7               
+99              17Eh (bit 0)        1               
+100             184h-186h           24              DSP chain number (??)
+101             188h                8               
+102             18Dh                7               
+103             18Eh                7               
+104             18Fh                7               
+105             190h-193h           32              
+106             194h                7               Portamento time
+107                                 7               
+108
+109             196h (bit 0)        1               
+110             197h (bit 0)        1               
+111             198h (bit 0)        1               
+112             199h (bit 0)        1               
+113             19Ah (bit 0)        1               
+114             19Ah (bit 4)        1               =1 if monophonic
+115             19Ah (bit 5)        1               =1 if Sound B used for harmony notes
+116
+117 Block 0     
+    Block 1     
+118 Block 0     
+    Block 1     
+119 Block 0     
+    Block 1     
+120 Block 0     
+    Block 1     
+121 Block 0     
+    Block 1     
+122 Block 0     
+    Block 1     
+123 Block 0     
+    Block 1     
