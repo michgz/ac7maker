@@ -130,29 +130,59 @@ def ac7make_element_has_other(b, el):
 
 
 
+def ac7make_midi_to_ac7(trk, end_time):
+  # Changes digested midi data into AC7 track data
+  print("Got track of length {0}".format(len(trk)))
+  print(trk)
+  latest_time = 0
+  b = b''
+  for evt in trk:
+    if evt['event'] == 'note_on':
+      v = evt['velocity']
+      if v == 0:
+        v = 1  # AC7 doesn't allow on velocity of 0
+      time_d = round(4.0*(evt['absolute_time'] - latest_time))
+      if time_d > 255:
+        b += ac7make_time_jump(time_d)
+        time_d = 0
+      b += struct.pack('<3B', time_d, evt['note'], v)
+      latest_time = evt['absolute_time']
+    elif evt['event'] == 'note_off':
+      time_d = round(4.0*(evt['absolute_time'] - latest_time))
+      if time_d > 255:
+        b += ac7make_time_jump(time_d)
+        time_d = 0
+      b += struct.pack('<3B', time_d, evt['note'], 0x00)
+      latest_time = evt['absolute_time']
+    else:
+      d = ac7make_track_event(evt)
+      if len(d)==2:
+        time_d = round(4.0*(evt['absolute_time'] - latest_time))
+        if time_d > 255:
+          b += ac7make_time_jump(time_d)
+          b += b'\x00' + d
+        else:
+          b += struct.pack('<B', time_d) + d
+        latest_time = evt['absolute_time']
+      
+  time_d = end_time - round(4.0*latest_time)
+  if time_d > 255:
+    b += ac7make_time_jump(time_d)
+    time_d = 0
+  b += struct.pack('<3B', time_d, 0xFC, 0x00) # End-of-track indicator
+  return b
+
+
 def ac7make_drum_element(pt, el, b, midi_trks):
-  for track in b["rhythm"]["tracks"]:
-    if track["part"]==1 or track["part"]==2:
-      if track["part"]==(pt+1) and track["element"]==(el+1):
-        #midi_file = mido.MidiFile(track["source_file"])
-        g = b'\x00\xe5\x00'  # "Start user data" indicator
-        #for msg in midi_file:
-        #  if msg.type == 'note_on' or msg.type == 'note_off':
-        #    if msg.channel == track["source_channel"]:
-        #      g += ac7make_mid2casio(msg)
-        g += b'\x00\x24\x4b\x0b\x24\x00\x57\x28\x3c\x0f\x28\x00\x53\x24\x48\x15\x24\x00\x44\x28\x40\x0c\x28\x00\x57\xfc\x00'
-        #return  g + b'\x00\xfc\x00'
-        return g
-        
-  #if el == 6 or el == 11:
-  #  # For some reason, these tracks take an extra E5
-  #  return b'\x00\xe5\x00\x80\xff\x04\x00\xfc\x00'
-  
-  # If we get down to here, no matching input has been found. Just return
-  # an empty track that has only two elements:
-  # 80 FF 04   -- wait whole length
-  # 00 FC 00   -- end of track  
-  return b'\x80\xff\x04\x00\xfc\x00'
+  g1 = b''
+  if midi_trks != None:
+    g1 += b'\x00\xe5\x00'  # Optional. This makes the track editable, probably a good thing..
+    total_midi_clks = 1*4*96   # 96 * number of quarter notes
+    g1 += ac7make_midi_to_ac7(midi_trks[1], total_midi_clks)  # First non-system track in the array
+  else:
+    g1 += b'\x80\xff\x04\x00\xfc\x00'
+  return g1
+
 
 def ac7make_drum(drums, start_addr):
   g1 = b'DRUM'
@@ -272,51 +302,6 @@ def ac7make_track_event(e):
 
   # If we get here, no recognised events. Return an empty string
   return b''
-
-
-
-def ac7make_midi_to_ac7(trk, end_time):
-  # Changes digested midi data into AC7 track data
-  print("Got track of length {0}".format(len(trk)))
-  print(trk)
-  latest_time = 0
-  b = b''
-  for evt in trk:
-    if evt['event'] == 'note_on':
-      v = evt['velocity']
-      if v == 0:
-        v = 1  # AC7 doesn't allow on velocity of 0
-      time_d = round(4.0*(evt['absolute_time'] - latest_time))
-      if time_d > 255:
-        b += ac7make_time_jump(time_d)
-        time_d = 0
-      b += struct.pack('<3B', time_d, evt['note'], v)
-      latest_time = evt['absolute_time']
-    elif evt['event'] == 'note_off':
-      time_d = round(4.0*(evt['absolute_time'] - latest_time))
-      if time_d > 255:
-        b += ac7make_time_jump(time_d)
-        time_d = 0
-      b += struct.pack('<3B', time_d, evt['note'], 0x00)
-      latest_time = evt['absolute_time']
-    else:
-      d = ac7make_track_event(evt)
-      if len(d)==2:
-        time_d = round(4.0*(evt['absolute_time'] - latest_time))
-        if time_d > 255:
-          b += ac7make_time_jump(time_d)
-          b += b'\x00' + d
-        else:
-          b += struct.pack('<B', time_d) + d
-        latest_time = evt['absolute_time']
-      
-  time_d = end_time - round(4.0*latest_time)
-  if time_d > 255:
-    b += ac7make_time_jump(time_d)
-    time_d = 0
-  b += struct.pack('<3B', time_d, 0xFC, 0x00) # End-of-track indicator
-  return b
-
 
 
 def ac7make_other_element(pt, el, b, midi_trks):
@@ -530,6 +515,11 @@ def ac7maker(b):
     el_00 += ac7make_element_atom(0x30, struct.pack('<8B', 0, 0, 0, 0, 0, 0, 0, 0))  # Delay send values
     el_00 += ac7make_element_atom(253, b'')  # Start of AiX-specific data (currently none)
     el_00 += ac7make_element_atom(254, b'')  # Start of CTX-specific data (currently none)
+    # Add any 33 atoms
+    h = b["rhythm"]["elements"][el-1].get("var_33", [])
+    if len(h) == 7:
+      el_00 += ac7make_element_atom(0x33, struct.pack('<7B', h[0], h[1], h[2], h[3], h[4], h[5], h[6]))  # ?? What does this do?
+    # Add any 35 atoms
     h = b["rhythm"]["elements"][el-1].get("var_35", [])
     if len(h) == 6:
       el_00 += ac7make_element_atom(0x35, struct.pack('<6B', h[0], h[1], h[2], h[3], h[4], h[5]))  # Tone control parameters
