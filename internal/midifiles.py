@@ -29,6 +29,9 @@ def consume_midi_event(b, pos):
       # may need to adjust to eighth notes.
       e = {'event':'tempo_change', 'absolute_time':0, 'value':tempo}
       return (e, p+3+n)
+    elif b[p+1]==0x54 and n==4:
+      e = {'event':'time_signature', 'absolute_time':0, 'numerator':b[p+3], 'log_denominator':b[p+4]}
+      return (e, p+3+n)
     elif b[p+1]==0x2F and n==0:
       e = {'event':'track_end', 'absolute_time':0}
       return (e, p+3+n)

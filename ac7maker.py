@@ -173,11 +173,10 @@ def ac7make_midi_to_ac7(trk, end_time):
   return b
 
 
-def ac7make_drum_element(pt, el, b, midi_trks):
+def ac7make_drum_element(pt, el, b, total_midi_clks, midi_trks):
   g1 = b''
   if midi_trks != None:
     g1 += b'\x00\xe5\x00'  # Optional. This makes the track editable, probably a good thing..
-    total_midi_clks = 1*4*96   # 96 * number of quarter notes
     g1 += ac7make_midi_to_ac7(midi_trks[1], total_midi_clks)  # First non-system track in the array
   else:
     g1 += b'\x80\xff\x04\x00\xfc\x00'
@@ -304,7 +303,7 @@ def ac7make_track_event(e):
   return b''
 
 
-def ac7make_other_element(pt, el, b, midi_trks):
+def ac7make_other_element(pt, el, b, total_midi_clks, midi_trks):
   # A default track that has three elements:
   # 02 70 00   -- something to do with break points, split tables, etc.
   # 80 FF 04   -- wait whole length
@@ -329,7 +328,6 @@ def ac7make_other_element(pt, el, b, midi_trks):
       g1 = b'\x02\x70\x00'
   if midi_trks != None:
     g1 += b'\x00\xe5\x00'  # Optional. This makes the track editable, probably a good thing..
-    total_midi_clks = 1*4*96   # 96 * number of quarter notes
     g1 += ac7make_midi_to_ac7(midi_trks[1], total_midi_clks)  # First non-system track in the array
   else:
     g1 += b'\x80\xff\x04\x00\xfc\x00'
@@ -442,6 +440,8 @@ def ac7make_track_element(pt):
 def ac7make_is_drum_part(pt):
   return pt<=2
 
+def ac7make_dsp_effect_parameter_count(ef):
+  return 16
 
 def ac7maker(b):
   
@@ -451,6 +451,23 @@ def ac7maker(b):
   others = []
   
   for el in range(1,13):
+    # First parse: find a time signature, tempo and measure count for the element
+    time_sig = "4/4"
+    tempo = 120
+    quarter_notes = 4 # 1 measure for 4/4
+    max_absolute_time = 0
+    for trk in b["rhythm"]["tracks"]:
+      if trk.get("element", -1)==el:
+        with open(trk["source_file"], "rb") as f3:
+          bm = internal.midifiles.midifile_read(f3.read())
+        print(bm)
+        for mtrk in bm:
+          for evt in mtrk:
+            if evt["absolute_time"] > max_absolute_time:
+              max_absolute_time = evt["absolute_time"]
+    if max_absolute_time == 0:  # (if not, probably have no tracks associated)
+      max_absolute_time = 96*4.0
+      
     num_trk_el = 0
     e_20 = b''
     e_21 = b''
@@ -471,10 +488,10 @@ def ac7maker(b):
     
           if ac7make_is_drum_part(pt):
             e_20 += struct.pack('<H', len(drums) + 0x8000)
-            drums.append(ac7make_drum_element(pt, el, b, bm))
+            drums.append(ac7make_drum_element(pt, el, b, 20*round(max_absolute_time), bm))
           else:
             e_20 += struct.pack('<H', len(others) + 0x8000)
-            others.append(ac7make_other_element(pt, el, b, bm))
+            others.append(ac7make_other_element(pt, el, b, 20*round(max_absolute_time), bm))
           
           if num_trk == 0:
             # This is the first track for this element/part combo
@@ -492,10 +509,10 @@ def ac7maker(b):
   
         if ac7make_is_drum_part(pt):
           e_20 += struct.pack('<H', len(drums) + 0x8000)
-          drums.append(ac7make_drum_element(pt, el, b, None))
+          drums.append(ac7make_drum_element(pt, el, b, 20*round(max_absolute_time), None))
         else:
           e_20 += struct.pack('<H', len(others) + 0x8000)
-          others.append(ac7make_other_element(pt, el, b, None))
+          others.append(ac7make_other_element(pt, el, b, 20*round(max_absolute_time), None))
           
         e_21 += struct.pack('<H', len(mixers) + 0x8000)
         mixers.append(ac7make_mixer_element(pt, b))
@@ -507,14 +524,36 @@ def ac7maker(b):
     # the element bytestring
     el_00 = b''
     el_00 += ac7make_element_atom(1, b'\x22')  # Time signature
-    el_00 += ac7make_element_atom(6, b'\x01')  # Number of measures
+    el_00 += ac7make_element_atom(6, struct.pack('<B', 2))  # Number of measures   <----- Note currently hard-coded!!
     el_00 += ac7make_element_atom(7, struct.pack('<B', num_trk_el))  # Total number of tracks
     el_00 += ac7make_element_atom(0x20, e_20)
     el_00 += ac7make_element_atom(0x21, e_21)
     el_00 += ac7make_element_atom(0x22, e_22)
     el_00 += ac7make_element_atom(0x30, struct.pack('<8B', 0, 0, 0, 0, 0, 0, 0, 0))  # Delay send values
-    el_00 += ac7make_element_atom(253, b'')  # Start of AiX-specific data (currently none)
-    el_00 += ac7make_element_atom(254, b'')  # Start of CTX-specific data (currently none)
+    el_00 += ac7make_element_atom(253, b'')  # Start of AiX-specific data
+    # Add any 36 atoms
+    for pp in b["rhythm"]["parts"]:
+      tf = pp.get("tone_file", "")
+      pn = pp["part"]
+      tn = b''
+      if tf != "":
+        with open("examples/" + tf, "rb") as f11:
+          tn = f11.read()
+          print("Length of ton = {0}".format(len(tn)))
+        if len(tn) >= 456:
+          # First add a "clear DSP chain" instruction
+          el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, 0, 0))
+          for j in range(1):  # Number of effects to include <---- Note: currently hard-coded!!
+            dsp_ef = tn[0x156 + j*0x12]
+            if dsp_ef != 0 and dsp_ef <= 0x1f:
+              # Next define the DSP effect
+              el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, j, dsp_ef))
+              # Now add all the parameters
+              for i in range(ac7make_dsp_effect_parameter_count(dsp_ef)):
+                el_00 += ac7make_element_atom(0x36, struct.pack('<6B', 1, pn - 1 + 8, j, dsp_ef, i, tn[0x156 + j*0x12 + 2 +i]))
+    el_00 += ac7make_element_atom(254, b'')  # Start of CTX-specific data
+    # Add "3x"-style atoms. This is very rudimentary so far, and only allows 1 "33" and 1 "35" atom per
+    # element.
     # Add any 33 atoms
     h = b["rhythm"]["elements"][el-1].get("var_33", [])
     if len(h) == 7:
