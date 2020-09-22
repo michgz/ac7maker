@@ -39,15 +39,15 @@ Atom structure:     31h     Atom type
                     6       Payload length
                     <byte>  MIDI channel number of the part to apply the
                             substitution to. Since it must have a drum patch
-                            selected, in practise it will only ever be value 8
-                            or 9 (i.e. part 1 or part 2).
+                            selected, it will usually be value 8 or 9 (i.e.
+                            Part 1 or Part 2).
                     <byte>  MIDI note number to apply the subsitution to. Possible
                             values 0 - 127.
                     <byte>  "bank_msb" value for the patch which contains the
                             substituted sound. Always 120.
                     <byte>  Possibly an index. Usually 0.
                     <byte>  "patch" value for the patch which contains the
-                            substituted sound. Possible values 0 - 127.
+                            substituted sound. Possible values 0 - 75.
                     <byte>  MIDI note number of the substituted sound. Possible
                             values: 0 - 127
 
@@ -72,9 +72,8 @@ Atom structure:     32h     Atom type
                                 10  Pan
                                 11  Expression
                     <byte>  MIDI channel number of the part to apply the effect
-                            to. Since it must have a drum patch selected, in
-                            practise it will only ever be value 8 or 9 (i.e. part
-                            1 or part 2).
+                            to. Since it must have a drum patch selected, it will
+                            usually be value 8 or 9 (i.e. Part 1 or Part 2).
                     <byte>  MIDI note number to apply the effect to. Possible
                             values 0 - 127.
                     <byte>  Value of the effect. Possible values 0 - 127.
@@ -91,8 +90,8 @@ Atom structure:     33h     Atom type
                     7       Payload length
                     <byte>  MIDI channel number of the part to apply the
                             equalisation to. Since it must have a drum patch
-                            selected, in practise it will only ever be value 8
-                            or 9 (i.e. part 1 or part 2).
+                            selected, it will usually be value 8 or 9 (i.e. Part
+                            1 or Part 2).
                     <byte>  MIDI note number to apply the equalisation to.
                             Possible values 0 - 127.
                     <byte>  Possibly an index. Usually 0.
@@ -114,7 +113,7 @@ Usage:              Applies equalisation to a melody (i.e. non-drum) part. The
 Atom structure:     35h     Atom type
                     6       Payload length
                     <byte>  MIDI channel number of the part to apply the
-                            equalisation to. Possible values 8 - 15.
+                            equalisation to. Possible values 10 - 15.
                     <byte>  Possibly an index. Usually 0.
                     <byte>  Specifies the EQ type. Possible values 0 - 7. Some
                             of the available types are:

@@ -8,7 +8,7 @@ Parameter       Offset in Bulk      Size (bits)     Meaning
 
 
 ================================================================================
-Parameters 1-20 (bulk offsets 0-81h) relate to Sound A, used for playing note-on
+Parameters 1-20 (bulk offsets 0-87h) relate to Sound A, used for playing note-on
 events.
 
 Parameters 21-40 (bulk offsets 88h-12Fh) relate to Sound B, used for various
@@ -35,7 +35,7 @@ relative to 00h or 88h).
 +8              +1Ch                8               
 +9              +1Dh                8               
 +10 Block 0     +0Eh                8               
-    Block 1     +12h
+    Block 1     +12h                8               
     Block 2     +16h                8               
 +11 Block 0     +10h-+11h           10              
     Block 1     +14h-+15h           10              
@@ -95,7 +95,7 @@ continuing...
 52              1BDh                7               
 53              1BEh                7               
 54              1BFh                7               
-55              1A4h (bit 7??)      1               
+55              1A4h (bit 7)        1               
 56              110h                7               Chorus send
 57              111h                7               Reverb send
 58              112h                7               Delay send
@@ -105,7 +105,6 @@ continuing...
 62              115h                7               
 63              116h                7               
 64              117h                7               
-
 65              118h                7               
 66              124h (bits 0-3)     4               
 
@@ -127,7 +126,7 @@ continuing...
 78              1C0h                7               
 79              1C1h                7               
 80              1A4h (bit 3)        1               
-81              1A4h (bit 7??)      1               
+81              1A4h (bit 2)        1               [Read-only]
 82              1A4h (bit 1)        1               
 83              1A4h (bit 0)        1               
 84              126h-135h           16 characters   DSP chain name
@@ -146,7 +145,7 @@ continuing...
 88              17Fh (bit 7)        1               
 89              17Fh (bit 3)        1               
 90              17Fh (bit 2)        1               
-91              17Fh (bit ?)        1               
+91              17Fh (bit 1)        1               
 92              17Fh (bit 5)        1               
 93              180h                7               
 94              17Eh (bit 4)        1               
@@ -155,15 +154,15 @@ continuing...
 97              181h                7               
 98              182h                7               
 99              17Eh (bit 0)        1               
-100             184h-186h           24              DSP chain number (??)
-101             188h                8               
-102             18Dh                7               
-103             18Eh                7               
-104             18Fh                7               
-105             190h-193h           32              
-106             194h                7               Portamento time
-107                                 7               
-108
+100             190h-193h           32              DSP chain number
+101             188h                32              [Reads back as 32 bits, but only 1 bit can be written]
+102             18Ch                8               [Reads back as 8 bits, but only 1 bit can be written]
+103             18Dh                7               
+104             18Eh                7               
+105             18Fh                7               
+106             190h-193h           32              
+107             194h                7               Portamento time
+108             195h                7               [Maximum value 6]
 109             196h (bit 0)        1               
 110             197h (bit 0)        1               
 111             198h (bit 0)        1               
@@ -171,18 +170,16 @@ continuing...
 113             19Ah (bit 0)        1               
 114             19Ah (bit 4)        1               =1 if monophonic
 115             19Ah (bit 5)        1               =1 if Sound B used for harmony notes
-116
-117 Block 0     
-    Block 1     
-118 Block 0     
-    Block 1     
-119 Block 0     
-    Block 1     
-120 Block 0     
-    Block 1     
-121 Block 0     
-    Block 1     
-122 Block 0     
-    Block 1     
-123 Block 0     
-    Block 1     
+116             19Ah (bit 6)        1               
+117 Block 0     19Ch (bits 0-3)     4               
+    Block 1     1A0h (bits 0-3)     4               
+118 Block 0     19Ch (bits 4-7)     4               
+    Block 1     1A0h (bits 4-7)     4               
+119 Block 0     19Dh (bits 2-5)     4               
+    Block 1     1A1h (bits 2-5)     4               
+120 Block 0     19Eh (bits 4-7)     4               
+    Block 1     1A2h (bits 4-7)     4               
+121 Block 0     19Eh (bit 3)        1               
+    Block 1     1A3h (bit 3)        1               
+122 Block 0     19Eh (bits 0-2)     3               
+    Block 1     1A3h (bits 0-2)     3               
