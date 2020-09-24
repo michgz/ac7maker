@@ -1,0 +1,100 @@
+
+
+
+
+Category    Parameters      Mem=0       Mem=1       Mem=2       Mem=3    Bulk size
+                                                                          (bytes)
+
+
+   0       0-9                                                    0         0x294          Model/Serial number
+
+   2      0-5                              0            0           0        0xE08          Performance parameters
+
+   3     0-122               0-819        0-99        0-9           0-47      0x1C8          Tones
+   
+   4     0-29                 0-4                                            0x1826
+   
+   5    0-27                0-899          0                                 0x46
+
+   6     0-60                0-38         0                       0-4         Big
+
+   7     0-34                0-26         0                                 0x4020
+
+   9                                                              0-29      0x224
+
+   10    0-34                0-29        0 only                              0xD6
+   
+   11    0-11                   0          0                        0        0x10
+   
+Category    Parameters      Mem=0       Mem=1       Mem=2       Mem=3    Bulk size
+                                                                          (bytes)
+   
+
+   12         0-56             A          0-1                                 0x294
+   
+   13                       0-1299       0                                   0x96       "Instruments" (i.e. individual drum sounds)
+
+   14         0-20              0-199         0            0                     0-3549 (Mem=4)   0xB4
+
+   15         0-1               0-199          0           0                     0-3549 (Mem=4)    0x8
+
+   16         0-7          0-99                                 0-7         0x5E        DSP chain presets  [Parameter 1 = text name]
+   
+   17         0-37           0 only                                           0xC56
+
+   18         0-1             0-16                               0            0x34      Scale tunings [12 blocks, corresponding to all semitones in octave]
+
+   19         0               0-31                               0           0x580     [8x blocks of 88 16-bit values]
+
+
+Category    Parameters      Mem=0       Mem=1       Mem=2       Mem=3
+
+   20         0 only         0-3                                0 only      0x200
+
+   21        0 only          0-7                                0-3         0x80         Appears to be a curve (maybe touch setting?)
+
+   22        0 only          0-7                                0 only      0xB0         Appears to be a curve
+
+   23         0-4                                                0-7        0x160
+
+
+Category    Parameters      Mem=0       Mem=1       Mem=2       Mem=3    Bulk size
+                                                                          (bytes)
+
+
+   30          0-2                       0-49                              >0x800       User rhythms
+
+
+   33                                                             0-9       Highly variable -- device status or similar
+
+   34          0-2                       0-99                                0x01 (!)      [Appears to be arranged as Parameter 1=data pointer, Parameter 2=data size]
+  
+   35          0-2                       0-999                               >0x122     Phrase sets
+
+   36          0-2                       0-9                                  Big!     Relates to user-recorded songs [Parameter 0 = text "No Title"]
+
+   37          0-2                       0-9                                  Big      Relates to user-recorded songs [Parameter 0 = text "No Title"]
+
+   38          0-2                       0                                    Big      Relates to user-recorded songs [Parameter 0 = text "No Title"]
+
+Category    Parameters      Mem=0       Mem=1       Mem=2       Mem=3    Bulk size
+                                                                          (bytes)
+
+   40         0-1                                                0 only     0x181
+
+   42        0-81                                    0 only      0 only     0x54
+
+   45        0-2                        0-127                               0x1C2       Registrations
+
+   48         0-20        0 only                                 0 only     0x70C
+
+   64         0-1                                                0 only     0x2C        [All zeros]
+
+   65        0 only                                              0 only     0x800       [Appears to be 512x 20-bit signed integers -- possibly a filter characteristic?]
+   
+   
+
+0 = only possible value is 0.
+0-nn = all values from 0 to nn are possible.
+A = any value works
+
