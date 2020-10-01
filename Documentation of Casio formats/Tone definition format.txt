@@ -171,13 +171,13 @@ continuing...
 114             19Ah (bit 4)        1               =1 if monophonic
 115             19Ah (bit 5)        1               =1 if Sound B used for harmony notes
 116             19Ah (bit 6)        1               
-117 Block 0     19Ch (bits 0-3)     4               
-    Block 1     1A0h (bits 0-3)     4               
-118 Block 0     19Ch (bits 4-7)     4               
-    Block 1     1A0h (bits 4-7)     4               
-119 Block 0     19Dh (bits 2-5)     4               
-    Block 1     1A1h (bits 2-5)     4               
-120 Block 0     19Eh (bits 4-7)     4               
+117 Block 0     19Ch (bits 0-3)     4               [Maximum value 8]        Filter type
+    Block 1     1A0h (bits 0-3)     4               [Maximum value 8]
+118 Block 0     19Ch (bits 4-7) + 19Dh (bits 0-1) 6 [Maximum write value 22] Filter parameter 1
+    Block 1     1A0h (bits 4-7) + 1A1h (bits 0-1) 6 [Maximum write value 22]
+119 Block 0     19Dh (bits 2-7)     6               [Maximum write value 24] Filter parameter 2
+    Block 1     1A1h (bits 2-7)     6               [Maximum write value 24]
+120 Block 0     19Eh (bits 4-7)     4                                        Filter parameter 3
     Block 1     1A2h (bits 4-7)     4               
 121 Block 0     19Eh (bit 3)        1               
     Block 1     1A3h (bit 3)        1               

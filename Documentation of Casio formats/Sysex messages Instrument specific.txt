@@ -5,21 +5,21 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
 
    0           0-9                                                0                       0x294           Model/Serial number
 
-   2           0-5                        0            0          0                       0xE08           Performance parameters
+   2           0-5                        0            0          0                       0xE08           Performance parameters (incl. mixer)
 
    3          0-122         0-819        0-99         0-9        0-47                     0x1C8           Tones
 
-   4          0-29           0-4                                                          0x1826
+   4          0-29           0-4                                                          0x1826          [PSets 3&4 are empty]
 
-   5          0-27          0-899         0                                                0x46
+   5          0-27          0-899         0                                                0x46           Melody wavetable decoder
 
-   6          0-60           0-38         0                      0-4                       Big!
+   6          0-60           0-38         0                      0-4                      0x5718          Drum wavetable decoder
 
-   7          0-34           0-26         0                                               0x4020
+   7          0-34           0-26         0                                               0x4020          Piano sounds
 
-   9          0-68                                              0-29                      0x224
+   9          0-68                                              0-29                      0x224           [Always all 0's?]
 
-   10         0-34           0-29         0                                                0xD6
+   10         0-34           0-29         0                                                0xD6           Hex-layer/Versatile wavetable decoder
 
    11         0-11             0          0                       0                        0x10
 
@@ -42,11 +42,11 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
 
    18         0-1            0-16                                 0                        0x34           Scale tunings [12 blocks, corresponding to all semitones in octave]
 
-   19          0             0-31                                 0                        0x580          [8x blocks of 88 16-bit values]
+   19          0             0-31                                 0                        0x580          [8x blocks of 88 16-bit values] [Most are boring. 3 & 9 are most interesting]
 
-   20          0             0-3                                  0                        0x200
+   20          0             0-3                                  0                        0x200          [0,1,2 are identical]
 
-   21          0             0-7                                 0-3                       0x80           Appears to be a curve (maybe touch sensitivity?)
+   21          0             0-3                                 0-3                       0x80           Appears to be a curve (maybe touch sensitivity?)
 
 
 Category    Parameters        +-------------- Parameter sets -----------------+         Bulk size         Meaning

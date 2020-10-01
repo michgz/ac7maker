@@ -1,0 +1,72 @@
+Category 6 contains drum wavetable decoder. This decodes MIDI notes & velocities
+to sounds.
+
+Memory 0 is the built-in drum kits (plus two unused ones).
+Memory 1 supports 1 parameter set. It seems to be never used.
+Memory 3 supports 5 parameter sets. They are used as follows:
+    0 Current Upper 1 drum kit
+    1 Current Upper 2 drum kit
+    2 Current Lower 1 drum kit
+    3 Current Lower 2 drum kit
+    4 Seems never used
+
+
+Rhythms can also use modified drum kits (with per-sound filtering, sound substitutions
+etc.). I haven't found where those are stored.
+
+
+
+HBR
+---
+
+Repeating blocks of 174 (0xAE) bytes. The block repeats 128 times, corresponding
+to the 128 MIDI notes.
+
+
+Parameter-based
+---------------
+
+The same information is stored in parameters 0-60. Blocks are assigned as follows:
+
+
+All parameters: indexed by Block0 taking values 0-127, corresponding to the 128
+                    MIDI notes.
+                    
+                    
+Parameters 16-17: indexed by Block1 taking values 0-2.
+Parameters 29-34: indexed by Block1 taking values 0-15, corresponding to up to
+                    16 different sounds that can be performed from this note.
+                    Multiple notes can be used to achieve stereo and/or velocity
+                    layering.
+Parameters 35-40: indexed by Block1 taking values 0-1, corresponding to up to 2
+                    EQ filters that can be assigned to the note.
+All other parameters: not indexed by Block1.
+
+
+Parameter lengths: all 1 (i.e. up to 12 bits. Most are 7- or 8-bit values)
+
+
+Some parameter meanings:
+
+6:  overall volume
+9:  overall volume
+12: reverb send
+16-17: pitch-shifting portamento
+
+The following are per-sound parameters:
+--
+29: index into wavetable
+30: minimum MIDI velocity that results in this sound
+31: maximum MIDI velocity that results in this sound
+32: volume (maximum value 0x80)
+33: balance/pan (0-0x7F)
+35-40: EQ filtering. Same as Tone (category 3) parameters 117-122.
+
+
+
+Secret kits
+-----------
+
+Memory 0 parameter sets 37 & 38 aren't assigned to any tones. 37 is just a voice
+counting "One" through "Five" in English & Japanese. 38 is very similar to StdKit1
+(almost all the same sounds in the central part of the keyboard).
