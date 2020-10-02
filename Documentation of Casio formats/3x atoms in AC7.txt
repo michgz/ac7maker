@@ -143,6 +143,69 @@ approximately as follows:
     x = 127: boost +12.7dB
 
 
+The effect of this atom can be seen by reading out Category 2 Memory 3 ("performance
+parameters") in Bulk and observing locations 0xCB0-0xCEF. There is a correspondence
+with Category 3 Bulk readings which can be related back to Category 3 (Tone)
+parameters as follows:
+
+0x35 atom Byte 3  |  Tone parameter
+(Filter type)     |    117
+------------------+-----------------
+  no 0x35 atoms   |      0
+      0           |      1
+      1           |      4
+      2           |      2
+      3           |      5
+      4           |      3
+      5           |      6
+      6           |      7
+      7           |      8
+
+
+0x35 atom Byte 4  |  Tone parameter
+(Parameter 1)     |    118
+------------------+-----------------
+     0-22         |      0
+     23-26        |      1
+     27-30        |      2
+     31-          |      3
+        (some omitted)
+        -90       |      17
+      91-94       |      18
+      95-98       |      19
+      99-         |      20
+        (some omitted)
+     -127         |      22
+
+
+0x35 atom Byte 5  |  Tone parameter
+(Parameter 2)     |    119
+------------------+-----------------
+      0-40        |      0
+      41-42       |      1
+      43-44       |      2
+      45-46       |      3
+      47-48       |      4
+      49-50       |      5
+      51-52       |      6
+      53-54       |      7
+      55-56       |      8
+      57-58       |      9
+      59-60       |      10
+         (etc...)
+      70          |      15
+      80          |      20
+    87-127        |      24
+
+
+
+0x35 atom Byte 6  |  Tone parameter
+(Parameter 3)     |    120
+------------------+-----------------
+     All values 0-15 correspond
+
+
+
 36h : DSP chain definition
 ==========================
 

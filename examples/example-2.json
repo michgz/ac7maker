@@ -29,7 +29,7 @@
 				"patch": 30,
 				"bank_msb": 4,
 				"delay_send": 0,
-                "tone_file": "Ex02.TON"
+				"tone_file": "Ex02.TON"
 			},
 			{
 				"part": 6,
@@ -102,7 +102,7 @@
 			{
 				"part": 5,
 				"element": 2,
-				"source_file": "midi-02.mid",
+				"source_file": "examples/midi-02.mid",
 				"source_channel": 0
 			}
 		]
