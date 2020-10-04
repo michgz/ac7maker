@@ -8,3 +8,10 @@ A program for investigating the effect of different filter parameters on tones. 
 should be connected through USB MIDI, and the headphone jack connected to the Line In sound
 input. The script plays a white noise (specifically, tone 375 "EDM SE WHITE") both with and
 without filtering and analyses the spectral changes with a Welch transform.
+
+## check_override.py
+A script to prove that filter effects applied through a rhythm (i.e. the 0x35 atom) can
+override the two specified in the tone definition (parameters 117-120). The setup is the
+same as above, the tone 375 "EDM SE WHITE" must be copied to user tone 801 so that it can
+be programmatically edited, and the "ac7maker" program must have special handling added
+to cope with a special "var_35_1" variable.
