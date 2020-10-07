@@ -6,8 +6,8 @@
 .tooltip {
   position: relative;
   font-weight: bold;
-  margin-left: 20px;
-  display; inline-block;
+  margin-left: 0;
+  display: inline;
   border-bottom: 1px dotted black; /* dots under the hoverable text */
 }
 
@@ -15,8 +15,8 @@
 .non-tooltip {
   position: relative;
   font-weight: bold;
-  margin-left: 20px;
-  display; inline-block;
+  margin-left: 0;
+  display: block;
 }
 
 .tooltip .tooltiptext {
@@ -28,6 +28,7 @@
   text-align: left;
   padding: 0 2px 0 5px;
   border-radius: 6px;
+  z-index: 1;
   
   /* Position the tooltip */
   position: absolute;
@@ -62,69 +63,150 @@
 <body>
 
 <h2>Format of ac7maker input files</h2>
-<p>The python script <i>ac7maker</i> is called with the name of a file in JSON format which defines aspects the rhythm to be
-created, including pointing to standard MIDI files which include the music data which defines the rhythm. As an example:</p>
+<p>The python script <i>ac7maker</i> takes as input a definition file in JSON format and outputs
+a AC7 rhythm file. The AC7 file can be read by CT-X keyboards and some other Casio electronic keyboards.
+The JSON definition file contains information about how the rhythm is to sound, and has references
+to standard MIDI files which include the music data to define the rhythm. An example
+of how the script should be called:</p>
 <code>python ac7maker my-rhythm.json</code>
-<p>The format of the JSON document is defined below. For each element, hover the mouse over to get more information on
-the item.</p>
+<p>The format of the JSON document is defined below by an example. For each element, hover the mouse over to get help information on
+the item</p>
 
 <hr>
 
 <div class="non-tooltip" style="margin-left: 20px">{</div>
 
-<div class="tooltip" style="margin-left: 40px">"name": "My Rhythm",
-  <span class="tooltiptext" style="width: 220px"><p>A text value which can be used as the human-readable name for the
-rhythm. This value is ignored by the program</p><p>Optional</p></span>
+<div style="margin-left: 40px;display: block">
+  <div class="tooltip">"name"
+    <span class="tooltiptext" style="width: 220px"><p>A text value which can be used as the human-readable name for the
+rhythm, and is used as the file name for the generated AC7 file</p>
+      <p>Optional; if omitted, a random file name will be used</p>
+    </span>
+  </div>
+  <div style="display: inline">: "My Rhythm",</div>
 </div>
 
-<div class="tooltip" style="margin-left: 40px">"target_model": "CT-X3000",
-  <span class="tooltiptext" style="width: 220px"><p>A text value indicating which model of keyboard is the intended
-target for this rhythm, such as "CT-X3000" or "CT-X700". This value is ignored by the program</p>
-<p>Optional</p></span>
+<div style="margin-left: 40px;display: block">
+  <div class="tooltip">"target_model"
+    <span class="tooltiptext" style="width: 220px"><p>A text value indicating which model of keyboard is the intended
+target for this rhythm, such as "CT-X3000" or "CT-X700"</p>
+      <p>Optional; this value is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: "CT-X3000",</div>
 </div>
 
-<div class="tooltip" style="margin-left: 40px">"target_family": "CT-X",
-  <span class="tooltiptext" style="width: 220px"><p>A text value indicating which family of keyboard models is the intended
-target for this rhythm, such as "CT-X" or "WK". This value is ignored by the program</p><p>Optional</p></span>
+<div style="margin-left: 40px;display: block">
+  <div class="tooltip">"target_family"
+    <span class="tooltiptext" style="width: 280px"><p>A text value indicating which family of keyboard models is the intended
+target for this rhythm, such as "CT-X" or "WK"</p>
+      <p>Optional; this value is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: "CT-X",</div>
 </div>
 
-<div class="tooltip" style="margin-left: 40px">"rhythm": {
-  <span class="tooltiptext" style="width: 220px"><p>A structure defining the rhythm to be created. Each JSON document should
+<div style="margin-left: 40px;display: block">
+  <div class="tooltip">"rhythm"
+    <span class="tooltiptext" style="width: 220px"><p>A structure defining the rhythm to be created. Each JSON document should
 contain exactly one field with the "rhythm" label</p><p>Mandatory</p></span>
+  </div>
+  <div style="display: inline">: {</div>
 </div>
 
-<div class="tooltip" style="margin-left: 60px">"name": "MyRthm1",
-  <span class="tooltiptext" style="width: 220px"><p>A text value defining the machine-readable name for the rhythm. It will
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"name"
+    <span class="tooltiptext" style="width: 220px"><p>A text value defining the machine-readable name for the rhythm. It will
 be shown (at least, up to 7 characters) on the keyboard display when the rhythm is selected for playing.</p>
-<p>Optional. If omitted, the name will be blank</p>
-</span>
+      <p>Optional; if omitted, the name will be blank</p>
+    </span>
+  </div>
+  <div style="display: inline">: "MyRthm1",</div>
 </div>
 
-<div class="tooltip" style="margin-left: 60px">"volume": 127,
-  <span class="tooltiptext" style="width: 220px"><p>Master volume for playback of the rhythm</p>
-<p>Possible values: 0 to 127</p>
-<p>Optional. If omitted, will default to value 127</p>
-</span>
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"volume"
+    <span class="tooltiptext" style="width: 220px"><p>Master volume for playback of the rhythm</p>
+      <p>Possible values: 0 to 127</p>
+      <p>Optional; if omitted, the keyboard default will be used (probably 127)</p>
+    </span>
+  </div>
+  <div style="display: inline">: 127,</div>
 </div>
 
-<div class="tooltip" style="margin-left: 60px">"tempo": 180,
-  <span class="tooltiptext" style="width: 220px"><p>Tempo for playback of the rhythm</p>
-<p>Possible values: 20 to 255</p>
-<p>Optional. If omitted, the rhythm will not define a tempo. As far as I can tell, the keyboard just
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"tempo"
+    <span class="tooltiptext" style="width: 540px"><p>Tempo for playback of the rhythm</p>
+      <p>Possible values: 20 to 255</p>
+      <p>Optional; if omitted, the rhythm will not define a tempo. As far as I can tell, the keyboard just
 ignores this parameter anyway and simply uses the tempo selected by the performer</p>
-</span>
+    </span>
+  </div>
+  <div style="display: inline">: 112,</div>
 </div>
 
-<div class="tooltip" style="margin-left: 60px">"parts": [
-  <span class="tooltiptext" style="width: 220px"><p>An array of exactly 8 structures defining the 8
-parts ("Drum" through to "Chord 5", in order).</p>
-<p>Mandatory</p>
-</span>
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"reverb_type"
+    <span class="tooltiptext" style="width: 540px"><p>Selects a reverb type to use with the
+rhythm. Will be a string such as "Off", "Room 1", "Hall 2", "Cathedral" etc. Currently only
+the CT-X3000 selection of reverbs is recognised.</p>
+      <p>Optional; if omitted, the keyboard default will be used (probably "Off")</p>
+    </span>
+  </div>
+  <div style="display: inline">: "Plate 2",</div>
+</div>
+
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"chorus_type"
+    <span class="tooltiptext" style="width: 540px"><p>Selects a chorus type to use with the
+rhythm. Will be a string such as "Tone" (i.e. off), "Chorus 1", "Short Delay 2" etc. Currently only
+the CT-X3000 selection of choruses is recognised.</p>
+      <p>Optional; if omitted, the keyboard default will be used (probably "Tone")</p>
+    </span>
+  </div>
+  <div style="display: inline">: "FB Chorus",</div>
+</div>
+
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"delay_type"
+    <span class="tooltiptext" style="width: 540px"><p>Selects a delay effect type to use with the
+rhythm. Will be a string such as "Tone" (i.e. off), "Short 1", "Mid Pan" etc. Currently only
+the CT-X3000 selection of delays is recognised.</p>
+      <p>Optional; if omitted, the keyboard default will be used (probably "Tone")</p>
+    </span>
+  </div>
+  <div style="display: inline">: "Tempo Sync Middle",</div>
+</div>
+
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"parts"
+    <span class="tooltiptext" style="width: 220px"><p>An array of exactly 8 structures defining the 8
+parts ("Drum" through to "Chord 5") in order</p>
+      <p>Mandatory</p>
+    </span>
+  </div>
+  <div style="display: inline">: [</div>
 </div>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
-<div class="non-tooltip" style="margin-left: 100px">"part": 1,</div>
-<div class="non-tooltip" style="margin-left: 100px">"_comment": "Percussion"</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"part"
+    <span class="tooltiptext" style="width: 370px"><p>To improve human readability, this field should
+contain the numbers 1 through 8 to show the part number of the part being defined</p>
+      <p>Optional; this field is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: 1,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"_comment"
+    <span class="tooltiptext" style="width: 370px"><p>To improve human readability, this field should
+contain a comment such as the part name ("Percussion", "Drums" etc.)</p>
+      <p>Optional; this field is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: "Percussion"</div>
+</div>
 <div class="non-tooltip" style="margin-left: 80px">},</div>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
@@ -144,7 +226,80 @@ parts ("Drum" through to "Chord 5", in order).</p>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
 <div class="non-tooltip" style="margin-left: 100px">"part": 5,</div>
-<div class="non-tooltip" style="margin-left: 100px">"_comment": "Chord 2"</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Chord 2",</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"patch"
+    <span class="tooltiptext" style="width: 370px"><p>The MIDI patch number of the sound
+required for this part. It will be used in all elements where this part has non-empty
+tracks</p>
+      <p>Possible values: 0 - 127</p>
+      <p>Optional; if omitted, a reasonable default will be chosen based on the part number</p>
+    </span>
+  </div>
+  <div style="display: inline">: 16,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"bank_msb"
+    <span class="tooltiptext" style="width: 370px"><p>The MIDI Bank MSB number of the sound
+required for this part. It will be used in all elements where this part has non-empty
+tracks</p>
+      <p>Possible values: 0 - 120. For Drum parts (part 1 and 2) the only permitted value is 120</p>
+      <p>Optional; if omitted, a reasonable default will be chosen based on the part number</p>
+    </span>
+  </div>
+  <div style="display: inline">: 3,</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"volume"
+    <span class="tooltiptext" style="width: 340px"><p>The mixer Volume value for this part. It will
+be used in all elements where this part has non-empty tracks</p>
+      <p>Possible values: 0 - 127</p>
+      <p>Optional; defaults to 100</p>
+    </span>
+  </div>
+  <div style="display: inline">: 127,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"pan"
+    <span class="tooltiptext" style="width: 340px"><p>The mixer Pan value for this part. It will
+be used in all elements where this part has non-empty tracks</p>
+      <p>Possible values: -64 - +63</p>
+      <p>Optional; defaults to 0</p>
+    </span>
+  </div>
+  <div style="display: inline">: -5,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"reverb_send"
+    <span class="tooltiptext" style="width: 330px"><p>The mixer Reverb Send value for this part. It will
+be used in all elements where this part has non-empty tracks</p>
+      <p>Possible values: 0 - 127</p>
+      <p>Optional; defaults to 40</p>
+    </span>
+  </div>
+  <div style="display: inline">: 77,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"chorus_send"
+    <span class="tooltiptext" style="width: 330px"><p>The mixer Chorus Send value for this part. It will
+be used in all elements where this part has non-empty tracks</p>
+      <p>Possible values: 0 - 127</p>
+      <p>Optional; defaults to 0</p>
+    </span>
+  </div>
+  <div style="display: inline">: 23,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"delay_send"
+    <span class="tooltiptext" style="width: 330px"><p>The mixer Delay Send value for this part. It will
+be used in all elements where this part has non-empty tracks</p>
+      <p>Possible values: 0 - 127</p>
+      <p>Optional; defaults to 0</p>
+    </span>
+  </div>
+  <div style="display: inline">: 10</div>
+</div>
 <div class="non-tooltip" style="margin-left: 80px">},</div>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
@@ -164,6 +319,95 @@ parts ("Drum" through to "Chord 5", in order).</p>
 
 <div class="non-tooltip" style="margin-left: 60px">],</div>
 
+<div style="margin-left: 60px;display: block">
+  <div class="tooltip">"elements"
+    <span class="tooltiptext" style="width: 450px"><p>An array of exactly 12 structures defining the 12
+elements used in CT-X rhythms ("Intro" through to "Ending 2"), in order</p>
+      <p>Mandatory</p>
+    </span>
+  </div>
+  <div style="display: inline">: [</div>
+</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"element"
+    <span class="tooltiptext" style="width: 370px"><p>To improve human readability, this field should
+contain the numbers 1 through 12 to show the element number of the element being defined</p>
+      <p>Optional; this field is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: 1,</div>
+</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"_comment"
+    <span class="tooltiptext" style="width: 370px"><p>To improve human readability, this field should
+contain a comment such as the element name ("Variation 1", "Fill 2" etc.)</p>
+      <p>Optional; this field is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: "Intro"</div>
+</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 2,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Variation 1"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 3,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Fill 1"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 4,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Variation 2"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 5,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Fill 2"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 6,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Ending"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 7,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Intro 2 (unused)"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 8,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Variation 3"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 9,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Variation 4"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 10,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Fill 3"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 11,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Fill 4"</div>
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 12,</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Ending 2 (unused)"</div>
+<div class="non-tooltip" style="margin-left: 80px">}</div>
+
+<div class="non-tooltip" style="margin-left: 60px">],</div>
+
+
 <div class="tooltip" style="margin-left: 60px">"tracks": [
   <span class="tooltiptext" style="width: 420px"><p>An array of track definition structures.
 Each track is associated to a part and an element. Each part/element combination may have no tracks
@@ -177,7 +421,55 @@ them might be used for major chords and the other for minor chords.
 </div>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
-<div class="non-tooltip" style="margin-left: 100px">"part": 2,</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"part"
+    <span class="tooltiptext" style="width: 500px"><p>Specifies the part which this track
+will be associated to. Possible values 1 - 8</p>
+    </span>
+  </div>
+<div style="display: inline">: 2,</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"element"
+    <span class="tooltiptext" style="width: 500px"><p>Specifies the element which this track
+will be associated to. Possible values 1 - 12</p>
+    </span>
+  </div>
+<div style="display: inline">: 2,</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"source_file"
+    <span class="tooltiptext" style="width: 540px"><p>File name of the MIDI file which contains
+music data for this track. It should be in standard MIDI format (SMF) and Type I (meaning that each
+channel is assigned its own MIDI track). One MIDI track will be selected from the file and used
+to generate the rhythm track</p>
+      <p>As well, tempo and time-signature data will also be read from the
+file and used by the script to form the rhythm</p>
+      <p>Note that all MIDI files are to be located the same directory as the JSON rhythm definition file</p>
+    </span>
+  </div>
+<div style="display: inline">: "el-02.mid",</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"source_channel"
+    <span class="tooltiptext" style="width: 540px"><p>The MIDI channel in the source MIDI file
+which should be used to generate this rhythm track. Since a Type I MIDI file can store up to 16
+channels, it means that up to 16 rhythm tracks (part/element combinations) can be taken
+from a single file</p>
+      <p>It's even possible for different elements to take their data from the same MIDI file;
+however for that to work, the elements will need to have equal tempo, time signature and measure
+count to each other</p>
+      <p>Possible values 1 - 16</p>
+    </span>
+  </div>
+<div style="display: inline">: 10</div>
+</div>
+
+
 <div class="non-tooltip" style="margin-left: 100px">"element": 2,</div>
 <div class="non-tooltip" style="margin-left: 100px">"source_file": "el-02.mid",</div>
 <div class="non-tooltip" style="margin-left: 100px">"source_channel": 10</div>
@@ -188,23 +480,111 @@ them might be used for major chords and the other for minor chords.
 <div class="non-tooltip" style="margin-left: 100px">"element": 2,</div>
 <div class="non-tooltip" style="margin-left: 100px">"source_file": "el-02.mid",</div>
 <div class="non-tooltip" style="margin-left: 100px">"source_channel": 13,</div>
-<div class="tooltip" style="margin-left: 100px">"no_transpose": 1
-  <span class="tooltiptext" style="width: 420px"><p>Value 0 or 1</p>
-<p>If set to 0, indicates that the music data from the MIDI file is recorded in C major and should
-be transposed in the usual way to the chord that is currently playing. If set to 1, indicates that
-the music data should be performed without transposing. This may be useful in several cases:
-<ul>
-<li>To create a drone, possibly suitable for Bagpipes</li>
-<li>To use with non-melodic instruments such as Drum Kits or Berimbau</li>
-<li>With upper octaves of "Versatile" instruments</li>
-</ul>
-</p>
-<p>Optional. Defaults to 0. For Drum parts (parts 1 and 2), the music data will never be
-transposed anyway and so this setting is ignored</p>
-</span>
-</div>
-<div class="non-tooltip" style="margin-left: 80px">}</div>
 
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"conversion"
+    <span class="tooltiptext" style="width: 500px"><p>Defines the chord conversion
+method to be used for this track. Will be one of the following text values: "Bass", "Bass 7th",
+"Chord", "Chord Var2", "Chord Var3", "Chord Var4", "Chord 7th", "Minor", "Phrase",
+"Penta Phrase", "Intro n-minor", "Intro m-minor", "Intro h-minor", "Intro no Change",
+"Intro dorian".
+      <p>Optional; if omitted, a reasonable default will be chosen based on the part
+and element numbers. Ignored for Drum parts</p>
+    </span>
+  </div>
+<div style="display: inline">: "Intro no Change",</div>
+</div>
+  
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"force_root"
+    <span class="tooltiptext" style="width: 500px"><p>Defines whether the "f-root"
+method is used for the track, suitable for bass parts. Value of 0 or 1
+      <p>Optional; if omitted, defaults to 1 for Bass part (part 3) or 0 otherwise. Ignored for Drum parts</p>
+    </span>
+  </div>
+  <div style="display: inline">: 1,</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"break_point"
+    <span class="tooltiptext" style="width: 500px"><p>Defines the break point for the
+chord conversion for the track. Possible values 1 - 12
+      <p>Optional; if omitted, a reasonable default is chosen. Ignored for Drum parts</p>
+    </span>
+  </div>
+  <div style="display: inline">: 7,</div>
+</div>
+  
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"retrigger"
+    <span class="tooltiptext" style="width: 500px"><p>Defines whether the Retrigger
+method is used for the track. Possible values "Off" or "On"
+      <p>Optional; defaults to "Off". Ignored for Drum parts</p>
+    </span>
+  </div>
+  <div style="display: inline">: "On",</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"invert"
+    <span class="tooltiptext" style="width: 500px"><p>Defines the Inversion method used
+for the track. Possible values "Off", "On" or "7th"
+      <p>Optional; defaults to "Off". Ignored for Drum parts</p>
+    </span>
+  </div>
+  <div style="display: inline">: "On"</div>
+</div>
+
+<div class="non-tooltip" style="margin-left: 80px">},</div>
+
+<div class="non-tooltip" style="margin-left: 80px">{</div>
+<div class="non-tooltip" style="margin-left: 100px">"part": 5,</div>
+<div class="non-tooltip" style="margin-left: 100px">"element": 4,</div>
+<div class="non-tooltip" style="margin-left: 100px">"source_file": "el-04.mid",</div>
+<div class="non-tooltip" style="margin-left: 100px">"source_channel": 13,</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"only_major"
+    <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
+      <p>If set to 1, indicates that the track should only be sounded over a major-type
+chord (including augmented and dominant 7th chords)</p>
+      <p>Optional; defaults to 0</p>
+    </span>
+  </div>
+  <div style="display: inline">: 0,</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"only_minor"
+    <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
+      <p>If set to 1, indicates that the track should only be sounded over a minor-type
+chord (including minor 7th and diminished chords)</p>
+      <p>Optional; defaults to 0</p>
+    </span>
+  </div>
+  <div style="display: inline">: 0,</div>
+</div>
+
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"no_transpose"
+    <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
+      <p>If set to 0, indicates that the music data from the MIDI file should be regarded as
+being in C major and needs to be transposed to the chord that is currently playing. If
+set to 1, indicates that the music data should be performed without transposing or chord
+conversion. It may be useful to set it to 1 in several cases:
+      <ul>
+      <li>Creating a drone sound, for example with Bagpipes</li>
+      <li>With non-melodic instruments such as Drum Kits or Berimbau</li>
+      <li>With upper octaves of "Versatile" instruments</li>
+      </ul></p>
+      <p>Optional; defaults to 0. For Drum parts (parts 1 and 2), the music data will never be
+transposed anyway and so this setting is ignored</p>
+    </span>
+  </div>
+  <div style="display: inline">: 1</div>
+</div>
+
+<div class="non-tooltip" style="margin-left: 80px">}</div>
 
 <div class="non-tooltip" style="margin-left: 60px">]</div>
 
@@ -212,8 +592,5 @@ transposed anyway and so this setting is ignored</p>
 
 <div class="non-tooltip" style="margin-left: 20px">}</div>
 
-
 </body>
-
-
 </html>
