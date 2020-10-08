@@ -1,0 +1,28 @@
+A rhythm event consists of 3 bytes:
+
+<byte 1> Time delta in ticks; 96 ticks per crotchet
+<byte 2> Event type
+<byte 3> Event data
+
+The known event types are:
+
+
+0-127:  note on/note off. Event data = velocity of note on (if non-zero), or note off (if zero)
+
+0x8E pitch bend
+0xA0 (causes software failure - don't use!)
+0xA9 reset parameters to default
+0xB0 Modulation (equivalent to MIDI CC 0x01)
+0xB5 Expression (equivalent to MIDI CC 0x0B)
+0xB9 Pitch bend range
+0xBA Filter resonance (equivalent to MIDI CC 0x4A)
+0xBB Filter (equivalent to MIDI CC 0x47)
+0xBC Attack time (equivalent to MIDI CC 0x49)
+0xBD Release time (equivalent to MIDI CC 0x48)
+0xE0 affects inversion/chord conversion
+0xE1 affects inversion/chord conversion
+0xE3 Tempo fast (event data 0x00 = normal, 0x7F = twice normal tempo, 0xFF = even faster)
+0xE4 Tempo slow (event data 0x00 = normal, 0x7F = half normal tempo, 0xFF = even slower)
+0xE6 affects inversion/chord conversion
+0xFC End of track
+0xFF Time jump. Event data = time delta MSByte
