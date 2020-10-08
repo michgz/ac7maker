@@ -66,11 +66,14 @@ Atom structure:     32h     Atom type
                     4       Payload length
                     <byte>  Effect to apply. Possible values 0 - 11. Some of the
                             effects are:
+                                1   Bass/treble adjust
                                 2   Fine tuning
                                 5   Attack time
                                 9   Volume
                                 10  Pan
-                                11  Expression
+                                11  Reverb send
+                                12  Chorus send
+                                13  Delay send
                     <byte>  MIDI channel number of the part to apply the effect
                             to. Since it must have a drum patch selected, it will
                             usually be value 8 or 9 (i.e. Part 1 or Part 2).
