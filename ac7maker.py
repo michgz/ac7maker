@@ -4,6 +4,7 @@
 # Import some standard modules
 import json
 import struct
+import os
 #import operator
 import sys
 
@@ -106,19 +107,6 @@ def ac7make_mixer(mixers, addr):
   g1 = g1 + struct.pack('<H', number_of_parts)
   return (g1 + g2 + g3)
 
-
-# MIDI event to Casio event converter
-def ac7make_mid2casio(msg):
-  if msg.type == "note_on":
-    vel = msg.velocity
-    if vel == 0:  # velocity of 0 not allowed in Casio
-      vel = 1
-    return struct.pack('3B', round(24*msg.time), msg.note, vel)
-  elif msg.type == 'note_off':
-    return struct.pack('3B', round(24*msg.time), msg.note, 0)
-  else:
-    return b''
-
 # Determine if the element should be omitted in total from the rhythm. Typically
 # this is done for elements 7, 8, 9 & 10 and is possibly for compatibility
 # with keyboards with only 2 variations.
@@ -172,12 +160,25 @@ def ac7make_midi_to_ac7(trk, end_time):
   b += struct.pack('<3B', time_d, 0xFC, 0x00) # End-of-track indicator
   return b
 
+def ac7make_get_track(tracks, ch):
+  for trk in tracks:
+    for evt in trk:
+      if evt['event']=='note_on' and evt['channel']==ch:
+        # Have found the track!
+        return trk
+  # If get here, have not found any track
+  return None
 
-def ac7make_drum_element(pt, el, b, total_midi_clks, midi_trks):
+def ac7make_drum_element(pt, el, b, total_midi_clks, midi_trks, trk_ch = -1):
   g1 = b''
   if midi_trks != None:
+    midi_trk = ac7make_get_track(midi_trks, trk_ch)
+  else:
+    midi_trk = None
+  if midi_trk != None:  
     g1 += b'\x00\xe5\x00'  # Optional. This makes the track editable, probably a good thing..
-    g1 += ac7make_midi_to_ac7(midi_trks[1], total_midi_clks)  # First non-system track in the array
+    # Translate total time from midi clocks (24 per crotchet) to AC7 clocks (96 per crotchet)
+    g1 += ac7make_midi_to_ac7(midi_trk, round(4.0*total_midi_clks))
   else:
     g1 += b'\x80\xff\x04\x00\xfc\x00'
   return g1
@@ -303,7 +304,7 @@ def ac7make_track_event(e):
   return b''
 
 
-def ac7make_other_element(pt, el, b, total_midi_clks, midi_trks):
+def ac7make_other_element(pt, el, b, total_midi_clks, midi_trks, trk_ch=-1):
   # A default track that has three elements:
   # 02 70 00   -- something to do with break points, split tables, etc.
   # 80 FF 04   -- wait whole length
@@ -327,8 +328,13 @@ def ac7make_other_element(pt, el, b, total_midi_clks, midi_trks):
       # Chords
       g1 = b'\x02\x70\x00'
   if midi_trks != None:
+    midi_trk = ac7make_get_track(midi_trks, trk_ch)
+  else:
+    midi_trk = None
+  if midi_trk != None:
     g1 += b'\x00\xe5\x00'  # Optional. This makes the track editable, probably a good thing..
-    g1 += ac7make_midi_to_ac7(midi_trks[1], total_midi_clks)  # First non-system track in the array
+    # Translate total time from midi clocks (24 per crotchet) to AC7 clocks (96 per crotchet)
+    g1 += ac7make_midi_to_ac7(midi_trk, round(4.0*total_midi_clks))
   else:
     g1 += b'\x80\xff\x04\x00\xfc\x00'
   return g1
@@ -458,7 +464,7 @@ def ac7maker(b):
     max_absolute_time = 0
     for trk in b["rhythm"]["tracks"]:
       if trk.get("element", -1)==el:
-        with open(trk["source_file"], "rb") as f3:
+        with open(os.path.join(b.get("input_dir", ""), trk["source_file"]), "rb") as f3:
           bm = internal.midifiles.midifile_read(f3.read())
         print(bm)
         for mtrk in bm:
@@ -466,8 +472,8 @@ def ac7maker(b):
             if evt["absolute_time"] > max_absolute_time:
               max_absolute_time = evt["absolute_time"]
     if max_absolute_time == 0:  # (if not, probably have no tracks associated)
-      max_absolute_time = 96*4.0
-      
+      max_absolute_time = 24.0*4.0
+
     num_trk_el = 0
     e_20 = b''
     e_21 = b''
@@ -479,7 +485,7 @@ def ac7maker(b):
           print("Got non-empty track at element={0} part={1}".format(el, pt))
           print("File name = ")
           print(trk["source_file"])
-          with open(trk["source_file"], "rb") as f3:
+          with open(os.path.join(b.get("input_dir", ""), trk["source_file"]), "rb") as f3:
             bm = internal.midifiles.midifile_read(f3.read())
           print(bm)
           
@@ -488,10 +494,10 @@ def ac7maker(b):
     
           if ac7make_is_drum_part(pt):
             e_20 += struct.pack('<H', len(drums) + 0x8000)
-            drums.append(ac7make_drum_element(pt, el, b, 20*round(max_absolute_time), bm))
+            drums.append(ac7make_drum_element(pt, el, b, max_absolute_time, bm, trk["source_channel"]))
           else:
             e_20 += struct.pack('<H', len(others) + 0x8000)
-            others.append(ac7make_other_element(pt, el, b, 20*round(max_absolute_time), bm))
+            others.append(ac7make_other_element(pt, el, b, max_absolute_time, bm, trk["source_channel"]))
           
           if num_trk == 0:
             # This is the first track for this element/part combo
@@ -509,10 +515,10 @@ def ac7maker(b):
   
         if ac7make_is_drum_part(pt):
           e_20 += struct.pack('<H', len(drums) + 0x8000)
-          drums.append(ac7make_drum_element(pt, el, b, 20*round(max_absolute_time), None))
+          drums.append(ac7make_drum_element(pt, el, b, max_absolute_time, None))
         else:
           e_20 += struct.pack('<H', len(others) + 0x8000)
-          others.append(ac7make_other_element(pt, el, b, 20*round(max_absolute_time), None))
+          others.append(ac7make_other_element(pt, el, b, max_absolute_time, None))
           
         e_21 += struct.pack('<H', len(mixers) + 0x8000)
         mixers.append(ac7make_mixer_element(pt, b))
@@ -524,7 +530,7 @@ def ac7maker(b):
     # the element bytestring
     el_00 = b''
     el_00 += ac7make_element_atom(1, b'\x22')  # Time signature
-    el_00 += ac7make_element_atom(6, struct.pack('<B', 2))  # Number of measures   <----- Note currently hard-coded!!
+    el_00 += ac7make_element_atom(6, struct.pack('<B', round(max_absolute_time / (24.0*4.0))))  # Number of measures
     el_00 += ac7make_element_atom(7, struct.pack('<B', num_trk_el))  # Total number of tracks
     el_00 += ac7make_element_atom(0x20, e_20)
     el_00 += ac7make_element_atom(0x21, e_21)
@@ -537,7 +543,7 @@ def ac7maker(b):
       pn = pp["part"]
       tn = b''
       if tf != "":
-        with open("examples/" + tf, "rb") as f11:
+        with open(os.path.join(b.get("input_dir", ""), tf), "rb") as f11:
           tn = f11.read()
           print("Length of ton = {0}".format(len(tn)))
         if len(tn) >= 456:
@@ -700,11 +706,13 @@ if __name__=="__main__":
     # No output filename; send to standard out
     with open(sys.argv[1], "r") as f1:
       b = json.load(f1)
+    b["input_dir"] = os.path.dirname(sys.argv[1])
     sys.stdout.write(str(ac7maker(b), sys.stdout.encoding))
   else:
     # Has an output filename. Write to it.
     with open(sys.argv[1], "r") as f1:
       b = json.load(f1)
+    b["input_dir"] = os.path.dirname(sys.argv[1])
     with open(sys.argv[2], "wb") as f2:
       f2.write(ac7maker(b))
 

@@ -46,23 +46,23 @@ def consume_midi_event(b, pos):
   else:
     if evt&0xF0 == 0xB0:
       # Controller
-      e = {'event':'control_change', 'absolute_time':0, 'channel':evt&0x0F, 'controller':b[p+1], 'value':b[p+2]}
+      e = {'event':'control_change', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'controller':b[p+1], 'value':b[p+2]}
       return (e, p+3)
     elif evt&0xF0 == 0xC0:
       # Patch change
-      e = {'event':'patch_change', 'absolute_time':0, 'channel':evt&0x0F, 'patch':b[p+1]}
+      e = {'event':'patch_change', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'patch':b[p+1]}
       return (e, p+2)
     elif evt&0xF0 == 0x80:
       # Note off
-      e = {'event':'note_off', 'absolute_time':0, 'channel':evt&0x0F, 'note':b[p+1], 'velocity':b[p+2]}
+      e = {'event':'note_off', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'note':b[p+1], 'velocity':b[p+2]}
       return (e, p+3)
     elif evt&0xF0 == 0x90:
       # Note on
-      e = {'event':'note_on', 'absolute_time':0, 'channel':evt&0x0F, 'note':b[p+1], 'velocity':b[p+2]}
+      e = {'event':'note_on', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'note':b[p+1], 'velocity':b[p+2]}
       return (e, p+3)
     elif evt&0xF0 == 0xE0:
       # Pitch bend
-      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':evt&0x0F, 'bend':b[p+1]}
+      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'bend':b[p+1]}
       return (e, p+3)
     
   print("Unknown event {0:02X}".format(evt))
@@ -79,10 +79,9 @@ def process_track(b):
       (c, pos) = consume_midi_time(b, pos)
       (d, pos) = consume_midi_event(b, pos)
       total_time += c
+      # Change time to MIDI clocks (24 per crotchet). This assumes a division value of 0x1E0 = 480.
       d['absolute_time'] = total_time / 20.0
-      print("{0:02X} {1}".format(c,d['event']))
       trk.append(d)
-    print("-- end of track --; end time = {0:X}".format(total_time))
     return trk
 
 
@@ -110,7 +109,6 @@ def midifile_read(b):
 
     x = struct.unpack('>I', b[pos+4:pos+8])[0]  # Length of track
     trk = process_track(b[pos+8:pos+8+x])
-    #print(x)
     
     pos += 8 + x
     

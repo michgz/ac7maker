@@ -13,7 +13,9 @@
 			},
 			{
 				"part": 2,
-				"_comment": "Drums"
+				"_comment": "Drums",
+				"patch": 8,
+				"bank_msb": 120
 			},
 			{
 				"part": 3,
@@ -102,8 +104,32 @@
 			{
 				"part": 5,
 				"element": 2,
-				"source_file": "examples/midi-02.mid",
-				"source_channel": 0
+				"source_file": "ex2-v1.mid",
+				"source_channel": 1
+			},
+			{
+				"part": 2,
+				"element": 4,
+				"source_file": "ex2-f1.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 4,
+				"source_file": "ex2-f1.mid",
+				"source_channel": 1
+			},
+			{
+				"part": 2,
+				"element": 3,
+				"source_file": "ex2-v2.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 3,
+				"source_file": "ex2-v2.mid",
+				"source_channel": 1
 			}
 		]
 	}
