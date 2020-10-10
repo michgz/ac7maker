@@ -1,0 +1,116 @@
+{
+	"name": "example-1",
+	"target_model": "CT-X3000",
+	"target_family": "CT-X",
+	"rhythm": {
+		"name": "N.Lowe",
+		"volume": 127,
+		"parts_number": 8,
+		"parts": [
+			{
+				"part": 1,
+				"_comment": "Percussion"
+			},
+			{
+				"part": 2,
+				"_comment": "Drums"
+			},
+			{
+				"part": 3,
+				"_comment": "Bass"
+			},
+			{
+				"part": 4,
+				"_comment": "Chord 1"
+			},
+			{
+				"part": 5,
+				"_comment": "Chord 2",
+				"patch": 25,
+				"bank_msb": 8
+			},
+			{
+				"part": 6,
+				"_comment": "Chord 3"
+			},
+			{
+				"part": 7,
+				"_comment": "Chord 4"
+			},
+			{
+				"part": 8,
+				"_comment": "Chord 5"
+			}
+		],
+		"elements": [
+			{
+				"element": 1,
+				"_comment": "Intro 1"
+			},
+			{
+				"element": 2,
+				"_comment": "Variation 1"
+			},
+			{
+				"element": 3,
+				"_comment": "Variation 2"
+			},
+			{
+				"element": 4,
+				"_comment": "Fill 1"
+			},
+			{
+				"element": 5,
+				"_comment": "Fill 2"
+			},
+			{
+				"element": 6,
+				"_comment": "Ending 1"
+			},
+			{
+				"element": 7,
+				"_comment": "Intro 2 (unused)"
+			},
+			{
+				"element": 8,
+				"_comment": "Variation 3",
+				"omit": 1
+			},
+			{
+				"element": 9,
+				"_comment": "Variation 4",
+				"omit": 1
+			},
+			{
+				"element": 10,
+				"_comment": "Fill 3",
+				"omit": 1
+			},
+			{
+				"element": 11,
+				"_comment": "Fill 4",
+				"omit": 1
+			},
+			{
+				"element": 12,
+				"_comment": "Ending 2 (unused)"
+			}
+		],
+		"tracks": [
+			{
+				"part": 5,
+				"element": 2,
+				"source_file": "ex1-v1.mid",
+				"source_channel": 1,
+				"chord_sync": 1
+			},
+			{
+				"part": 5,
+				"element": 2,
+				"source_file": "ex1-v1.mid",
+				"source_channel": 2,
+				"chord_sync": 0
+			}
+		]
+	}
+}

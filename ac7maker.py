@@ -439,15 +439,22 @@ def ac7make_element(b, elements, start_addr):
 
 def ac7make_track_element(pt):
   if pt <= 1:
-    return b'\x0f'  # 0x0F = negative 1
+    return 0x0f  # 0x0F = negative 1
   else:
-    return struct.pack('<B', pt-2)
+    return pt-2
 
 def ac7make_is_drum_part(pt):
   return pt<=2
 
 def ac7make_dsp_effect_parameter_count(ef):
   return 16
+
+def ac7make_track_flag(trk):
+  pt = trk.get("part", "-1")
+  if pt >= 3 and pt <= 8:
+    if trk.get("chord_sync", -1) == 0:
+      return 0x10
+  return 0x00
 
 def ac7maker(b):
   
@@ -490,7 +497,7 @@ def ac7maker(b):
           print(bm)
           
           # Found a non-empty track to add. Add it
-          e_22 += ac7make_track_element(pt)
+          e_22 += struct.pack('<B', ac7make_track_element(pt) + ac7make_track_flag(trk))
     
           if ac7make_is_drum_part(pt):
             e_20 += struct.pack('<H', len(drums) + 0x8000)
@@ -511,7 +518,7 @@ def ac7maker(b):
           num_trk += 1
       if num_trk == 0:
         # No tracks for this element/part combination. Add an empty one
-        e_22 += ac7make_track_element(pt)
+        e_22 += struct.pack('<B', ac7make_track_element(pt))
   
         if ac7make_is_drum_part(pt):
           e_20 += struct.pack('<H', len(drums) + 0x8000)
