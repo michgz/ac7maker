@@ -544,41 +544,43 @@ for the track. Possible values "Off", "On" or "7th"
 <div class="non-tooltip" style="margin-left: 100px">"source_channel": 13,</div>
 
 <div style="margin-left: 100px;display: block">
-  <div class="tooltip">"only_major"
+  <div class="tooltip">"with_major"
     <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
-      <p>If set to 1, indicates that the track should only be sounded over a major-type
-chord (including augmented and dominant 7th chords)</p>
-      <p>Optional; defaults to 0</p>
+      <p>If set to 1, indicates that the track should be sounded over a major-type
+chord (including augmented and dominant 7th chords). If set to 0, it will be silent
+over major-type chords</p>
+      <p>Optional; for non-Drum parts defaults to 1. Ignored for Drum parts (parts 1 & 2)</p>
     </span>
   </div>
   <div style="display: inline">: 0,</div>
 </div>
 
 <div style="margin-left: 100px;display: block">
-  <div class="tooltip">"only_minor"
+  <div class="tooltip">"with_minor"
     <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
-      <p>If set to 1, indicates that the track should only be sounded over a minor-type
-chord (including minor 7th and diminished chords)</p>
-      <p>Optional; defaults to 0</p>
+      <p>If set to 1, indicates that the track should be sounded over a minor-type
+chord (including diminished and minor 7th chords). If set to 0, it will be silent
+over minor-type chords</p>
+      <p>Optional; for non-Drum parts defaults to 1. Ignored for Drum parts (parts 1 & 2)</p>
     </span>
   </div>
   <div style="display: inline">: 0,</div>
 </div>
 
 <div style="margin-left: 100px;display: block">
-  <div class="tooltip">"no_transpose"
+  <div class="tooltip">"chord_sync"
     <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
-      <p>If set to 0, indicates that the music data from the MIDI file should be regarded as
+      <p>If set to 1, indicates that the music data from the MIDI file should be regarded as
 being in C major and needs to be transposed to the chord that is currently playing. If
-set to 1, indicates that the music data should be performed without transposing or chord
-conversion. It may be useful to set it to 1 in several cases:
+set to 0, indicates that the music data should be performed without transposing or chord
+conversion. It may be useful to set it to 0 in several cases:
       <ul>
       <li>Creating a drone sound, for example with Bagpipes</li>
       <li>With non-melodic instruments such as Drum Kits or Berimbau</li>
       <li>With upper octaves of "Versatile" instruments</li>
       </ul></p>
-      <p>Optional; defaults to 0. For Drum parts (parts 1 and 2), the music data will never be
-transposed anyway and so this setting is ignored</p>
+      <p>Optional; defaults to 1 for non-Drum parts. For Drum parts (parts 1 and 2), it defaults to 0 and
+leads to unidentified behaviour if changed to 1</p>
     </span>
   </div>
   <div style="display: inline">: 1</div>
