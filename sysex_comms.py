@@ -71,8 +71,8 @@ def upload_ac7(dest_num, data):
     upload_ac7_internal(dest_num - 294, data)
   else:
     # Cannot do bulk uploads to preset locations
-    print("Wrong destination number: cannot do bulk uploads to preset location")
-    raise Exception
+    raise Exception("Wrong destination number: cannot do bulk uploads to preset location")
+
 
 
 def download_ac7(src_num):
@@ -82,10 +82,20 @@ def download_ac7(src_num):
     return download_ac7_internal(src_num - 294)
   else:
     # Cannot do bulk download from preset locations
-    print("Wrong source number: Cannot do bulk download from preset location")
+    sys.stderr.write("Wrong source number: Cannot do bulk download from preset location")
     return -1
 
 
 if __name__=="__main__":
-  pass
-
+  if sys.version_info[0] < 3:
+    raise Exception("Only for use with Python 3! (Found {0}.{1})".format(sys.version_info[0], sys.version_info[1]))
+  if len(sys.argv) >= 2:
+    if not sys.stdin.isatty():
+      # sysin has some data being piped in. Assume we are to do an upload
+      dest_num = int(sys.argv[1])
+      sys.stdout.write("Uploading to rhythm number {0}\n".format(dest_num))
+      upload_ac7(dest_num, sys.stdin.buffer.read())
+    else:
+      # sysin is not a pipe. Assume we are to do a download
+      dest_num = int(sys.argv[1])
+      sys.stdout.buffer.write(download_ac7(dest_num))

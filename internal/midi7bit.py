@@ -20,8 +20,7 @@ def midi_7bit_to_8bit(b):
     x = b[i]
   
     if x >= 128:
-      print("Not valid 7-bit data at position {0} : {1:02X}!".format(i, x))
-      raise Exception
+      raise Exception("Not valid 7-bit data at position {0} : {1:02X}!".format(i, x))
 
     if n == 0 or n == 8:
       r = x
@@ -50,9 +49,8 @@ def midi_7bit_to_8bit(b):
     i += 1
     n += 1
   if r != 0:
-    print("Left over data! Probably an error")
-    raise Exception
-    
+    raise Exception("Left over data! Probably an error")
+  
   return c
   
   

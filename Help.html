@@ -79,8 +79,8 @@ the item</p>
 <div style="margin-left: 40px;display: block">
   <div class="tooltip">"name"
     <span class="tooltiptext" style="width: 220px"><p>A text value which can be used as the human-readable name for the
-rhythm, and is used as the file name for the generated AC7 file</p>
-      <p>Optional; if omitted, a random file name will be used</p>
+rhythm</p>
+      <p>Optional; this value is ignored</p>
     </span>
   </div>
   <div style="display: inline">: "My Rhythm",</div>
@@ -108,8 +108,8 @@ target for this rhythm, such as "CT-X" or "WK"</p>
 
 <div style="margin-left: 40px;display: block">
   <div class="tooltip">"rhythm"
-    <span class="tooltiptext" style="width: 220px"><p>A structure defining the rhythm to be created. Each JSON document should
-contain exactly one field with the "rhythm" label</p><p>Mandatory</p></span>
+    <span class="tooltiptext" style="width: 220px"><p>A structure defining the rhythm to be created. Any input should
+contain exactly one "rhythm" structure</p><p>Mandatory</p></span>
   </div>
   <div style="display: inline">: {</div>
 </div>
@@ -127,7 +127,7 @@ be shown (at least, up to 7 characters) on the keyboard display when the rhythm 
 <div style="margin-left: 60px;display: block">
   <div class="tooltip">"volume"
     <span class="tooltiptext" style="width: 220px"><p>Master volume for playback of the rhythm</p>
-      <p>Possible values: 0 to 127</p>
+      <p>Possible values: 0&ndash;127</p>
       <p>Optional; if omitted, the keyboard default will be used (probably 127)</p>
     </span>
   </div>
@@ -137,7 +137,7 @@ be shown (at least, up to 7 characters) on the keyboard display when the rhythm 
 <div style="margin-left: 60px;display: block">
   <div class="tooltip">"tempo"
     <span class="tooltiptext" style="width: 540px"><p>Tempo for playback of the rhythm</p>
-      <p>Possible values: 20 to 255</p>
+      <p>Possible values: 20&ndash;255</p>
       <p>Optional; if omitted, the rhythm will not define a tempo. As far as I can tell, the keyboard just
 ignores this parameter anyway and simply uses the tempo selected by the performer</p>
     </span>
@@ -499,7 +499,7 @@ and element numbers. Ignored for Drum parts</p>
   <div class="tooltip">"force_root"
     <span class="tooltiptext" style="width: 500px"><p>Defines whether the "f-root"
 method is used for the track, suitable for bass parts. Value of 0 or 1
-      <p>Optional; if omitted, defaults to 1 for Bass part (part 3) or 0 otherwise. Ignored for Drum parts</p>
+      <p>Optional; if omitted, defaults to 1 for Bass part (part 3) or 0 for parts 4&ndash;8. Ignored for Drum parts</p>
     </span>
   </div>
   <div style="display: inline">: 1,</div>
@@ -508,7 +508,7 @@ method is used for the track, suitable for bass parts. Value of 0 or 1
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"break_point"
     <span class="tooltiptext" style="width: 500px"><p>Defines the break point for the
-chord conversion for the track. Possible values 1 - 12
+chord conversion for the track. Possible values 1&ndash;12
       <p>Optional; if omitted, a reasonable default is chosen. Ignored for Drum parts</p>
     </span>
   </div>
@@ -547,9 +547,9 @@ for the track. Possible values "Off", "On" or "7th"
   <div class="tooltip">"with_major"
     <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
       <p>If set to 1, indicates that the track should be sounded over a major-type
-chord (including augmented and dominant 7th chords). If set to 0, it will be silent
-over major-type chords</p>
-      <p>Optional; for non-Drum parts defaults to 1. Ignored for Drum parts (parts 1 & 2)</p>
+chord (including augmented and dominant 7th chords, or if no chord is specified).
+If set to 0, it will be silent over major-type chords</p>
+      <p>Optional; defaults to 1</p>
     </span>
   </div>
   <div style="display: inline">: 0,</div>
@@ -561,7 +561,7 @@ over major-type chords</p>
       <p>If set to 1, indicates that the track should be sounded over a minor-type
 chord (including diminished and minor 7th chords). If set to 0, it will be silent
 over minor-type chords</p>
-      <p>Optional; for non-Drum parts defaults to 1. Ignored for Drum parts (parts 1 & 2)</p>
+      <p>Optional; defaults to 1</p>
     </span>
   </div>
   <div style="display: inline">: 0,</div>
@@ -572,15 +572,15 @@ over minor-type chords</p>
     <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
       <p>If set to 1, indicates that the music data from the MIDI file should be regarded as
 being in C major and needs to be transposed to the chord that is currently playing. If
-set to 0, indicates that the music data should be performed without transposing or chord
+set to 0, indicates that the music data should be performed without any transposing or chord
 conversion. It may be useful to set it to 0 in several cases:
       <ul>
-      <li>Creating a drone sound, for example with Bagpipes</li>
+      <li>To create a drone sound, for example with Bagpipes</li>
       <li>With non-melodic instruments such as Drum Kits or Berimbau</li>
       <li>With upper octaves of "Versatile" instruments</li>
       </ul></p>
       <p>Optional; defaults to 1 for non-Drum parts. For Drum parts (parts 1 and 2), it defaults to 0 and
-leads to unidentified behaviour if changed to 1</p>
+has no effect if set to 1</p>
     </span>
   </div>
   <div style="display: inline">: 1</div>

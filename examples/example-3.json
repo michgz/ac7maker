@@ -1,0 +1,143 @@
+{
+	"name": "example-3",
+	"target_model": "CT-X3000",
+	"target_family": "CT-X",
+	"rhythm": {
+		"name": "Pseudo",
+		"volume": 127,
+		"parts_number": 8,
+		"parts": [
+			{
+				"part": 1,
+				"_comment": "Percussion"
+			},
+			{
+				"part": 2,
+				"_comment": "Drums",
+				"patch": 0,
+				"bank_msb": 120
+			},
+			{
+				"part": 3,
+				"_comment": "Bass"
+			},
+			{
+				"part": 4,
+				"_comment": "Chord 1",
+				"patch": 60,
+				"bank_msb": 1,
+				"delay_send": 0
+			},
+			{
+				"part": 5,
+				"_comment": "Chord 2",
+				"patch": 0,
+				"bank_msb": 1,
+				"delay_send": 0
+			},
+			{
+				"part": 6,
+				"_comment": "Chord 3",
+				"patch": 24,
+				"bank_msb": 1,
+				"delay_send": 0
+			},
+			{
+				"part": 7,
+				"_comment": "Chord 4"
+			},
+			{
+				"part": 8,
+				"_comment": "Chord 5"
+			}
+		],
+		"elements": [
+			{
+				"element": 1,
+				"_comment": "Intro 1"
+			},
+			{
+				"element": 2,
+				"_comment": "Variation 1"
+			},
+			{
+				"element": 3,
+				"_comment": "Variation 2"
+			},
+			{
+				"element": 4,
+				"_comment": "Fill 1"
+			},
+			{
+				"element": 5,
+				"_comment": "Fill 2"
+			},
+			{
+				"element": 6,
+				"_comment": "Ending 1"
+			},
+			{
+				"element": 7,
+				"_comment": "Intro 2 (unused)"
+			},
+			{
+				"element": 8,
+				"_comment": "Variation 3",
+				"omit": 1
+			},
+			{
+				"element": 9,
+				"_comment": "Variation 4",
+				"omit": 1
+			},
+			{
+				"element": 10,
+				"_comment": "Fill 3",
+				"omit": 1
+			},
+			{
+				"element": 11,
+				"_comment": "Fill 4",
+				"omit": 1
+			},
+			{
+				"element": 12,
+				"_comment": "Ending 2 (unused)"
+			}
+		],
+		"tracks": [
+			{
+				"part": 4,
+				"element": 2,
+				"source_file": "ex3-v1.mid",
+				"source_channel": 1
+			},
+			{
+				"part": 5,
+				"element": 2,
+				"source_file": "ex3-v1.mid",
+				"source_channel": 2
+			},
+			{
+				"part": 2,
+				"element": 3,
+				"source_file": "ex3-v2.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 3,
+				"source_file": "ex3-v2.mid",
+				"source_channel": 3,
+				"chord_sync": 0
+			},
+			{
+				"part": 6,
+				"element": 8,
+				"source_file": "ex3-v3.mid",
+				"source_channel": 4,
+				"conversion_table": "Intro m-minor"
+			}
+		]
+	}
+}

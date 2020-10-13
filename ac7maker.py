@@ -69,12 +69,95 @@ inversions = [
   ""
 ]
 
+# Table of values for the 0x40 atom related to CT-X3000 names for the reverb
+# setting. Note that values aren't all unique -- there's more we can do to specify
+# the precise reverb effect, but this is a good first attempt.
+# May be expanded later to cover all CT-X5000 names
+reverb_def = {
+  "Off"         : -1,
+  "Room 1"      : 0x00,
+  "Room 2"      : 0x01,
+  "Room 3"      : 0x01,
+  "Room 4"      : 0x10,
+  "Room 5"      : 0x11,
+  "Large Room1" : 0x0A,
+  "Large Room2" : 0x0B,
+  "Hall 1"      : 0x03,
+  "Hall 2"      : 0x04,
+  "Hall 3"      : 0x17,
+  "Hall 4"      : 0x18,
+  "Hall 5"      : 0x19,
+  "Hall 6"      : 0x1A,
+  "Stadium 1"   : 0x0C,
+  "Stadium 2"   : 0x0D,
+  "Stadium 3"   : 0x1F,
+  "Plate 1"     : 0x05,
+  "Plate 2"     : 0x08,
+  "Delay"       : 0x06,
+  "Pan Delay"   : 0x07,
+  "Long Delay 1" : 0x0E,
+  "Long Delay 2" : 0x0F,
+  "Church"      : 0x16,
+  "Cathedral"   : 0x1E
+}
+
+# Table of values for the 0x41 atom related to CT-X3000 names for the chorus
+# setting. Note that values aren't all unique -- there's more we can do to specify
+# the precise chorus effect, but this is a good first attempt.
+# May be expanded later to cover all CT-X5000 names
+chorus_def = {
+  "Tone"        : 0x02,
+  "Chorus 1"    : 0x00,
+  "Chorus 2"    : 0x01,
+  "Chorus 3"    : 0x01,
+  "Chorus 4"    : 0x03,
+  "FB Chorus"   : 0x04,
+  "Deep Chorus" : 0x0F,
+  "Flanger 1"   : 0x05,
+  "Flanger 2"   : 0x06,
+  "Flanger 3"   : 0x07,
+  "Flanger 4"   : 0x08,
+  "Short Delay 1" : 0x09,
+  "Short Delay 2" : 0x0A
+}
+
+# Table of values for the 0x42 atom related to CT-X3000 names for the delay
+# setting.
+delay_def = {
+  "Tone"              : -1,  # not possible? May just need to set all send values to 0
+  "Short 1"           : 0,
+  "Short 2"           : 1,
+  "Echo"              : 2,
+  "Tempo Sync Short"  : 3,
+  "Tempo Sync Middle" : 4,
+  "Tempo Sync Long"   : 5,
+  "Ambience"          : 6,
+  "Mid 1"             : 7,
+  "Mid 2"             : 8,
+  "Long 1"            : 9,
+  "Long 2"            : 10,
+  "Mid Pan"           : 16,
+  "Long Pan 1"        : 17,
+  "Long Pan 2"        : 18,
+  "Long Pan 3"        : 19
+}
+
+def ac7make_delay_send_vector(el, b):
+  # Returns a vector of 8 bytes with the delay send values for all the parts. The
+  # file format gives us the capability to change all settings for each element also,
+  # but here just give the elements the same values (element number "el" is ignored)
+  
+  g = b''
+  for pt in range(1,9):
+    g += struct.pack('B', b['rhythm']['parts'][pt-1].get('delay_send', 0))
+  return g
 
 
-# Set up a mixer table element for given part number. The file format
-# gives us the capability to change all settings for each element also,
-# but here just give the elements the same values.
 def ac7make_mixer_element(pt, b):
+  # Set up a mixer table element for given part number. The file format
+  # gives us the capability to change all settings for each element also,
+  # but here just give the elements the same values.
+  
   g = b''
   pt_patch = b['rhythm']['parts'][pt-1].get('patch', -1)
   pt_bank = b['rhythm']['parts'][pt-1].get('bank_msb', -1)
@@ -82,22 +165,23 @@ def ac7make_mixer_element(pt, b):
     # Not specified correctly - use defaults for that part
     pt_patch = instruments[pt-1]['patch']
     pt_bank = instruments[pt-1]['bank_msb']
-  g = g + struct.pack('B', pt_patch)
-  g = g + struct.pack('B', pt_bank)
-  g = g + struct.pack('B', b['rhythm']['parts'][pt-1].get('volume', 100))  # volume
-  g = g + struct.pack('B', 64 + b['rhythm']['parts'][pt-1].get('pan', 0))   # pan
-  g = g + struct.pack('B', b['rhythm']['parts'][pt-1].get('reverb_send', 40))   # reverb send
-  g = g + struct.pack('B', b['rhythm']['parts'][pt-1].get('chorus_send', 0))   # chorus send
+  g += struct.pack('B', pt_patch)
+  g += struct.pack('B', pt_bank)
+  g += struct.pack('B', b['rhythm']['parts'][pt-1].get('volume', 127))  # volume
+  g += struct.pack('B', 64 + b['rhythm']['parts'][pt-1].get('pan', 0))   # pan
+  g += struct.pack('B', b['rhythm']['parts'][pt-1].get('reverb_send', 40))   # reverb send
+  g += struct.pack('B', b['rhythm']['parts'][pt-1].get('chorus_send', 0))   # chorus send
   return(g)
 
 def ac7make_mixer(mixers, addr):
+  # Make a "MIXR" block from a vector of data strings
+  
   g1 = b'MIXR'
   g2 = b''
   g3 = b''
   number_of_parts = len(mixers)
   if number_of_parts != 96:
-    print("Expected 96 mixer parts, got {0}".format(number_of_parts))
-    raise Exception
+    raise Exception("Expected 96 mixer parts, got {0}".format(number_of_parts))
   addr = addr + 10 + 4*number_of_parts
   for mm in mixers:
     g3 = g3 + mm
@@ -119,9 +203,7 @@ def ac7make_element_has_other(b, el):
 
 
 def ac7make_midi_to_ac7(trk, end_time):
-  # Changes digested midi data into AC7 track data
-  print("Got track of length {0}".format(len(trk)))
-  print(trk)
+  # Change the digested midi data into AC7 track data
   latest_time = 0
   b = b''
   for evt in trk:
@@ -161,6 +243,12 @@ def ac7make_midi_to_ac7(trk, end_time):
   return b
 
 def ac7make_get_track(tracks, ch):
+  # Select a track from an array of tracks by matching the MIDI channel number.
+  # This is appropriate for Type I MIDI files where each MIDI channel has its
+  # own track. It's not explicitly checked that the MIDI is structured in that
+  # way, if not then behaviour will be undefined.
+  #
+  
   for trk in tracks:
     for evt in trk:
       if evt['event']=='note_on' and evt['channel']==ch:
@@ -169,7 +257,10 @@ def ac7make_get_track(tracks, ch):
   # If get here, have not found any track
   return None
 
-def ac7make_drum_element(pt, el, b, total_midi_clks, midi_trks, trk_ch = -1):
+def ac7make_drum_element(pt, el, total_midi_clks, midi_trks, trk_ch = -1):
+  # Create a single track to go into the "DRUM" section of the AC7 file
+  #
+  
   g1 = b''
   if midi_trks != None:
     midi_trk = ac7make_get_track(midi_trks, trk_ch)
@@ -180,11 +271,16 @@ def ac7make_drum_element(pt, el, b, total_midi_clks, midi_trks, trk_ch = -1):
     # Translate total time from midi clocks (24 per crotchet) to AC7 clocks (96 per crotchet)
     g1 += ac7make_midi_to_ac7(midi_trk, round(4.0*total_midi_clks))
   else:
+    # A default value that means "skip to track end time" (a skip of 0x0480 is for some reason
+    # interpreted in that way) followed by "end of track".
     g1 += b'\x80\xff\x04\x00\xfc\x00'
   return g1
 
 
 def ac7make_drum(drums, start_addr):
+  # Create the "DRUM" section from an array of drum tracks
+  #
+  
   g1 = b'DRUM'
   g2 = b''
   g3 = b''
@@ -192,15 +288,22 @@ def ac7make_drum(drums, start_addr):
   number_of_parts = len(drums)
   addr = start_addr + 10 + 4*number_of_parts
   for dd in drums:
-    g3 += dd
-    g2 = g2 + struct.pack('<I', addr)
+    g2 += struct.pack('<I', addr)
     addr += len(dd)
-  g1 = g1 + struct.pack('<I', 10 + len(g2) + len(g3))
-  g1 = g1 + struct.pack('<H', number_of_parts)
+    g3 += dd
+  g1 += struct.pack('<I', 10 + len(g2) + len(g3))
+  g1 += struct.pack('<H', number_of_parts)
   return (g1 + g2 + g3)
 
 
 def ac7make_chord_conversion(tk):
+  # Return a chord conversion (numerical value 0-15) to use for a track. If a
+  # valid conversion is explicitly specified then use that, otherwise choose an
+  # appropriate default for the part and element.
+  #
+  # See above for a list of possible specification values (they are strings)
+  #
+  
   cconv = tk.get("conversion_table", "")
   x = -1
   if cconv != "":
@@ -236,6 +339,13 @@ def ac7make_chord_conversion(tk):
 
 
 def ac7make_chord_inversion(tk):
+  # Return a chord inversion (numerical value 0-7) to use for a track. If a
+  # valid inversion is explicitly specified then use that, otherwise choose an
+  # appropriate default for the part and element.
+  #
+  # See above for a list of possible specification values (they are strings)
+  #
+  
   cinv = tk.get("inversion", "")
   x = -1
   if cinv != "":
@@ -252,10 +362,18 @@ def ac7make_chord_inversion(tk):
   return inversions.index("Off")
 
 def ac7make_break_point(tk):
+  # Return a chord break point (numerical value 0-11) to use for a track. If a
+  # valid break point is explicitly specified then use that, otherwise choose an
+  # appropriate default for the part and element.
+  #
+  # The break point is simply a number. I think 0 corresponds to "C", 1 to "C#",
+  # etc.
+  #
+  
   bkp = tk.get("break_point", -1)
   
   # If a break point has been specified, return it.
-  if bkp >= 0 and bkp <= 12:
+  if bkp >= 0 and bkp < 12:
     return bkp
 
   # No break point has been specified. Choose a default value
@@ -269,7 +387,8 @@ def ac7make_break_point(tk):
 
 
 def ac7make_starter(tk):
-  # Make up the "starter" (first 3 bytes) of a track.
+  # Make up the "starter" (first 3 bytes) of a Other track.
+  #
   
   if tk["part"] <= 2:
     # This is a drum part. No starter.
@@ -284,49 +403,55 @@ def ac7make_starter(tk):
   return struct.pack("<3B", x1, x2, x3)
 
 
-def ac7make_track_data(tk):
-  # TODO: read MIDI data for the track
-  return b''
-
-
-
 def ac7make_time_jump(t):
+  # Make a "time-jump" rhythm event. Input is in units of AC7 ticks (96 per crotchet)
+  #
+  
   return struct.pack('<3B', t%256, 0xFF, t//256)
 
 
 def ac7make_track_event(e):
-  if e['event'] == 'control_change':
-    if e['controller'] == 0x48:  # Release time
+  # Make a rhythm event from a digested MIDI event (excluding note-on/note-off)
+  #
+  
+  if e['event'] == 'pitch_bend':
+    if e['bend'] >= 0:
+      return struct.pack('<2B', 0x8E, e['bend']//64)
+    else:
+      return struct.pack('<2B', 0x8E, e['bend']//64+256)
+  elif e['event'] == 'control_change':
+    if e['controller'] == 0x01:  # Modulation
+      return struct.pack('<2B', 0xB0, e['value'])
+    elif e['controller'] == 0x0B:  # Expression
+      return struct.pack('<2B', 0xB5, e['value'])
+    elif e['controller'] == 0x4A:  # Filter control
+      return struct.pack('<2B', 0xBA, e['value'])
+    elif e['controller'] == 0x47:  # Filter control
+      return struct.pack('<2B', 0xBB, e['value'])
+    elif e['controller'] == 0x49:  # Attack time
+      return struct.pack('<2B', 0xBC, e['value'])
+    elif e['controller'] == 0x48:  # Release time
       return struct.pack('<2B', 0xBD, e['value'])
-    # ... other controllers not done yet.
+    # There are some other event types that are seen in AC7 tracks which
+    # have not been fully identified. May add later. Also, there are tempo
+    # changes which are quite tricky
+  elif e['event'] == 'registered_param':
+    if e['parameter'] == 0x0000:   # Pitch bend range
+      return struct.pack('<2B', 0xB9, e['value']//128)
 
   # If we get here, no recognised events. Return an empty string
   return b''
 
 
-def ac7make_other_element(pt, el, b, total_midi_clks, midi_trks, trk_ch=-1):
-  # A default track that has three elements:
-  # 02 70 00   -- something to do with break points, split tables, etc.
-  # 80 FF 04   -- wait whole length
-  # 00 FC 00   -- end of track
-  if (el == 1 or el == 6 or el == 7 or el == 12):
-    # An intro or outro element
-    if (pt == 3):
-      # Bass
-      g1 = b'\x0b\x40\x00'
-    else:
-      # Chords
-      g1 = b'\x0b\x70\x00'
-    #if el == 6 or el == 11:
-    #  g1 += b'\x00\xe5\x00'
+def ac7make_other_element(pt, el, trk, total_midi_clks, midi_trks, trk_ch=-1):
+  # Create a Casio-style track for Other (i.e. non-Drum). That will start with a
+  # 3-byte "starter" followed by track events
+  #
+  
+  if trk != None:
+    g1 = ac7make_starter(trk)
   else:
-    # An ordinary variation/fill
-    if (pt == 3):
-      # Bass
-      g1 = b'\x00\x40\x00'
-    else:
-      # Chords
-      g1 = b'\x02\x70\x00'
+    g1 = ac7make_starter({"part": pt, "element": el})
   if midi_trks != None:
     midi_trk = ac7make_get_track(midi_trks, trk_ch)
   else:
@@ -341,6 +466,9 @@ def ac7make_other_element(pt, el, b, total_midi_clks, midi_trks, trk_ch=-1):
 
 
 def ac7make_other(others, start_addr):
+  # Make an "OTHR" block given a vector of data strings
+  #
+  
   g1 = b'OTHR'
   g2 = b''
   g3 = b''
@@ -357,6 +485,8 @@ def ac7make_other(others, start_addr):
 
 
 def ac7make_element_atom(in_val, in_str):
+  # Make an "atom" (i.e. type byte, length byte, then a string of data bytes)
+  
   return struct.pack('B', in_val) + struct.pack('B', len(in_str)) + in_str
 
 
@@ -366,7 +496,6 @@ def ac7make_time_signature(s):
   #   2/4 3/4 4/4 5/4 6/4 7/4 8/4
   #   2/8 3/8 4/8 5/8 6/8 7/8 8/8 9/8 10/8 11/8 12/8 13/8 14/8 15/8 16/8
   # 
-  # TODO: could make a bit more robust
   num = int(s.split('/')[0])
   den = int(s.split('/')[1])
   if num < 2 or num > 16:
@@ -385,17 +514,18 @@ def ac7make_time_signature(s):
 
 
 def ac7make_element(b, elements, start_addr):
+  # Take a vector of "ELMT" block and combine them as they will be in the AC7 file
+  
   number_of_parts = len(elements)
   if number_of_parts != 12:
-    print("Expected 12 elements, got {0}".format(number_of_parts))
-    raise Exception
+    raise Exception("Expected 12 elements, got {0}".format(number_of_parts))
   addr = start_addr + 7 + 4*number_of_parts
   
   # Magic number for "elements"
   g0 = struct.pack('<I', 0x07ffffff)
   
   g2 = b''
-  g2 = g2 + b'\x00\x0c'   # Name length (12 bytes)
+  g2 += b'\x00\x0c'   # Name length (12 bytes)
   # Ensure the name is exactly 8 bytes long, with the final character
   # being a space.
   g2 += b['rhythm'].get('name', "No Name")[:7].ljust(8, ' ').encode('ascii')
@@ -404,23 +534,36 @@ def ac7make_element(b, elements, start_addr):
   #
   # The first byte here must be 0x00 (null terminator), others don't seem to matter.
   g2 += b'\x00\x01\x00\x00'
-  g2 = g2 + ac7make_element_atom(1, struct.pack('B', ac7make_time_signature(b['rhythm'].get('time_signature', '4/4')))) # Time signature.
-  g2 = g2 + ac7make_element_atom(2, struct.pack('B', 120)) # Tempo bpm
-  g2 = g2 + ac7make_element_atom(9, struct.pack('B', b['rhythm'].get('volume', 127)))   # Overall volume
-  g2 = g2 + ac7make_element_atom(64, struct.pack('B', 23)) # Reverb type. TODO: how does this relate to CT-X numbering?
-  g2 = g2 + ac7make_element_atom(65, struct.pack('B', 2)) # Chorus type. TODO: how does this relate to CT-X numbering?
-  g2 = g2 + ac7make_element_atom(66, struct.pack('B', 4)) # Delay type. TODO: how does this relate to CT-X numbering?
+  g2 += ac7make_element_atom(1, struct.pack('B', ac7make_time_signature(b['rhythm'].get('time_signature', '4/4')))) # Time signature. This probably
+  # isn't used for anything
+  g2 += ac7make_element_atom(2, struct.pack('B', 120)) # Tempo bpm. Ignored by the keyboard
+  # Volume
+  v = b['rhythm'].get('volume', -1)
+  if v >= 0:
+    g2 += ac7make_element_atom(9, struct.pack('B', v))   # Overall volume
+  # Reverb
+  v = reverb_def.get(b['rhythm'].get('reverb_type', ''), -1)
+  if v >= 0:
+    g2 += ac7make_element_atom(64, struct.pack('B', v)) # Reverb type
+  # Chorus
+  v = chorus_def.get(b['rhythm'].get('chorus_type', ''), -1)
+  if v >= 0:
+    g2 += ac7make_element_atom(65, struct.pack('B', v)) # Chorus type
+  # Delay
+  v = delay_def.get(b['rhythm'].get('delay_type', ''), -1)
+  if v >= 0:
+    g2 += ac7make_element_atom(66, struct.pack('B', v)) # Delay type
   
   # The following stuff is optional. I don't know what it is...
   if True:
-    g2 = g2 + ac7make_element_atom(17, b'\x06\x01') # ??
-    g2 = g2 + ac7make_element_atom(17, b'\x07\x12') # ??
-    g2 = g2 + ac7make_element_atom(17, b'\x08\x13') # ??
-    g2 = g2 + ac7make_element_atom(17, b'\x09\x22') # ??
-    g2 = g2 + ac7make_element_atom(17, b'\x0A\x23') # ??
-    g2 = g2 + ac7make_element_atom(17, b'\x0B\x31') # ??
+    g2 += ac7make_element_atom(17, b'\x06\x01') # ??
+    g2 += ac7make_element_atom(17, b'\x07\x12') # ??
+    g2 += ac7make_element_atom(17, b'\x08\x13') # ??
+    g2 += ac7make_element_atom(17, b'\x09\x22') # ??
+    g2 += ac7make_element_atom(17, b'\x0A\x23') # ??
+    g2 += ac7make_element_atom(17, b'\x0B\x31') # ??
 
-  g2 = g2 + ac7make_element_atom(255, b'') # End
+  g2 += ac7make_element_atom(255, b'') # End
 
   addr = addr + len(g2)
 
@@ -434,29 +577,58 @@ def ac7make_element(b, elements, start_addr):
     addr = addr + 6 + len(ee)
   g0 += struct.pack('<H', 7 + len(g1) + len(g2) + len(g3))
   g0 += struct.pack('B', number_of_parts)
-  return g0 + g1 + g2 + g3
+  return (g0 + g1 + g2 + g3)
 
+
+def ac7make_is_drum_part(pt):
+  # Returns True if the part number indicates a drum part
+  
+  return pt<=2
+
+def ac7make_dsp_effect_parameter_count(ef):
+  # Returns the number of effect parameters given the effect number
+  # 13 is the maximum so for now are just returning that
+  #
+
+  return 13
 
 def ac7make_track_element(pt):
+  # Returns the track number nibble (bottom 4 bits of the track byte)
+  #
+  
   if pt <= 1:
     return 0x0f  # 0x0F = negative 1
   else:
     return pt-2
 
-def ac7make_is_drum_part(pt):
-  return pt<=2
-
-def ac7make_dsp_effect_parameter_count(ef):
-  return 16
-
 def ac7make_track_flag(trk):
-  pt = trk.get("part", "-1")
-  if pt >= 3 and pt <= 8:
+  # Returns the flag nibble (top 4 bits of the track byte)
+  #
+  
+  pt = trk.get("part", -1)
+  flag = 0x00  # Default : both major and minor
+  major = trk.get("with_major", 1)
+  minor = trk.get("with_minor", 1)
+  if major and not minor:
+    flag = 0x80
+  elif not major and minor:
+    flag = 0xA0
+  elif not major and not minor:
+    raise Exception("Both with_major and with_minor set to 0 in track for part {0}. At least one must be 1!".format(pt))
+  if not (pt >= 1 and pt <= 2):
+    # A melody part. "chord_sync" defaults to 1
     if trk.get("chord_sync", -1) == 0:
-      return 0x10
-  return 0x00
+      flag |= 0x10
+  else:
+    # For drum parts, "chord_sync" operates the other way round. I'm not yet sure if this has
+    # any effect on drum parts or not.
+    if trk.get("chord_sync", -1) == 1:
+      flag |= 0x10
+  return flag
 
 def ac7maker(b):
+  # The main routine. Create the different parts of the AC7 file (header, ELMT,
+  # MIXR, DRUM, OTHER) and return them concatenated together.
   
   elements = []
   mixers = []
@@ -464,23 +636,32 @@ def ac7maker(b):
   others = []
   
   for el in range(1,13):
-    # First parse: find a time signature, tempo and measure count for the element
-    time_sig = "4/4"
+    # First pass: find a time signature, tempo and measure count for the element
     tempo = 120
-    quarter_notes = 4 # 1 measure for 4/4
     max_absolute_time = 0
+    time_sig = {"numerator": 0, "log_denominator": 0}
     for trk in b["rhythm"]["tracks"]:
       if trk.get("element", -1)==el:
         with open(os.path.join(b.get("input_dir", ""), trk["source_file"]), "rb") as f3:
-          bm = internal.midifiles.midifile_read(f3.read())
-        print(bm)
-        for mtrk in bm:
+          mdata = internal.midifiles.midifile_read(f3.read())
+        for mtrk in mdata:
           for evt in mtrk:
             if evt["absolute_time"] > max_absolute_time:
               max_absolute_time = evt["absolute_time"]
+            
+            if time_sig["numerator"] == 0 and evt["event"] == "time_signature":
+              time_sig["numerator"] = evt["numerator"]
+              time_sig["log_denominator"] = evt["log_denominator"]
     if max_absolute_time == 0:  # (if not, probably have no tracks associated)
+      # Use some default values
       max_absolute_time = 24.0*4.0
+      time_sig["numerator"] = 4
+      time_sig["log_denominator"] = 2
+    else:
+      if time_sig["numerator"] == 0 or time_sig["log_denominator"] == 0:
+        raise Exception("Time signature not detected in non-empty element {0}. Make sure that a MIDI file associated with this element contains a time signature specifier".format(el))
 
+    # Second pass: change requested tracks to Casio format (from MIDI)
     num_trk_el = 0
     e_20 = b''
     e_21 = b''
@@ -489,22 +670,18 @@ def ac7maker(b):
       num_trk = 0
       for trk in b["rhythm"]["tracks"]:
         if trk.get("element", -1)==el and trk.get("part", -1)==pt:
-          print("Got non-empty track at element={0} part={1}".format(el, pt))
-          print("File name = ")
-          print(trk["source_file"])
           with open(os.path.join(b.get("input_dir", ""), trk["source_file"]), "rb") as f3:
-            bm = internal.midifiles.midifile_read(f3.read())
-          print(bm)
+            mdata = internal.midifiles.midifile_read(f3.read())
           
           # Found a non-empty track to add. Add it
           e_22 += struct.pack('<B', ac7make_track_element(pt) + ac7make_track_flag(trk))
     
           if ac7make_is_drum_part(pt):
             e_20 += struct.pack('<H', len(drums) + 0x8000)
-            drums.append(ac7make_drum_element(pt, el, b, max_absolute_time, bm, trk["source_channel"]))
+            drums.append(ac7make_drum_element(pt, el, max_absolute_time, mdata, trk["source_channel"]))
           else:
             e_20 += struct.pack('<H', len(others) + 0x8000)
-            others.append(ac7make_other_element(pt, el, b, max_absolute_time, bm, trk["source_channel"]))
+            others.append(ac7make_other_element(pt, el, trk, max_absolute_time, mdata, trk["source_channel"]))
           
           if num_trk == 0:
             # This is the first track for this element/part combo
@@ -522,10 +699,10 @@ def ac7maker(b):
   
         if ac7make_is_drum_part(pt):
           e_20 += struct.pack('<H', len(drums) + 0x8000)
-          drums.append(ac7make_drum_element(pt, el, b, max_absolute_time, None))
+          drums.append(ac7make_drum_element(pt, el, max_absolute_time, None))
         else:
           e_20 += struct.pack('<H', len(others) + 0x8000)
-          others.append(ac7make_other_element(pt, el, b, max_absolute_time, None))
+          others.append(ac7make_other_element(pt, el, None, max_absolute_time, None))
           
         e_21 += struct.pack('<H', len(mixers) + 0x8000)
         mixers.append(ac7make_mixer_element(pt, b))
@@ -536,27 +713,33 @@ def ac7maker(b):
     # Have now processed all the parts & tracks for this element. Complete
     # the element bytestring
     el_00 = b''
-    el_00 += ac7make_element_atom(1, b'\x22')  # Time signature
-    el_00 += ac7make_element_atom(6, struct.pack('<B', round(max_absolute_time / (24.0*4.0))))  # Number of measures
+    el_00 += ac7make_element_atom(1, struct.pack('<B', (time_sig["numerator"] << 3) | time_sig["log_denominator"])) # Time signature
+    num_measures = 1
+    if time_sig["log_denominator"] == 2:  # crotchet time
+      num_measures = round( max_absolute_time / (24.0*float(time_sig["numerator"] )))
+    elif time_sig["log_denominator"] == 3:  # quaver time
+      num_measures = round( max_absolute_time / (12.0*float(time_sig["numerator"] )))
+    else:
+      raise Exception("Invalid time signature in element {0}: specified {1}/2^{2}, should be 2/4 to 4/4 or 2/8 to 16/8 only".format(el, time_sig["numerator"], time_sig["log_denominator"]))
+    el_00 += ac7make_element_atom(6, struct.pack('<B', num_measures))  # Number of measures
     el_00 += ac7make_element_atom(7, struct.pack('<B', num_trk_el))  # Total number of tracks
     el_00 += ac7make_element_atom(0x20, e_20)
     el_00 += ac7make_element_atom(0x21, e_21)
     el_00 += ac7make_element_atom(0x22, e_22)
-    el_00 += ac7make_element_atom(0x30, struct.pack('<8B', 0, 0, 0, 0, 0, 0, 0, 0))  # Delay send values
+    el_00 += ac7make_element_atom(0x30, ac7make_delay_send_vector(el, b))  # Delay send values
     el_00 += ac7make_element_atom(253, b'')  # Start of AiX-specific data
-    # Add any 36 atoms
+    # Add any 36 atoms (DSP)
     for pp in b["rhythm"]["parts"]:
       tf = pp.get("tone_file", "")
       pn = pp["part"]
-      tn = b''
       if tf != "":
+        tn = b''
         with open(os.path.join(b.get("input_dir", ""), tf), "rb") as f11:
           tn = f11.read()
-          print("Length of ton = {0}".format(len(tn)))
         if len(tn) >= 456:
           # First add a "clear DSP chain" instruction
           el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, 0, 0))
-          for j in range(1):  # Number of effects to include <---- Note: currently hard-coded!!
+          for j in range(4):  # Number of effects to include
             dsp_ef = tn[0x156 + j*0x12]
             if dsp_ef != 0 and dsp_ef <= 0x1f:
               # Next define the DSP effect
@@ -565,7 +748,7 @@ def ac7maker(b):
               for i in range(ac7make_dsp_effect_parameter_count(dsp_ef)):
                 el_00 += ac7make_element_atom(0x36, struct.pack('<6B', 1, pn - 1 + 8, j, dsp_ef, i, tn[0x156 + j*0x12 + 2 +i]))
     el_00 += ac7make_element_atom(254, b'')  # Start of CTX-specific data
-    # Add "3x"-style atoms. This is very rudimentary so far, and only allows 1 "33" and 1 "35" atom per
+    # Add "3x"-style atoms. This is very rudimentary so far, and only allows one "33" and one "35" atom per
     # element.
     # Add any 33 atoms
     h = b["rhythm"]["elements"][el-1].get("var_33", [])
@@ -608,118 +791,35 @@ def ac7maker(b):
 
   g1 = b'AC07' + struct.pack('<I', addr) + g1
 
-  return g1 + g5 + g2 + g3 + g4
-  
-  
-# Following https://github.com/shimpe/ac7parser/Ac7CasioEventAnalyzer.py
-# Note that '-' as a synonym for flat has been retained, but it leads to
-# ambiguity if octave is 1 or -1. Consider removing.
-
-chromatic_scale = [['c', 'b#', 'dbb', 'd--'],  # one row contains all synonyms (i.e. synonym for our purpose)
-                   ['c#', 'bx', 'db', 'd-'],
-                   ['d', 'cx', 'ebb', 'e--'],
-                   ['d#', 'eb', 'e-', 'fbb', 'f--'],
-                   ['e', 'dx', 'fb', 'f-'],
-                   ['f', 'e#', 'gbb', 'g--'],
-                   ['f#', 'ex', 'gb', 'g-'],
-                   ['g', 'fx', 'abb', 'a--'],
-                   ['g#', 'ab', 'a-'],
-                   ['a', 'gx', 'bbb', 'b--'],
-                   ['a#', 'bb', 'b-', 'cbb', 'c--'],
-                   ['b', 'ax', 'cb', 'c-']]
-
-corner_case_octave_lower = {"b#", "bx"}
-corner_case_octave_higher = {"cb", "c-", "cbb", "c--"}
-
-
-def read_music(f):
-  dd = []
-  while True:
-    s = f.readline()
-    if not s:
-      break
-    h1 = s.split()
-    if len(h1) != 4:
-      raise Exception
-    d = dict()
-    vel = int(h1[2])
-    if vel == 0:
-      # The Casio format doesn't allow 0 velocity (but MIDI does!)
-      raise Exception
-    d['velocity'] = vel
-
-    u = h1[0].split('.')
-    if len(u) == 2:
-      d['time'] = 24*(4*(int(u[0]) -1) + int(u[1]) -1)
-    elif len(u) == 3:
-      d['time'] = 24*(4*(int(u[0]) -1) + int(u[1]) -1) + int(u[2])
-    else:
-      raise Exception
-      
-    u = h1[3].split('.')
-    if len(u) == 1:
-      d['duration'] = 24*int(u[0])
-    elif len(u) == 2:
-      d['duration'] = 24*int(u[0]) + int(u[1])
-    else:
-      raise Exception
-
-    if h1[1].endswith("-1"):
-      octave = -1
-      s = h1[1][0:-2]
-    else:
-      octave = int(h1[1][-1:])
-      s = h1[1][0:-1]
-    
-    n = 0
-    note = -2
-    for t in chromatic_scale:
-      if s in t:
-        note = n
-      n = n + 1
-    if note == -2:
-      # Not found
-      raise Exception
-    
-    if s in corner_case_octave_lower:
-      octave += 1
-    elif s in corner_case_octave_higher:
-      octave -= 1
-    d['pitch'] = note + (octave + 1)*12
-
-    # Add the note-on event, making a deep copy
-    dd.append(dict(d))
-    # Now add the note-off event!
-    d['velocity'] = 0
-    d['duration'] = 0
-    dd.append(d)
-  return sorted(dd, key=operator.itemgetter('time'))
-
-
+  return (g1 + g5 + g2 + g3 + g4)
 
 
 
 #
 # USAGE:
-#  python3 ac7maker.py <input .json file> [ <output .ac7 file> ]
+#  python3 ac7maker.py <input .json file>
+#  python3 ac7maker.py   <   <pipe>
 #
 
 
 if __name__=="__main__":
+  if sys.version_info[0] < 3:
+    raise Exception("Only for use with Python 3! (Found {0}.{1})".format(sys.version_info[0], sys.version_info[1]))
   if len(sys.argv) < 2:
-    print("Returning : no input")
-    # No input, nothing to do
+    if not sys.stdin.isatty():
+      # sysin has some data being piped in. In this case, we don't know where the
+      # JSON is stored so MIDI files are just searched for in the current directory.
+      # If they're not there, then this won't work - use the named file method instead
+      # in that case
+      sys.stdout.buffer.write(ac7maker(sys.stdin.read()))
+    else:
+      sys.stderr.write("Returning : no input\n")
+      # No input, nothing to do
+      sys.exit(0)
   elif len(sys.argv) == 2:
-    # No output filename; send to standard out
+    # write to standard out
     with open(sys.argv[1], "r") as f1:
       b = json.load(f1)
     b["input_dir"] = os.path.dirname(sys.argv[1])
-    sys.stdout.write(str(ac7maker(b), sys.stdout.encoding))
-  else:
-    # Has an output filename. Write to it.
-    with open(sys.argv[1], "r") as f1:
-      b = json.load(f1)
-    b["input_dir"] = os.path.dirname(sys.argv[1])
-    with open(sys.argv[2], "wb") as f2:
-      f2.write(ac7maker(b))
+    sys.stdout.buffer.write(ac7maker(b))
 
