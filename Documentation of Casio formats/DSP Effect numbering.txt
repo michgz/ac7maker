@@ -1,31 +1,30 @@
 In .TON tone definition files and .AC7 0x36 atoms, DSP effects are numbered as follows:
 
-0  - no effect -
-1  Mono 1-band EQ
-2  Mono 2-band EQ
-3  Mono 3-band EQ
-4  Stereo 1-band EQ
-5  Stereo 2-band EQ
-6  Stereo 3-band EQ
-7  Tone control
-8  Tremolo
-9  Auto pan
-10 Compress
-11 Limiter
-12 Enhancer
-13 Phaser
-14 Chorus
-15 Flange
-16 Rotary
-17 Drive rotary
-18 Pitch shift
-19 Ring modulation
-20 Reflection
-21 Delay
-22 Piano
-23 LFO wah
-24 Auto wah
-25 Model wah
-26 Distort
-27 Drive
-28 Amp cabinet
+27 Mono 1-band EQ
+28 Mono 2-band EQ
+29 Mono 3-band EQ
+23 Stereo 1-band EQ
+22 Stereo 2-band EQ
+1  Stereo 3-band EQ
+31 Tone control
+9  Tremolo
+10 Auto pan
+2  Compress
+3  Limiter
+4  Enhancer
+6  Phaser
+7  Chorus
+8  Flange
+11 Rotary
+12 Drive rotary
+16 Pitch shift
+18 Ring modulation
+5  Reflection
+19 Delay
+20 Piano
+13 LFO wah
+14 Auto wah
+30 Model wah
+15 Distort
+23 Drive
+24 Amp cabinet
