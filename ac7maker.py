@@ -142,6 +142,45 @@ delay_def = {
   "Long Pan 3"        : 19
 }
 
+# Table of DSP effects, ordered by internal numbering (*not* numbering as per
+# the CT-X3000 interface!). Has name and number of parameters. -1 indicates not
+# known (the maximum will be used as default)
+dsp_def = [
+  {},                                             #0
+  {"name":"Stereo 3-band EQ", "param_count": -1}, #1
+  {"name":"Compress", "param_count": -1},         #2
+  {"name":"Limiter", "param_count": -1},          #3
+  {"name":"Enhancer", "param_count": -1},         #4
+  {"name":"Reflection", "param_count": -1},       #5
+  {"name":"Phaser", "param_count": -1},           #6
+  {"name":"Chorus", "param_count": -1},           #7
+  {"name":"Flange", "param_count": -1},           #8
+  {"name":"Tremolo", "param_count": -1},          #9
+  {"name":"Auto pan", "param_count": -1},         #10
+  {"name":"Rotary", "param_count": -1},           #11
+  {"name":"Drive rotary", "param_count": -1},     #12
+  {"name":"LFO wah", "param_count": -1},          #13
+  {"name":"Auto wah", "param_count": -1},         #14
+  {"name":"Distort", "param_count": -1},          #15
+  {"name":"Pitch shift", "param_count": -1},      #16
+  {},                                             #17
+  {"name":"Ring modulation", "param_count": -1},  #18
+  {"name":"Delay", "param_count": 15},            #19
+  {"name":"Piano", "param_count": -1},            #20
+  {"name":"Stereo 1-band EQ", "param_count": -1}, #21
+  {"name":"Stereo 2-band EQ", "param_count": -1}, #22
+  {"name":"Drive", "param_count": 5},             #23
+  {"name":"Amp cabinet", "param_count": -1},      #24
+  {},                                             #25
+  {},                                             #26
+  {"name":"Mono 1-band EQ", "param_count": -1},   #27
+  {"name":"Mono 2-band EQ", "param_count": -1},   #28
+  {"name":"Mono 3-band EQ", "param_count": -1},   #29
+  {"name":"Model wah", "param_count": -1},        #30
+  {"name":"Tone control", "param_count": 9},      #31
+
+]
+
 def ac7make_delay_send_vector(el, b):
   # Returns a vector of 8 bytes with the delay send values for all the parts. The
   # file format gives us the capability to change all settings for each element also,
@@ -587,9 +626,13 @@ def ac7make_is_drum_part(pt):
 
 def ac7make_dsp_effect_parameter_count(ef):
   # Returns the number of effect parameters given the effect number
-  # 13 is the maximum so for now are just returning that
+  # 13 is the maximum so return that if unknown. A value of 0 is an error,
+  # and should be interpreted that the input DSP effect number is wrong
   #
-
+  
+  x = dsp_def[ef].get("param_count", 0)
+  if x >= 0:
+    return x
   return 13
 
 def ac7make_track_element(pt):

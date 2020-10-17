@@ -239,7 +239,7 @@ def make_packet(tx=False,
 
 
 
-def upload_ac7_internal(param_num, data, memory_num=1):
+def upload_ac7_internal(param_num, data, memory_num=1, category_num=30):
 
   # Open the device
   f = os.open(DEVICE_NAME, os.O_RDWR)
@@ -269,7 +269,7 @@ def upload_ac7_internal(param_num, data, memory_num=1):
       len_remaining = 0x80 
     
     
-    pkt = make_packet(parameter_set=param_num, category=30, memory=memory_num, command=5, length=len_remaining, data = data[i:i+len_remaining])
+    pkt = make_packet(parameter_set=param_num, category=category_num, memory=memory_num, command=5, length=len_remaining, data = data[i:i+len_remaining])
     #print(pkt)
     os.write(f, pkt)
     wait_for_ack(f)
@@ -295,7 +295,7 @@ def upload_ac7_internal(param_num, data, memory_num=1):
 
 
 
-def download_ac7_internal(param_num, memory_num=1):
+def download_ac7_internal(param_num, memory_num=1, category_num=30):
 
   global have_got_ess
   global total_rxed
@@ -320,7 +320,7 @@ def download_ac7_internal(param_num, memory_num=1):
   wait_for_ack(f)
 
 
-  pkt = make_packet(command = 4, parameter_set=param_num, category=30, memory=memory_num)
+  pkt = make_packet(command = 4, parameter_set=param_num, category=category_num, memory=memory_num)
   #print(pkt)
   os.write(f, pkt)  # HBR
 

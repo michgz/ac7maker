@@ -28,8 +28,8 @@
 			{
 				"part": 5,
 				"_comment": "Chord 2",
-				"patch": 30,
-				"bank_msb": 4,
+				"patch": 25,
+				"bank_msb": 1,
 				"delay_send": 0,
 				"tone_file": "Ex02.TON"
 			},
@@ -129,6 +129,18 @@
 				"part": 5,
 				"element": 3,
 				"source_file": "ex2-v2.mid",
+				"source_channel": 1
+			},
+			{
+				"part": 2,
+				"element": 5,
+				"source_file": "ex2-f2.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 5,
+				"source_file": "ex2-f2.mid",
 				"source_channel": 1
 			}
 		]

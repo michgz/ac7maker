@@ -3,7 +3,7 @@ In .TON tone definition files and .AC7 0x36 atoms, DSP effects are numbered as f
 27 Mono 1-band EQ
 28 Mono 2-band EQ
 29 Mono 3-band EQ
-23 Stereo 1-band EQ
+21 Stereo 1-band EQ
 22 Stereo 2-band EQ
 1  Stereo 3-band EQ
 31 Tone control
