@@ -10,23 +10,17 @@ import sys
 
 import internal.midifiles
 
-# Import one non-standard module. Can be installed by:
-#
-#   pip3 install mido
-#
-#import mido
-
 
 # Default instrument allocations. Ordered by part number
 instruments = [
-  {'patch': 0,  'bank_msb': 120},
-  {'patch': 0,  'bank_msb': 120},
-  {'patch': 33, 'bank_msb': 0},
-  {'patch': 0,  'bank_msb': 0},
-  {'patch': 25, 'bank_msb': 0},
-  {'patch': 27, 'bank_msb': 0},
-  {'patch': 49, 'bank_msb': 0},
-  {'patch': 61, 'bank_msb': 0}
+  {'patch': 0,  'bank_msb': 120},  # Part 1 (Percussion):  STD KIT 1
+  {'patch': 0,  'bank_msb': 120},  # Part 2 (Drums):       STD KIT 1
+  {'patch': 33, 'bank_msb': 0},    # Part 3 (Bass):        GM FINGERED BAS
+  {'patch': 0,  'bank_msb': 0},    # Pass 4 (Chord 1):     GM PIANO 1
+  {'patch': 25, 'bank_msb': 0},    # Part 5 (Chord 2):     GM STEEL STR GUITAR
+  {'patch': 27, 'bank_msb': 0},    # Part 6 (Chord 3):     GM CLEAN GUITAR
+  {'patch': 49, 'bank_msb': 0},    # Part 7 (Chord 4):     GM STRINGS 2
+  {'patch': 61, 'bank_msb': 0}     # Part 8 (Chord 5):     GM BRASS
 ]
 
 
