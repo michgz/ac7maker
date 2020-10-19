@@ -1,11 +1,14 @@
-# examples
-A directory with example inputs for the ac7maker script
+# examples directory
+Example inputs for the ac7maker script
 
 ## Example 1
 -- TODO
 
 ## Example 2
--- TODO
+Drums and guitar in the style of King Missile. It illustrates how arbitrary DSP chains
+can be applied to preset sounds within the rhythm definition itself. In this example,
+a Delay effect is followed by Drive to create a guitar echo that fades from heavy distortion
+to clean -- an effect that can't be achieved with any of the preset DSP chains
 
 ## Example 3
 A non-musical example for unit-testing a few features. Var1 tests pitch bend with

@@ -141,36 +141,36 @@ delay_def = {
 # known (the maximum will be used as default)
 dsp_def = [
   {},                                             #0
-  {"name":"Stereo 3-band EQ", "param_count": -1}, #1
-  {"name":"Compress", "param_count": -1},         #2
-  {"name":"Limiter", "param_count": -1},          #3
-  {"name":"Enhancer", "param_count": -1},         #4
-  {"name":"Reflection", "param_count": -1},       #5
-  {"name":"Phaser", "param_count": -1},           #6
-  {"name":"Chorus", "param_count": -1},           #7
-  {"name":"Flange", "param_count": -1},           #8
-  {"name":"Tremolo", "param_count": -1},          #9
-  {"name":"Auto pan", "param_count": -1},         #10
-  {"name":"Rotary", "param_count": -1},           #11
-  {"name":"Drive rotary", "param_count": -1},     #12
-  {"name":"LFO wah", "param_count": -1},          #13
-  {"name":"Auto wah", "param_count": -1},         #14
-  {"name":"Distort", "param_count": -1},          #15
-  {"name":"Pitch shift", "param_count": -1},      #16
+  {"name":"Stereo 3-band EQ", "param_count": 9},  #1
+  {"name":"Compress", "param_count": 5},          #2
+  {"name":"Limiter", "param_count": 5},           #3
+  {"name":"Enhancer", "param_count": 7},          #4
+  {"name":"Reflection", "param_count": 5},        #5
+  {"name":"Phaser", "param_count": 8},            #6
+  {"name":"Chorus", "param_count": 8},            #7
+  {"name":"Flange", "param_count": 7},            #8
+  {"name":"Tremolo", "param_count": 5},           #9
+  {"name":"Auto pan", "param_count": 6},          #10
+  {"name":"Rotary", "param_count": 10},           #11
+  {"name":"Drive rotary", "param_count": 12},     #12
+  {"name":"LFO wah", "param_count": 8},           #13
+  {"name":"Auto wah", "param_count": 6},          #14
+  {"name":"Distort", "param_count": 11},          #15
+  {"name":"Pitch shift", "param_count": 7},       #16
   {},                                             #17
-  {"name":"Ring modulation", "param_count": -1},  #18
+  {"name":"Ring modulation", "param_count": 6},   #18
   {"name":"Delay", "param_count": 15},            #19
-  {"name":"Piano", "param_count": -1},            #20
-  {"name":"Stereo 1-band EQ", "param_count": -1}, #21
-  {"name":"Stereo 2-band EQ", "param_count": -1}, #22
+  {"name":"Piano", "param_count": 5},             #20
+  {"name":"Stereo 1-band EQ", "param_count": 5},  #21
+  {"name":"Stereo 2-band EQ", "param_count": 7},  #22
   {"name":"Drive", "param_count": 5},             #23
-  {"name":"Amp cabinet", "param_count": -1},      #24
+  {"name":"Amp cabinet", "param_count": 8},       #24
   {},                                             #25
   {},                                             #26
-  {"name":"Mono 1-band EQ", "param_count": -1},   #27
-  {"name":"Mono 2-band EQ", "param_count": -1},   #28
-  {"name":"Mono 3-band EQ", "param_count": -1},   #29
-  {"name":"Model wah", "param_count": -1},        #30
+  {"name":"Mono 1-band EQ", "param_count": 5},    #27
+  {"name":"Mono 2-band EQ", "param_count": 7},    #28
+  {"name":"Mono 3-band EQ", "param_count": 9},    #29
+  {"name":"Model wah", "param_count": 6},         #30
   {"name":"Tone control", "param_count": 9},      #31
 
 ]
@@ -767,23 +767,24 @@ def ac7maker(b):
     el_00 += ac7make_element_atom(253, b'')  # Start of AiX-specific data
     # Add any 36 atoms (DSP)
     for pp in b["rhythm"]["parts"]:
-      tf = pp.get("tone_file", "")
       pn = pp["part"]
-      if tf != "":
-        tn = b''
-        with open(os.path.join(b.get("input_dir", ""), tf), "rb") as f11:
-          tn = f11.read()
-        if len(tn) >= 456:
-          # First add a "clear DSP chain" instruction
-          el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, 0, 0))
-          for j in range(4):  # Number of effects to include
-            dsp_ef = tn[0x156 + j*0x12]
-            if dsp_ef != 0 and dsp_ef <= 0x1f:
-              # Next define the DSP effect
-              el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, j, dsp_ef))
-              # Now add all the parameters
-              for i in range(ac7make_dsp_effect_parameter_count(dsp_ef)):
-                el_00 += ac7make_element_atom(0x36, struct.pack('<6B', 1, pn - 1 + 8, j, dsp_ef, i, tn[0x156 + j*0x12 + 2 +i]))
+      if pp.get("dsp", None) != None:
+        # First add a "clear DSP chain" instruction
+        el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, 0, 0))
+        tf = pp["dsp"].get("tone_file", "")
+        if tf != "":
+          tn = b''
+          with open(os.path.join(b.get("input_dir", ""), tf), "rb") as f11:
+            tn = f11.read()
+          if len(tn) >= 456:
+            for j in range(4):  # Number of effects to include
+              dsp_ef = tn[0x156 + j*0x12]
+              if dsp_ef != 0 and dsp_ef <= 0x1f:
+                # Next define the DSP effect
+                el_00 += ac7make_element_atom(0x36, struct.pack('<4B', 0, pn - 1 + 8, j, dsp_ef))
+                # Now add all the param eters
+                for i in range(ac7make_dsp_effect_parameter_count(dsp_ef)):
+                  el_00 += ac7make_element_atom(0x36, struct.pack('<6B', 1, pn - 1 + 8, j, dsp_ef, i, tn[0x156 + j*0x12 + 2 +i]))
     el_00 += ac7make_element_atom(254, b'')  # Start of CTX-specific data
     # Add "3x"-style atoms. This is very rudimentary so far, and only allows one "33" and one "35" atom per
     # element.

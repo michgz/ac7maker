@@ -31,7 +31,9 @@
 				"patch": 25,
 				"bank_msb": 1,
 				"delay_send": 0,
-				"tone_file": "Ex02.TON"
+				"dsp": {
+					"tone_file": "Ex02.TON"
+				}
 			},
 			{
 				"part": 6,

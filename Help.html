@@ -23,7 +23,7 @@
   visibility: hidden;
   font-weight: normal;
   width: 120px;
-  background-color: #595;
+  background-color: #497;
   color: #fff;
   text-align: left;
   padding: 0 2px 0 5px;
@@ -232,7 +232,7 @@ contain a comment such as the part name ("Percussion", "Drums" etc.)</p>
     <span class="tooltiptext" style="width: 370px"><p>The MIDI patch number of the sound
 required for this part. It will be used in all elements where this part has non-empty
 tracks</p>
-      <p>Possible values: 0 - 127</p>
+      <p>Possible values: 0&ndash;127</p>
       <p>Optional; if omitted, a reasonable default will be chosen based on the part number</p>
     </span>
   </div>
@@ -243,7 +243,7 @@ tracks</p>
     <span class="tooltiptext" style="width: 370px"><p>The MIDI Bank MSB number of the sound
 required for this part. It will be used in all elements where this part has non-empty
 tracks</p>
-      <p>Possible values: 0 - 120. For Drum parts (part 1 and 2) the only permitted value is 120</p>
+      <p>Possible values: 0&ndash;120. For Drum parts (part 1 and 2) the only permitted value is 120</p>
       <p>Optional; if omitted, a reasonable default will be chosen based on the part number</p>
     </span>
   </div>
@@ -254,7 +254,7 @@ tracks</p>
   <div class="tooltip">"volume"
     <span class="tooltiptext" style="width: 340px"><p>The mixer Volume value for this part. It will
 be used in all elements where this part has non-empty tracks</p>
-      <p>Possible values: 0 - 127</p>
+      <p>Possible values: 0&ndash;127</p>
       <p>Optional; defaults to 100</p>
     </span>
   </div>
@@ -264,7 +264,7 @@ be used in all elements where this part has non-empty tracks</p>
   <div class="tooltip">"pan"
     <span class="tooltiptext" style="width: 340px"><p>The mixer Pan value for this part. It will
 be used in all elements where this part has non-empty tracks</p>
-      <p>Possible values: -64 - +63</p>
+      <p>Possible values: -64&ndash;+63</p>
       <p>Optional; defaults to 0</p>
     </span>
   </div>
@@ -274,7 +274,7 @@ be used in all elements where this part has non-empty tracks</p>
   <div class="tooltip">"reverb_send"
     <span class="tooltiptext" style="width: 330px"><p>The mixer Reverb Send value for this part. It will
 be used in all elements where this part has non-empty tracks</p>
-      <p>Possible values: 0 - 127</p>
+      <p>Possible values: 0&ndash;127</p>
       <p>Optional; defaults to 40</p>
     </span>
   </div>
@@ -284,7 +284,7 @@ be used in all elements where this part has non-empty tracks</p>
   <div class="tooltip">"chorus_send"
     <span class="tooltiptext" style="width: 330px"><p>The mixer Chorus Send value for this part. It will
 be used in all elements where this part has non-empty tracks</p>
-      <p>Possible values: 0 - 127</p>
+      <p>Possible values: 0&ndash;127</p>
       <p>Optional; defaults to 0</p>
     </span>
   </div>
@@ -294,7 +294,7 @@ be used in all elements where this part has non-empty tracks</p>
   <div class="tooltip">"delay_send"
     <span class="tooltiptext" style="width: 330px"><p>The mixer Delay Send value for this part. It will
 be used in all elements where this part has non-empty tracks</p>
-      <p>Possible values: 0 - 127</p>
+      <p>Possible values: 0&ndash;127</p>
       <p>Optional; defaults to 0</p>
     </span>
   </div>
@@ -309,7 +309,34 @@ be used in all elements where this part has non-empty tracks</p>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
 <div class="non-tooltip" style="margin-left: 100px">"part": 7,</div>
-<div class="non-tooltip" style="margin-left: 100px">"_comment": "Chord 4"</div>
+<div class="non-tooltip" style="margin-left: 100px">"_comment": "Chord 4",</div>
+<div class="non-tooltip" style="margin-left: 100px">"patch": 4,</div>
+<div class="non-tooltip" style="margin-left: 100px">"bank_msb": 36,</div>
+<div style="margin-left: 100px;display: block">
+  <div class="tooltip">"dsp"
+    <span class="tooltiptext" style="width: 330px"><p>A structure that defines a DSP 
+chain that will be applied to this part. Any existing DSP chain on the selected
+patch will no longer be applied</p>
+      <p>Optional; if omitted, the existing DSP chain (if any) will be used</p>
+    </span>
+  </div>
+  <div style="display: inline">: {</div>
+</div>
+<div style="margin-left: 120px;display: block">
+  <div class="tooltip">"tone_file"
+    <span class="tooltiptext" style="width: 450px"><p>File name of a Tone (.TON) definition
+file that contains the DSP chain information to use for this part. No information other than DSP
+(stored at byte offsets 156h&ndash;19Eh) is used from the file, so it's possible to point
+to any file of size 1ECh that is empty apart from those byte offsets</p>
+      <p>The .TON file must be located in the same directory as this .JSON rhythm definition file</p>
+      <p>Optional; if omitted, the part will have no DSP effects applied</p>
+    </span>
+  </div>
+  <div style="display: inline">: MyTone.TON</div>
+</div>
+<div class="non-tooltip" style="margin-left: 100px">}</div>
+
+
 <div class="non-tooltip" style="margin-left: 80px">},</div>
 
 <div class="non-tooltip" style="margin-left: 80px">{</div>
@@ -425,7 +452,7 @@ them might be used for major chords and the other for minor chords.
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"part"
     <span class="tooltiptext" style="width: 500px"><p>Specifies the part which this track
-will be associated to. Possible values 1 - 8</p>
+will be associated to. Possible values 1&ndash;8</p>
     </span>
   </div>
 <div style="display: inline">: 2,</div>
@@ -434,7 +461,7 @@ will be associated to. Possible values 1 - 8</p>
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"element"
     <span class="tooltiptext" style="width: 500px"><p>Specifies the element which this track
-will be associated to. Possible values 1 - 12</p>
+will be associated to. Possible values 1&ndash;12</p>
     </span>
   </div>
 <div style="display: inline">: 2,</div>
@@ -448,7 +475,7 @@ channel is assigned its own MIDI track). One MIDI track will be selected from th
 to generate the rhythm track</p>
       <p>As well, tempo and time-signature data will also be read from the
 file and used by the script to form the rhythm</p>
-      <p>Note that all MIDI files are to be located the same directory as the JSON rhythm definition file</p>
+      <p>MIDI files must be located the same directory as this .JSON rhythm definition file</p>
     </span>
   </div>
 <div style="display: inline">: "el-02.mid",</div>
@@ -463,7 +490,7 @@ from a single file</p>
       <p>It's even possible for different elements to take their data from the same MIDI file;
 however for that to work, the elements will need to have equal tempo, time signature and measure
 count to each other</p>
-      <p>Possible values 1 - 16</p>
+      <p>Possible values 1&ndash;16</p>
     </span>
   </div>
 <div style="display: inline">: 10</div>
@@ -518,11 +545,11 @@ chord conversion for the track. Possible values 1&ndash;12
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"retrigger"
     <span class="tooltiptext" style="width: 500px"><p>Defines whether the Retrigger
-method is used for the track. Possible values "Off" or "On"
-      <p>Optional; defaults to "Off". Ignored for Drum parts</p>
+method is used for the track. Possible values 0 or 1
+      <p>Optional; defaults to 0. Ignored for Drum parts</p>
     </span>
   </div>
-  <div style="display: inline">: "On",</div>
+  <div style="display: inline">: 1,</div>
 </div>
 
 <div style="margin-left: 100px;display: block">
