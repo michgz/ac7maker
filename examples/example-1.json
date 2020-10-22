@@ -5,7 +5,6 @@
 	"rhythm": {
 		"name": "N.Lowe",
 		"volume": 127,
-		"parts_number": 8,
 		"parts": [
 			{
 				"part": 1,
@@ -13,7 +12,9 @@
 			},
 			{
 				"part": 2,
-				"_comment": "Drums"
+				"_comment": "Drums",
+				"patch": 40,
+				"bank_msb": 120
 			},
 			{
 				"part": 3,
@@ -27,7 +28,8 @@
 				"part": 5,
 				"_comment": "Chord 2",
 				"patch": 25,
-				"bank_msb": 8
+				"bank_msb": 8,
+				"volume": 70
 			},
 			{
 				"part": 6,
@@ -99,6 +101,26 @@
 		"tracks": [
 			{
 				"part": 5,
+				"element": 1,
+				"source_file": "ex1-intro.mid",
+				"source_channel": 1,
+				"chord_sync": 1
+			},
+			{
+				"part": 5,
+				"element": 1,
+				"source_file": "ex1-intro.mid",
+				"source_channel": 2,
+				"chord_sync": 0
+			},
+			{
+				"part": 2,
+				"element": 1,
+				"source_file": "ex1-intro.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
 				"element": 2,
 				"source_file": "ex1-v1.mid",
 				"source_channel": 1,
@@ -110,6 +132,32 @@
 				"source_file": "ex1-v1.mid",
 				"source_channel": 2,
 				"chord_sync": 0
+			},
+			{
+				"part": 2,
+				"element": 2,
+				"source_file": "ex1-v1.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 4,
+				"source_file": "ex1-f1.mid",
+				"source_channel": 1,
+				"chord_sync": 1
+			},
+			{
+				"part": 5,
+				"element": 4,
+				"source_file": "ex1-f1.mid",
+				"source_channel": 2,
+				"chord_sync": 0
+			},
+			{
+				"part": 2,
+				"element": 4,
+				"source_file": "ex1-f1.mid",
+				"source_channel": 10
 			}
 		]
 	}

@@ -2,10 +2,13 @@
 Example inputs for the ac7maker script
 
 ## Example 1
--- TODO
+Drums and acoustic guitar in the style of Nick & Roy Lowe. It is an examples of how to use the
+"chord_sync" field with versatile instruments to turn off transposition. Strum and
+body sounds are not transposed, while normal note sounds are transposed according
+to the played chord.
 
 ## Example 2
-Drums and guitar in the style of King Missile. It illustrates how arbitrary DSP chains
+Drums and guitar in the style of King Missile. It shows how arbitrary DSP chains
 can be applied to preset sounds within the rhythm definition itself. In this example,
 a Delay effect is followed by Drive to create a guitar echo that fades from heavy distortion
 to clean -- an effect that can't be achieved with any of the preset DSP chains
