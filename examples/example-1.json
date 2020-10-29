@@ -103,14 +103,14 @@
 				"part": 5,
 				"element": 1,
 				"source_file": "ex1-intro.mid",
-				"source_channel": 1,
+				"source_channel": 6,
 				"chord_sync": 1
 			},
 			{
 				"part": 5,
 				"element": 1,
 				"source_file": "ex1-intro.mid",
-				"source_channel": 2,
+				"source_channel": 7,
 				"chord_sync": 0
 			},
 			{
@@ -123,14 +123,14 @@
 				"part": 5,
 				"element": 2,
 				"source_file": "ex1-v1.mid",
-				"source_channel": 1,
+				"source_channel": 6,
 				"chord_sync": 1
 			},
 			{
 				"part": 5,
 				"element": 2,
 				"source_file": "ex1-v1.mid",
-				"source_channel": 2,
+				"source_channel": 7,
 				"chord_sync": 0
 			},
 			{
@@ -143,20 +143,60 @@
 				"part": 5,
 				"element": 4,
 				"source_file": "ex1-f1.mid",
-				"source_channel": 1,
+				"source_channel": 6,
 				"chord_sync": 1
 			},
 			{
 				"part": 5,
 				"element": 4,
 				"source_file": "ex1-f1.mid",
-				"source_channel": 2,
+				"source_channel": 7,
 				"chord_sync": 0
 			},
 			{
 				"part": 2,
 				"element": 4,
 				"source_file": "ex1-f1.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 3,
+				"source_file": "ex1-v2.mid",
+				"source_channel": 6,
+				"chord_sync": 1
+			},
+			{
+				"part": 5,
+				"element": 3,
+				"source_file": "ex1-v2.mid",
+				"source_channel": 7,
+				"chord_sync": 0
+			},
+			{
+				"part": 2,
+				"element": 3,
+				"source_file": "ex1-v2.mid",
+				"source_channel": 10
+			},
+			{
+				"part": 5,
+				"element": 5,
+				"source_file": "ex1-f2.mid",
+				"source_channel": 6,
+				"chord_sync": 1
+			},
+			{
+				"part": 5,
+				"element": 5,
+				"source_file": "ex1-f2.mid",
+				"source_channel": 7,
+				"chord_sync": 0
+			},
+			{
+				"part": 2,
+				"element": 5,
+				"source_file": "ex1-f2.mid",
 				"source_channel": 10
 			}
 		]
