@@ -3,7 +3,7 @@
 	"target_model": "CT-X3000",
 	"target_family": "CT-X",
 	"rhythm": {
-		"name": "Pseudo",
+		"name": "PseudoE",
 		"volume": 127,
 		"parts_number": 8,
 		"parts": [

@@ -1,5 +1,13 @@
 #! /bin/usr/python3
 
+'''
+SYSEX_COMMS: A set of routines for uploading/downloading music data, especially
+AC7 rhythms to/from a Casio keyboard
+'''
+
+__version__ = "0.0.0"
+
+
 ##
 #
 # A library of functions for communicating with a CT-X3000 keyboard over

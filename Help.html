@@ -68,7 +68,7 @@ a AC7 rhythm file. The AC7 file can be read by CT-X keyboards and some other Cas
 The JSON definition file contains information about how the rhythm is to sound, and has references
 to standard MIDI files which include the music data to define the rhythm. An example
 of how the script should be called:</p>
-<code>python ac7maker my-rhythm.json</code>
+<code>python ac7maker my-rhythm.json > out_file.AC7</code>
 <p>The format of the JSON document is defined below by an example. For each element, hover the mouse over to get help information on
 the item</p>
 
@@ -230,7 +230,7 @@ contain a comment such as the part name ("Percussion", "Drums" etc.)</p>
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"patch"
     <span class="tooltiptext" style="width: 370px"><p>The MIDI patch number of the sound
-required for this part. It will be used in all elements where this part has non-empty
+for this part. It will be used in all elements where this part has non-empty
 tracks</p>
       <p>Possible values: 0&ndash;127</p>
       <p>Optional; if omitted, a reasonable default will be chosen based on the part number</p>
@@ -241,7 +241,7 @@ tracks</p>
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"bank_msb"
     <span class="tooltiptext" style="width: 370px"><p>The MIDI Bank MSB number of the sound
-required for this part. It will be used in all elements where this part has non-empty
+for this part. It will be used in all elements where this part has non-empty
 tracks</p>
       <p>Possible values: 0&ndash;120. For Drum parts (part 1 and 2) the only permitted value is 120</p>
       <p>Optional; if omitted, a reasonable default will be chosen based on the part number</p>
@@ -315,7 +315,7 @@ be used in all elements where this part has non-empty tracks</p>
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"dsp"
     <span class="tooltiptext" style="width: 330px"><p>A structure that defines a DSP 
-chain that will be applied to this part. Any existing DSP chain on the selected
+chain to be applied to this part. Any existing DSP chain on the selected
 patch will no longer be applied</p>
       <p>Optional; if omitted, the existing DSP chain (if any) will be used</p>
     </span>
@@ -509,14 +509,14 @@ count to each other</p>
 <div class="non-tooltip" style="margin-left: 100px">"source_channel": 13,</div>
 
 <div style="margin-left: 100px;display: block">
-  <div class="tooltip">"conversion"
+  <div class="tooltip">"conversion_table"
     <span class="tooltiptext" style="width: 500px"><p>Defines the chord conversion
 method to be used for this track. Will be one of the following text values: "Bass", "Bass 7th",
 "Chord", "Chord Var2", "Chord Var3", "Chord Var4", "Chord 7th", "Minor", "Phrase",
 "Penta Phrase", "Intro n-minor", "Intro m-minor", "Intro h-minor", "Intro no Change",
 "Intro dorian".
       <p>Optional; if omitted, a reasonable default will be chosen based on the part
-and element numbers. Ignored for Drum parts</p>
+and element number. Ignored for Drum parts</p>
     </span>
   </div>
 <div style="display: inline">: "Intro no Change",</div>
@@ -553,7 +553,7 @@ method is used for the track. Possible values 0 or 1
 </div>
 
 <div style="margin-left: 100px;display: block">
-  <div class="tooltip">"invert"
+  <div class="tooltip">"inversion"
     <span class="tooltiptext" style="width: 500px"><p>Defines the Inversion method used
 for the track. Possible values "Off", "On" or "7th"
       <p>Optional; defaults to "Off". Ignored for Drum parts</p>
@@ -579,7 +579,7 @@ If set to 0, it will be silent over major-type chords</p>
       <p>Optional; defaults to 1</p>
     </span>
   </div>
-  <div style="display: inline">: 0,</div>
+  <div style="display: inline">: 1,</div>
 </div>
 
 <div style="margin-left: 100px;display: block">
@@ -591,7 +591,7 @@ over minor-type chords</p>
       <p>Optional; defaults to 1</p>
     </span>
   </div>
-  <div style="display: inline">: 0,</div>
+  <div style="display: inline">: 1,</div>
 </div>
 
 <div style="margin-left: 100px;display: block">
@@ -606,7 +606,7 @@ conversion. It may be useful to set it to 0 in several cases:
       <li>With non-melodic instruments such as Drum Kits or Berimbau</li>
       <li>With upper octaves of "Versatile" instruments</li>
       </ul></p>
-      <p>Optional; defaults to 1 for non-Drum parts. For Drum parts (parts 1 and 2), it defaults to 0 and
+      <p>Optional; defaults to 1 for non-Drum parts. For Drum parts (part 1 and 2), it defaults to 0 and
 has no effect if set to 1</p>
     </span>
   </div>

@@ -1,5 +1,12 @@
 #! /bin/usr/python3
 
+'''
+AC7MAKER: a script to make a Casio keyboard "AC7" rhythm from a JSON definition
+and MIDI music data
+'''
+
+__version__ = "1.0.0"
+
 
 # Import some standard modules
 import json
@@ -657,8 +664,8 @@ def ac7make_track_flag(trk):
     if trk.get("chord_sync", -1) == 0:
       flag |= 0x10
   else:
-    # For drum parts, "chord_sync" operates the other way round. I'm not yet sure if this has
-    # any effect on drum parts or not.
+    # For drum parts, "chord_sync" operates the other way round. This appears to have
+    # no effect on drum parts.
     if trk.get("chord_sync", -1) == 1:
       flag |= 0x10
   return flag
@@ -725,8 +732,7 @@ def ac7maker(b):
             e_21 += struct.pack('<H', len(mixers) + 0x8000)
             mixers.append(ac7make_mixer_element(pt, b))
           else:
-            # There's already a mixer for this combo. Just add a filler
-            # value
+            # There's already a mixer for this combo. Just add a filler value
             e_21 += struct.pack('<H', 0xFFFF)
 
           num_trk += 1
