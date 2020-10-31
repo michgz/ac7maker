@@ -10,6 +10,7 @@ are still, as usual, transposed to match the played chord
 Parts defined:
   - part 2: BRUSH SET
   - part 5: VERSATILE STEEL GUITAR
+
 Elements defined:
   - intro, variation 1, variation 2, fill 1 & fill 2.
 
@@ -22,6 +23,7 @@ to clean - an effect that can't be achieved with any of the preset DSP chains
 Parts defined:
   - part 2: ROOM SET
   - part 5: STEEL STR. GUITAR 4 with custom DSP chain
+
 Elements defined:
   - variation 1, variation 2, fill 1 & fill 2.
 
