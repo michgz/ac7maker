@@ -10,7 +10,7 @@ and outputs a Casio-format AC7 file to the standard output.
 A python script which reads a AC7 rhythm from the standard input and uploads it
 to a Casio CT-X keyboard over a MIDI connection. This is Linux-only and assumes that
 the keyboard is the first enumerated MIDI connection (that is, it is on device
-`/dev/midi1`.) On Windows, the "Casio Data Manager" program
+`/dev/midi1`). On Windows, the "Casio Data Manager" program
 from Casio is a good alternative.
 
 ### Help.html
