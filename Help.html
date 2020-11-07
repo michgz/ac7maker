@@ -325,14 +325,15 @@ patch will no longer be applied</p>
 <div style="margin-left: 120px;display: block">
   <div class="tooltip">"tone_file"
     <span class="tooltiptext" style="width: 450px"><p>File name of a Tone (.TON) definition
-file that contains the DSP chain information to use for this part. No information other than DSP
+file that contains the DSP chain information to use for this part. Tone files saved by CT-X3000
+are known to work, other keyboards have not been tested so far. No information other than DSP
 (stored at byte offsets 156h&ndash;19Eh) is used from the file, so it's possible to point
-to any file of size 1ECh that is empty apart from those byte offsets</p>
+to any file of size 1ECh that contains information at those byte offsets</p>
       <p>The .TON file must be located in the same directory as this .JSON rhythm definition file</p>
       <p>Optional; if omitted, the part will have no DSP effects applied</p>
     </span>
   </div>
-  <div style="display: inline">: MyTone.TON</div>
+  <div style="display: inline">: "MyTone.TON"</div>
 </div>
 <div class="non-tooltip" style="margin-left: 100px">}</div>
 
@@ -525,17 +526,17 @@ and element number. Ignored for Drum parts</p>
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"force_root"
     <span class="tooltiptext" style="width: 500px"><p>Defines whether the "f-root"
-method is used for the track, suitable for bass parts. Value of 0 or 1
-      <p>Optional; if omitted, defaults to 1 for Bass part (part 3) or 0 for parts 4&ndash;8. Ignored for Drum parts</p>
+method is used for the track, suitable for bass parts. Value of "Off" or "On"
+      <p>Optional; defaults to "Off". Ignored for Drum parts</p>
     </span>
   </div>
-  <div style="display: inline">: 1,</div>
+  <div style="display: inline">: "On",</div>
 </div>
 
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"break_point"
     <span class="tooltiptext" style="width: 500px"><p>Defines the break point for the
-chord conversion for the track. Possible values 1&ndash;12
+chord conversion for the track. Possible values 0&ndash;11
       <p>Optional; if omitted, a reasonable default is chosen. Ignored for Drum parts</p>
     </span>
   </div>
@@ -545,11 +546,11 @@ chord conversion for the track. Possible values 1&ndash;12
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"retrigger"
     <span class="tooltiptext" style="width: 500px"><p>Defines whether the Retrigger
-method is used for the track. Possible values 0 or 1
-      <p>Optional; defaults to 0. Ignored for Drum parts</p>
+method is used for the track. Possible values "Off" or "On"
+      <p>Optional; defaults to "On". Ignored for Drum parts</p>
     </span>
   </div>
-  <div style="display: inline">: 1,</div>
+  <div style="display: inline">: "Off",</div>
 </div>
 
 <div style="margin-left: 100px;display: block">

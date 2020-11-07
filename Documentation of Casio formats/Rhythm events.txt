@@ -16,16 +16,17 @@ The known event types are:
 0xB1
 0xB5 Expression (equivalent to MIDI CC 0x0B)
 0xB9 Pitch bend range
-0xBA Filter (equivalent to MIDI CC 0x4A)
-0xBB Filter (equivalent to MIDI CC 0x47)
+0xBA Filter cut-off (equivalent to MIDI CC 0x4A)
+0xBB Filter resonance (equivalent to MIDI CC 0x47)
 0xBC Attack time (equivalent to MIDI CC 0x49)
 0xBD Release time (equivalent to MIDI CC 0x48)
-0xE0 affects inversion/chord conversion
-0xE1 affects inversion/chord conversion
-0xE2
-0xE3 Tempo fast (event data 0x00 = normal, 0x7F = twice normal tempo, 0xFF = even faster)
-0xE4 Tempo slow (event data 0x00 = normal, 0x7F = half normal tempo, 0xFF = even slower)
-0xE6 affects inversion/chord conversion
+0xE0 chord conversion table (values 0-15)
+0xE1 chord inversion (value 0="Off", 1="On", 2="7th", 3=undocumented setting for forcing a 7th chord)
+0xE2 retrigger (value 2="Off", other value="On")
+0xE3 Tempo fast (value add to original tempo in bpm, up to maximum of 255)
+0xE4 Tempo slow (value subtracted from original tempo in bpm, down to minimum of 20)
+0xE5 (allow user editing)
+0xE6 highest note after chord conversion (values 0-127)
 0xE7
 0xFC End of track. <byte 3> is always 0x00
 0xFF Time jump. Used for time deltas larger than 255. <byte 3> = time delta MSByte, <byte 1> = time delta LSByte
