@@ -5,7 +5,7 @@ AC7MAKER: a script to make a Casio keyboard "AC7" rhythm from a JSON definition
 and MIDI music data
 '''
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 
 # Import some standard modules
@@ -425,6 +425,23 @@ def ac7make_break_point(tk):
     # Chords
     return 7
 
+# Get the value for "retrigger"
+def ac7make_retrigger(tk):
+  # "On" returns 0 (Default)
+  # "Off" returns 1
+  if tk.get("retrigger", "")=="Off":
+    return 0x1
+  else:
+    return 0x0
+
+# Get the value for "f-root" (Force root in bass)
+def ac7make_f_root(tk):
+  # "Off" returns 0 (Default)
+  # "On" returns 1
+  if tk.get("f-root", "")=="On":
+    return 0x1
+  else:
+    return 0x0
 
 def ac7make_starter(tk):
   # Make up the "starter" (first 3 bytes) of a Other track.
@@ -437,9 +454,9 @@ def ac7make_starter(tk):
   x1 = ac7make_chord_conversion(tk)
   x2 = (ac7make_break_point(tk) << 4)                   \
                 + (ac7make_chord_inversion(tk) << 1)    \
-                + 0x1&tk.get("retrigger", 0)
+                + (ac7make_retrigger(tk)<<0)
   
-  x3 = 0x7F&tk.get("lowest_note", 0) + (tk.get("f-root", 0)<<7)
+  x3 = (0x7F&tk.get("lowest_note", 0)) + (ac7make_f_root(tk)<<7)
   return struct.pack("<3B", x1, x2, x3)
 
 
