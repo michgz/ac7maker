@@ -19,44 +19,95 @@
 #
 ## Functions:
 #
-#   upload_ac7(dest_num, data)
-#   ==========================
+#   upload_ac7_internal(param_set, data, ...)
+#   =========================================
 #
-# Uploads an AC7 rhythm to the keyboard. Parameters:
+# Uploads a bulk (HBR) set of data to a parameter set. By default, the destination
+# is Category 30, Memory 1 (i.e. user AC7 rhythms). By overloading those defaults
+# any location that accepts bulk writes can be written to.
 #
-#   dest_num:  Number of the destination. Must lie in the user area, i.e.
-#               values 294-343 inclusive.
-#   data:      Byte array to write to the destination. It is in "HBR"
-#               format, which is identical to the format of an .AC7 file
-#               as saved by the keyboard. It should be possible to just
-#               read an .AC7 file and upload it with no modification.
-#
-# Example:
-#
-#    with open("MyRhythm.AC7", "rb") as f:
-#      x = f.read()
-#    upload_ac7(294, x)
-#
-#
-#   download_ac7(src_num)
-#   =====================
-#
-# Downloads an AC7 rhythm from the keyboard. Parameter:
-#
-#   src_num:   Number of the source. Must lie in the user area, i.e.
-#               values 294-343 inclusive.
-#
-#       Returns:
-#
-#   Byte array in "HBR" format. That is, it is identical to the format
-#     of an .AC7 file as saved by the keyboard. It should be possible to
-#     write to an .AC7 file which can be loaded into a keyboard by USB.
+#   param_set_num:  Parameter set number to be written. The possible values here
+#                   depend on category and memory, in the case of user rhythms it
+#                   is 0-49 inclusive
+#   data:           Byte array of HBR data to write
 #
 # Example:
 #
-#    with open("MyRhythm.AC7", "wb") as f:
-#      f.write(download_ac7(294))
+#    upload_ac7_internal(62, 0x1EC*b'\x00', category=3, memory=1)
+#    #   ^-- Deletes (overwrites) user tone 863
 #
+#
+#
+#   download_ac7_internal(param_set, ...)
+#   =====================================
+#
+# Download a bulk (HBR) set of data from a parameter set. By default, the origin
+# is Category 30, Memory 1 (i.e. user AC7 rhythms). By overloading those defaults
+# any location that accepts bulk reads can be read from.
+
+#   param_set_num:  Parameter set number to be read. The possible values here
+#                   depend on category and memory, in the case of user rhythms it
+#                   is 0-49 inclusive
+#
+#        Returns:
+#
+#                   Byte array of HBR data
+#
+# Example:
+#
+#    print(download_ac7_internal(0, category=2, memory=3)[0xE01])
+#    #   ^-- Prints the current master volume setting.
+#
+#
+#
+#   set_single_parameter(parameter, data, ...)
+#   ==========================================
+#
+# Download a single parameter to a parameter set in the keyboard. By default, the
+# destination is Category 3, Memory 3, Parameter Set 0 (i.e. the tone currently
+# playing in Upper Keyboard 1). By overloading those defaults any location that
+# accepts single-parameter writes can be written to.
+#
+#   parameter:      Parameter to be written. The possible values here depend on
+#                   category and memory, in the case of tones it is 
+#                   is 0-122 inclusive
+#   data:           A number value or byte array to write. Numbers can be used
+#                   for a parameter of length 1, and bit stuffing will be applied
+#                   as needed. Possible range is up to 0-4095 inclusive (may be
+#                   less for certain parameters). Byte arrays should be the correct
+#                   length for the parameter and already have bit stuffing applied
+#                   as needed.
+#
+# Examples:
+#
+#    set_single_parameter(43, 5)
+#    #   ^-- Causes the tone in Upper Keyboard 1 to play up +1 octave
+#    set_single_parameter(3, 32, category=2)
+#    #   ^-- Reduces master volume to 25%
+#    set_single_parameter(0, b'ABCDEFGHIJK', parameter_set=8, category=3, memory=1)
+#    #   ^-- Changes the name of user tone 809 to ABCDEFGHIJK
+#
+#
+#
+#   get_single_parameter(parameter, length=0, ...)
+#   ==============================================
+#
+# Reads a single parameter in a parameter set. If the parameter is a string, set
+# "length" to be a positive integer up to the length of the parameter -- for
+# example, if reading tone name (parameter 0), "length" must be in range 1-11
+# inclusive. If "length" is not set, the parameter will be read as a number.
+#
+#
+# Examples:
+#
+#    print(get_single_parameter(0, parameter_set=0, category=3, memory=1, length=11))
+#    #   ^-- Prints the name of user tone 801 (likely to be "No Name    " or similar)
+#    print(get_single_parameter(20, parameter_set=0, category=3, memory=1, block0=1))
+#    #   ^-- Prints the internally stored version of tone 801's "Attack time" parameter
+#
+#
+
+
 
 import time
 import os
@@ -94,12 +145,15 @@ so_far = b''
 
 total_rxed = b''
 
+type_1_rxed = b''
+
 def handle_pkt(p):
   global is_busy
   global must_send_ack
   global have_got_ack
   global have_got_ess
   global total_rxed
+  global type_1_rxed
   if len(p) < 7:
     print("BAD PACKET!!")
     return
@@ -116,8 +170,8 @@ def handle_pkt(p):
     if type_of_pkt == 0xD:
       have_got_ack = True
       have_got_ess = True
-    
-    
+      
+      
   if type_of_pkt == 3 or type_of_pkt == 5:   # This takes a CRC
     crc = crcmod.predefined.PredefinedCrc('crc-32')
     crc.update(p[1:-6])
@@ -132,6 +186,10 @@ def handle_pkt(p):
     else:
       print("BAD CRC!!!")
 
+
+  if type_of_pkt == 1:
+    v = p[24:-1]
+    type_1_rxed = v
 
 
 def parse_response(b):
@@ -177,8 +235,7 @@ def wait_for_ack(f):
     time.sleep(0.02)
     if time.monotonic() > st + 4.0:
       # Timed out. Completely exit the program
-      print("SYSEX communication timed out. Exiting ...")
-      sys.exit(0)
+      raise Exception("SYSEX communication timed out. Exiting ...")
 
 
 def make_packet(tx=False,
@@ -190,7 +247,7 @@ def make_packet(tx=False,
                 index=0,
                 length=1,
                 command=-1,
-                sub_command = 3,
+                sub_command=3,
                 data=b''):
 
 
@@ -201,17 +258,17 @@ def make_packet(tx=False,
     else:
       command = 0
   w += struct.pack('<B', command)
-  
+
   if command == 0x8:
     return w + struct.pack('<B', sub_command) + b'\xf7'
-  
+
   w += struct.pack('<2B', category, memory)
   w += struct.pack('<2B', parameter_set%128, parameter_set//128)
-  
+
   if command == 0xA:
     return w + b'\xf7'
   
-  if command == 5:
+  elif command == 5:
     w += struct.pack('<2B', length%128, length//128)
     w += midi_8bit_to_7bit(data)
     crc = crcmod.predefined.PredefinedCrc('crc-32')
@@ -219,7 +276,7 @@ def make_packet(tx=False,
     w += midi_8bit_to_7bit(struct.pack('<I', crc.crcValue))
     w += b'\xf7'
     return w
-    
+
   elif (command >= 2 and command < 8) or command == 0xD or command == 0xE: # OBR/HBR doesn't have the following stuff
 
     pass
@@ -239,7 +296,128 @@ def make_packet(tx=False,
 
 
 
-def upload_ac7_internal(param_num, data, memory_num=1, category_num=30):
+def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0, block0=0, block1=0):
+
+  # Open the device
+  f = os.open(DEVICE_NAME, os.O_RDWR)
+
+
+  # Flush the input queue
+  parse_response(os.read(f, 20))
+  time.sleep(0.4)
+
+  # Prepare the input
+  d = b''
+  l = 1
+
+  if isinstance(data, type(0)):
+    # The input is an integer. Bit-stuff it.
+    if data<=0:
+      d = b'\x00'
+    else:
+      while data!=0:
+        d = struct.pack('B', data&0x7F) + d
+        data = data//0x80
+      l = 1   # length is always 1 for numeric inputs
+  else:
+    # Assume the input is a byte array
+    d = data
+    l = len(d)
+  
+
+  # Write the parameter
+  os.write(f, make_packet(tx=True, parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=l, data=d))
+  time.sleep(0.1)
+  
+  # Handle any response -- don't expect one
+  parse_response(os.read(f, 20))
+  time.sleep(0.01)
+
+  # Close the device
+  os.close(f)
+
+
+
+
+
+def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block0=0, block1=0, length=0):
+
+  global type_1_rxed
+
+  # Open the device
+  f = os.open(DEVICE_NAME, os.O_RDWR)
+
+
+  # Flush the input queue
+  parse_response(os.read(f, 20))
+  time.sleep(0.4)
+  
+  if length>0:
+    l = length
+  else:
+    l = 1
+  
+  
+  type_1_rxed = b''
+
+  # Write the parameter
+  os.write(f, make_packet(parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=l))
+  time.sleep(0.1)
+  
+  # Handle any response
+  parse_response(os.read(f, 20))
+  time.sleep(0.1)
+  parse_response(os.read(f, 20))
+  time.sleep(0.01)
+
+  # Close the device
+  os.close(f)
+  
+  
+  # Now decode the response. Value of "length" determines whether to regard it as
+  # a string or a number
+  if length > 0:
+    if len(type_1_rxed)>0:   # should maybe check this is equal to length??
+      return type_1_rxed
+    else:
+      return b''   # Error! Nothing read
+  else:
+    f = -1
+    if len(type_1_rxed)>0:
+      # A number has been received. Decode it.
+      if len(type_1_rxed) == 1:
+        f = struct.unpack('<B', type_1_rxed)[0]
+      elif len(type_1_rxed) == 2:
+        g = struct.unpack('<2B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1]
+      elif len(type_1_rxed) == 3:
+        g = struct.unpack('<3B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128 or g[2] >= 128:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1] + 128*128*g[2]
+      elif len(type_1_rxed) == 4:
+        g = struct.unpack('<4B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128 or g[2] >= 128  or g[3] >= 128:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1] + 128*128*g[2] + 128*128*128*g[3]
+      elif len(type_1_rxed) == 5:
+        g = struct.unpack('<5B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128 or g[2] >= 128  or g[3] >= 128 or g[4] >= 16:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1] + 128*128*g[2] + 128*128*128*g[3] + 128*128*128*128*g[4]
+      else:
+        #raise Exception("Too long to be a number")
+        pass
+    return f
+
+
+
+
+
+
+def upload_ac7_internal(param_set, data, memory=1, category=30):
 
   # Open the device
   f = os.open(DEVICE_NAME, os.O_RDWR)
@@ -269,7 +447,7 @@ def upload_ac7_internal(param_num, data, memory_num=1, category_num=30):
       len_remaining = 0x80 
     
     
-    pkt = make_packet(parameter_set=param_num, category=category_num, memory=memory_num, command=5, length=len_remaining, data = data[i:i+len_remaining])
+    pkt = make_packet(parameter_set=param_set, category=category, memory=memory, command=5, length=len_remaining, data = data[i:i+len_remaining])
     #print(pkt)
     os.write(f, pkt)
     wait_for_ack(f)
@@ -279,12 +457,12 @@ def upload_ac7_internal(param_num, data, memory_num=1, category_num=30):
 
   # Send ESS (no ACK expected)
   #print("Sending ESS")
-  os.write(f, make_packet(parameter_set=param_num, category=30, memory=memory_num, command=0xd))
+  os.write(f, make_packet(parameter_set=param_set, category=category, memory=memory, command=0xd))
   time.sleep(0.3)
 
   # Send EBS (no ACK expected)
   #print("Sending EBS")
-  os.write(f, make_packet(parameter_set=param_num, category=30, memory=memory_num, command=0xe))
+  os.write(f, make_packet(parameter_set=param_set, category=category, memory=memory, command=0xe))
   time.sleep(0.3)
 
   os.close(f)
@@ -295,7 +473,7 @@ def upload_ac7_internal(param_num, data, memory_num=1, category_num=30):
 
 
 
-def download_ac7_internal(param_num, memory_num=1, category_num=30):
+def download_ac7_internal(param_set, memory=1, category=30):
 
   global have_got_ess
   global total_rxed
@@ -320,7 +498,7 @@ def download_ac7_internal(param_num, memory_num=1, category_num=30):
   wait_for_ack(f)
 
 
-  pkt = make_packet(command = 4, parameter_set=param_num, category=category_num, memory=memory_num)
+  pkt = make_packet(command = 4, parameter_set=param_set, category=category, memory=memory)
   #print(pkt)
   os.write(f, pkt)  # HBR
 
@@ -337,13 +515,13 @@ def download_ac7_internal(param_num, memory_num=1, category_num=30):
       break
     
     
-    pkt = make_packet(parameter_set=param_num, category=30, memory=memory_num, command=0xa)
+    pkt = make_packet(parameter_set=param_set, category=category, memory=memory, command=0xa)
     os.write(f, pkt)
 
 
 
   # Send EBS (no ACK expected)
-  os.write(f, make_packet(parameter_set=param_num, category=30, memory=memory_num, command=0xe))
+  os.write(f, make_packet(parameter_set=param_set, category=category, memory=memory, command=0xe))
   time.sleep(0.3)
 
   os.close(f)
