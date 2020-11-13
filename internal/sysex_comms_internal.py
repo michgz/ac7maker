@@ -298,6 +298,8 @@ def make_packet(tx=False,
 
 def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0, block0=0, block1=0):
 
+  global type_1_rxed
+
   # Open the device
   f = os.open(DEVICE_NAME, os.O_RDWR)
 
@@ -311,14 +313,33 @@ def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0,
   l = 1
 
   if isinstance(data, type(0)):
-    # The input is an integer. Bit-stuff it.
-    if data<=0:
-      d = b'\x00'
-    else:
-      while data!=0:
-        d = struct.pack('B', data&0x7F) + d
-        data = data//0x80
-      l = 1   # length is always 1 for numeric inputs
+    # The input is an integer. The "length" parameter passed to make_packet must be
+    # 1, but we don't know how many bytes of bit-stuffed data the keyboard is actually
+    # expecting. Read the current value to find that out.
+    
+    
+    type_1_rxed = b''
+
+    # Read the current parameter value
+    os.write(f, make_packet(parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=1))
+    time.sleep(0.1)
+    
+    # Handle any response
+    parse_response(os.read(f, 20))
+    time.sleep(0.2)
+    parse_response(os.read(f, 20))
+    time.sleep(0.01)
+    
+    if len(type_1_rxed)<1 or len(type_1_rxed)>5:
+      raise Exception("Not able to read out value to write")
+    
+    
+    # Now do the bit-stuffing
+    for i in range(len(type_1_rxed)):
+      d = d + struct.pack('B', data&0x7F)
+      data = data//0x80
+    l = 1   # length is always 1 for numeric inputs
+
   else:
     # Assume the input is a byte array
     d = data
@@ -360,13 +381,13 @@ def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block
   
   type_1_rxed = b''
 
-  # Write the parameter
+  # Read the parameter
   os.write(f, make_packet(parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=l))
   time.sleep(0.1)
   
   # Handle any response
   parse_response(os.read(f, 20))
-  time.sleep(0.1)
+  time.sleep(0.2)
   parse_response(os.read(f, 20))
   time.sleep(0.01)
 
@@ -377,11 +398,13 @@ def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block
   # Now decode the response. Value of "length" determines whether to regard it as
   # a string or a number
   if length > 0:
+    # Regard the response as a string
     if len(type_1_rxed)>0:   # should maybe check this is equal to length??
       return type_1_rxed
     else:
       return b''   # Error! Nothing read
   else:
+    # Regard the response as a number
     f = -1
     if len(type_1_rxed)>0:
       # A number has been received. Decode it.
