@@ -242,7 +242,7 @@ def ac7make_element_has_other(b, el):
 
 
 
-def ac7make_midi_to_ac7(trk, end_time):
+def ac7make_midi_to_ac7(trk, end_time, simplified=False):
   # Change the digested midi data into AC7 track data
   latest_time = 0
   b = b''
@@ -266,7 +266,7 @@ def ac7make_midi_to_ac7(trk, end_time):
       latest_time = evt['absolute_time']
     else:
       d = ac7make_track_event(evt)
-      if len(d)==2:
+      if not simplified and len(d)==2:
         time_d = round(4.0*(evt['absolute_time'] - latest_time))
         if time_d > 255:
           b += ac7make_time_jump(time_d)
@@ -687,9 +687,117 @@ def ac7make_track_flag(trk):
       flag |= 0x10
   return flag
 
+
+def ckf_maker_bulk(b):
+  # Ensure the name is exactly 8 bytes long, with the final 2 characters 
+  # being a null. Pad with spaces if needed
+  g1 = b['rhythm'].get('name', "NoName")[:6].ljust(6, ' ').encode('ascii') + b'\x00\x00'
+  g2 = b'\x82'  # What's this?
+  g2 += b'\x22'  # This is probably time signature
+  g2 += b'\x00'*6
+  
+  # CKF uses the same elements as AC07, but in a different order:
+  ckf_elements = [1, 1, 2, 3, 4, 10, 5, 11, 6, 12]
+  
+  offs = 0
+  e_1 = b''
+  e_2 = b''
+  
+  for el in ckf_elements:
+    # First pass: find a time signature, tempo and measure count for the element
+    tempo = 120
+    max_absolute_time = 0
+    time_sig = {"numerator": 0, "log_denominator": 0}
+    for trk in b["rhythm"]["tracks"]:
+      if trk.get("element", -1)==el:
+        with open(os.path.join(b.get("input_dir", ""), trk["source_file"]), "rb") as f3:
+          mdata = internal.midifiles.midifile_read(f3.read())
+        for mtrk in mdata:
+          for evt in mtrk:
+            if evt["absolute_time"] > max_absolute_time:
+              max_absolute_time = evt["absolute_time"]
+            
+            if time_sig["numerator"] == 0 and evt["event"] == "time_signature":
+              time_sig["numerator"] = evt["numerator"]
+              time_sig["log_denominator"] = evt["log_denominator"]
+    if max_absolute_time == 0:  # (if not, probably have no tracks associated)
+      # Use some default values
+      max_absolute_time = 24.0*4.0
+      time_sig["numerator"] = 4
+      time_sig["log_denominator"] = 2
+    else:
+      if time_sig["numerator"] == 0 or time_sig["log_denominator"] == 0:
+        raise Exception("Time signature not detected in non-empty element {0}. Make sure that a MIDI file associated with this element contains a time signature specifier".format(el))
+
+    # Second pass: change requested tracks to Casio format (from MIDI)
+    num_trk_el = 0
+    e_11 = b''
+    e_12 = b''
+    e_1 += struct.pack('<H', round(max_absolute_time/(24.0*4.0)))  # Number of measures. Assuming 4/4 time for now
+    
+    for pt in range(2,7):  # Reduced range of parts compared to AC07
+      num_trk = 0
+      e_11 += ac7make_mixer_element(pt, b)
+      for trk in b["rhythm"]["tracks"]:
+        if trk.get("element", -1)==el and trk.get("part", -1)==pt:
+          with open(os.path.join(b.get("input_dir", ""), trk["source_file"]), "rb") as f3:
+            mdata = internal.midifiles.midifile_read(f3.read())
+          
+          if num_trk == 0:
+            # Found a non-empty track to add. Add it
+            st = ac7make_starter(trk)[0:2]
+            if len(st)<2:
+              st = b'\x00\x00'
+            e_11 += st  # First 2 bytes of the 3-byte AC07 starter
+            # Translate total time from midi clocks (24 per crotchet) to AC7 clocks (96 per crotchet)
+            e_13 = ac7make_midi_to_ac7(ac7make_get_track(mdata, trk["source_channel"]), round(4.0*max_absolute_time), simplified=True)
+          
+          num_trk += 1
+      if num_trk == 0:
+        # No tracks for this element/part combination. Add an empty one
+        
+        st = ac7make_starter({"part": pt, "element": el})[0:2]
+        if len(st)<2:
+          st = b'\x00\x00'
+        e_11 += st
+        e_13 = ac7make_midi_to_ac7([], round(4.0*max_absolute_time), simplified=True)
+        
+        num_trk += 1
+      
+      
+      e_12 += struct.pack('<H', offs)
+      offs += len(e_13)
+      e_2 += e_13
+      
+      
+      num_trk_el += num_trk
+    e_1 += e_11 + e_12
+    # Have now processed all the parts & tracks for this element. Complete
+    # the element bytestring
+  
+  return g1 + g2 + e_1 + struct.pack('<H', 0xFFFF) + e_2
+
+
+def ckf_maker(b):
+  x = ckf_maker_bulk(b)
+  g1 = b'ACZF' + b'CT-X3000' + struct.pack('<H', len(x))
+  g1 += b'\x00' * 0x106
+  g2 = struct.pack('<H', len(x))
+  
+  # The data to be uploaded via SYSEX is (g2+x). However, when copying using USB
+  # the keyboard expects (g1+g2+x). Save the full thing, and let the sysex_comms.py
+  # script accept either.
+  return g1 + g2 + x
+
+
 def ac7maker(b):
   # The main routine. Create the different parts of the AC7 file (header, ELMT,
   # MIXR, DRUM, OTHER) and return them concatenated together.
+  
+  
+  # First check if the CKF file format is requested. If so, go and do that format
+  if b.get("format", "").upper() == "CKF":
+    return ckf_maker(b)
   
   elements = []
   mixers = []

@@ -76,6 +76,9 @@ def upload_ac7(dest_num, data):
 
   if dest_num >= 294 and dest_num <= 343:
     # Uploading to user memory area
+    if data[0:4]==b'ACZF':
+      # Detected a CKF-format file. Remove the first 0x114 bytes
+      data = data[0x114:]
     upload_ac7_internal(dest_num - 294, data)
   else:
     # Cannot do bulk uploads to preset locations
