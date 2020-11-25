@@ -37,7 +37,7 @@ Usage:              Substitutes an individual drum sound from a patch other than
                     be drum patches.
 Atom structure:     31h     Atom type
                     6       Payload length
-                    <byte>  MIDI channel number of the part to apply the
+                    <byte>  Zero-indexed MIDI channel number of the part to apply the
                             substitution to. Since it must have a drum patch
                             selected, it will usually be value 8 or 9 (i.e.
                             Part 1 or Part 2).
@@ -64,7 +64,7 @@ Usage:              Applies an effect to an individual drum sound. The effects
                     be a drum patch.
 Atom structure:     32h     Atom type
                     4       Payload length
-                    <byte>  Effect to apply. Possible values 0 - 11. Some of the
+                    <byte>  Effect to apply. Possible values 0 - 13. Some of the
                             effects are:
                                 1   Bass/treble adjust
                                 2   Fine tuning
@@ -74,7 +74,7 @@ Atom structure:     32h     Atom type
                                 11  Reverb send
                                 12  Chorus send
                                 13  Delay send
-                    <byte>  MIDI channel number of the part to apply the effect
+                    <byte>  Zero-indexed MIDI channel number of the part to apply the effect
                             to. Since it must have a drum patch selected, it will
                             usually be value 8 or 9 (i.e. Part 1 or Part 2).
                     <byte>  MIDI note number to apply the effect to. Possible
@@ -91,7 +91,7 @@ Usage:              Applies equalisation to an individual drum sound. The select
                     patch for the part must be a drum patch.
 Atom structure:     33h     Atom type
                     7       Payload length
-                    <byte>  MIDI channel number of the part to apply the
+                    <byte>  Zero-indexed MIDI channel number of the part to apply the
                             equalisation to. Since it must have a drum patch
                             selected, it will usually be value 8 or 9 (i.e. Part
                             1 or Part 2).
@@ -115,7 +115,7 @@ Usage:              Applies equalisation to a melody (i.e. non-drum) part. The
                     selected patch for the part must not be a drum patch.
 Atom structure:     35h     Atom type
                     6       Payload length
-                    <byte>  MIDI channel number of the part to apply the
+                    <byte>  Zero-indexed MIDI channel number of the part to apply the
                             equalisation to. Possible values 10 - 15.
                     <byte>  Possibly an index. Usually 0.
                     <byte>  Specifies the EQ type. Possible values 0 - 7. Some
@@ -224,7 +224,7 @@ Usage:              Clears the DSP chain for the channel, for example if the pat
 Atom structure:     36h     Atom type
                     4       Payload length
                     <byte>  Always 0.
-                    <byte>  MIDI channel number of the part to remove the DSP
+                    <byte>  Zero-indexed MIDI channel number of the part to remove the DSP
                             chain from. Possible values 8 - 15.
                     <byte>  Always 0.
                     <byte>  Always 0.
@@ -236,7 +236,7 @@ Usage:              Adds an effect to a DSP chain.
 Atom structure:     36h     Atom type
                     4       Payload length
                     <byte>  Always 0.
-                    <byte>  MIDI channel number of the part to add the DSP effect
+                    <byte>  Zero-indexed MIDI channel number of the part to add the DSP effect
                             to. Possible values 8 - 15.
                     <byte>  Position in the DSP chain to add the effect to.
                             Possible values 0 - 3.
@@ -251,7 +251,7 @@ Usage:              Changes an effect parameter within a DSP chain.
 Atom structure:     36h     Atom type
                     6       Payload length
                     <byte>  Always 1.
-                    <byte>  MIDI channel number of the part to make the change
+                    <byte>  Zero-indexed MIDI channel number of the part to make the change
                             to. Possible values 8 - 15.
                     <byte>  Position in the DSP chain of the effect which is to
                             be changed. Possible values 0 - 3.

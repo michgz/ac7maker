@@ -7,13 +7,17 @@ The tracks in a AC7 rhythm consist of rhythm events, where each event consists o
 The known event types are:
 
 
-0-127:  note on/note off. Event data = velocity of note on (if non-zero), or note off (if zero)
+0-127:  note on/note off. Event data = 0x00 if note off, velocity (non-zero) if note on
 
-0x8E pitch bend
+0x87 Expression LSB (equivalent to MIDI CC 0x2B -- may not be supported by CT-X)
+0x8D After-touch (may not be supported by CT-X)
+0x8E Pitch bend
 0xA0 (causes software failure - don't use!)
 0xA9 reset parameters to default
 0xB0 Modulation (equivalent to MIDI CC 0x01)
-0xB1
+0xB1 Hold/sustain pedal (equivalent to MIDI CC 0x40 -- may not be supported by CT-X)
+0xB2 Soft pedal (equivalent to MIDI CC 0x43 -- may not be supported by CT-X)
+0xB3 Sostenuto pedal (equivalent to MIDI CC 0x42 -- may not be supported by CT-X)
 0xB5 Expression (equivalent to MIDI CC 0x0B)
 0xB9 Pitch bend range
 0xBA Filter cut-off (equivalent to MIDI CC 0x4A)
@@ -21,12 +25,13 @@ The known event types are:
 0xBC Attack time (equivalent to MIDI CC 0x49)
 0xBD Release time (equivalent to MIDI CC 0x48)
 0xE0 chord conversion table (values 0-15)
-0xE1 chord inversion (value 0="Off", 1="On", 2="7th", 3=undocumented setting for forcing a 7th chord)
+0xE1 chord inversion (value 0="Off", 1="On", 2="7th", 3=undocumented setting for forcing a 7th chord) (Casio-specific MIDI CC 0x57)
 0xE2 retrigger (value 2="Off", other value="On")
 0xE3 Tempo fast (value add to original tempo in bpm, up to maximum of 255)
 0xE4 Tempo slow (value subtracted from original tempo in bpm, down to minimum of 20)
 0xE5 (allow user editing)
 0xE6 highest note after chord conversion (values 0-127)
 0xE7
+0xE9   (Casio-specific MIDI CC 0x59)
 0xFC End of track. <byte 3> is always 0x00
 0xFF Time jump. Used for time deltas larger than 255. <byte 3> = time delta MSByte, <byte 1> = time delta LSByte

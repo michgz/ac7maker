@@ -20,7 +20,7 @@ HBR
 ---
 
 Repeating blocks of 174 (0xAE) bytes. The block repeats 128 times, corresponding
-to the 128 MIDI notes. Finally, 0x18 bytes at the control the whole kit.
+to the 128 MIDI notes. Finally, 0x18 bytes at the end apply to the whole kit.
 
 
 Parameter-based
@@ -30,44 +30,46 @@ The same information is stored in parameters 0-60. Blocks are assigned as follow
 
 
 Parameters 0-40: indexed by Block0 taking values 0-127, corresponding to the 128
-                    MIDI notes.
-                    
-                    
+                    MIDI notes. Some parameters (see below) also indexed by Block1.
+Parameters 41-60: not indexed by either Block0 or Block1. None of these have any
+                    apparent effect.
+                
+                
 Parameters 16-17: indexed by Block1 taking values 0-2, corresponding to 3 points
                     in a pitch envelope.
 Parameters 29-34: indexed by Block1 taking values 0-15, corresponding to up to
                     16 different layers that can be performed from this note.
-                    Multiple notes can be used to achieve stereo and/or velocity
-                    layering.
+                    Multiple layers can be used to achieve stereo and/or velocity
+                    dependency.
 Parameters 35-40: indexed by Block1 taking values 0-1, corresponding to up to 2
                     EQ filters that can be assigned to the note.
 All other parameters: not indexed by Block1.
 
-Parameters 41-60: not indexed by either Block0 or Block1. None of these have any
-                     apparent effect.
 
-Parameter lengths: all 1 (i.e. up to 12 bits. Most are 7- or 8-bit values)
+
+Parameter lengths: all 1 (i.e. up to 16 bits. Most are 7- or 8-bit values)
 
 
 
 Some parameter meanings affecting the overall sound (all layers affected):
 --
 5:  high-pass filter cutoff (values 0-65535)
-6:  filter cutoff (values 0-255)
-7:  filter resonance (values 0-255)
+6:  [low-pass?] filter cutoff (values 0-255)
+7:  [low-pass?] filter resonance (values 0-255)
 9:  volume
 10: pan
 11: chorus send
 12: reverb send
 13: delay send
 
-15: normally zero. If set non-zero, it will overwrite all layers in the sound with
-      a preset according to the value written.
+15: preset index; normally zero. If set non-zero, it will overwrite all layers
+      (parameters 29-34) in the sound with preset values according to the value
+      written.
 
 16: 3-point pitch envelope. Pitch bend, values 0-255 (128=no bend, 0=bend down, 255=bend up)
-17: 3-point pitch envelope. Slew rate, values 0-1023 (0=v. slow, 1023=v. fast)
+17: 3-point pitch envelope. Time parameter (dwell time/slew rate?), values 0-1023 (0=v. slow, 1023=v. fast)
 
-18-27: amplitude envelope settings
+18-27: amplitude envelope settings. Generally not used?
 
 
 
@@ -93,6 +95,7 @@ The following are per-filter (2 filters possible):
 Secret kits
 -----------
 
-Memory 0 parameter sets 37 & 38 aren't assigned to any tones. 37 is just a voice
+Memory 0 parameter sets 0, 37 & 38 aren't assigned to any tones. 37 is just a voice
 counting "One" through "Five" in English & Japanese. 38 is very similar to StdKit1
-(almost all the same sounds in the central part of the keyboard).
+(almost all the same sounds in the central part of the keyboard but without the
+ethnic instruments in the lowest & highest octaves). 0 is an empty kit (no sounds).

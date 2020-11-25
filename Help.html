@@ -63,12 +63,12 @@
 <body>
 
 <h2>Format of ac7maker input files</h2>
-<p>The python script <i>ac7maker</i> takes as input a definition file in JSON format and outputs
+<p>The python script <i>ac7maker.py</i> takes as input a definition file in JSON format and outputs
 a AC7 rhythm file. The AC7 file can be read by CT-X keyboards and some other Casio electronic keyboards.
 The JSON definition file contains information about how the rhythm is to sound, and has references
 to standard MIDI files which include the music data to define the rhythm. An example
 of how the script should be called:</p>
-<code>python ac7maker my-rhythm.json > out_file.AC7</code>
+<code>python ac7maker.py my-rhythm.json > out_file.AC7</code>
 <p>The format of the JSON document is defined below by an example. For each element, hover the mouse over to get help information on
 the item</p>
 
@@ -470,12 +470,14 @@ will be associated to. Possible values 1&ndash;12</p>
 
 <div style="margin-left: 100px;display: block">
   <div class="tooltip">"source_file"
-    <span class="tooltiptext" style="width: 540px"><p>File name of the MIDI file which contains
+    <span class="tooltiptext" style="width: 640px"><p>File name of the MIDI file which contains
 music data for this track. It should be in standard MIDI format (SMF) and Type I (meaning that each
 channel is assigned its own MIDI track). One MIDI track will be selected from the file and used
 to generate the rhythm track</p>
-      <p>As well, tempo and time-signature data will also be read from the
-file and used by the script to form the rhythm</p>
+      <p>Tempo, time-signature and some CC (controller change) data will also be read from the
+file and used by the script to form the rhythm. Note that patch/bank and other mixer information such as volume is
+<i>not</i> read from the MIDI file and can only be specified within the "part" definition of this .JSON file
+(see above)</p>
       <p>MIDI files must be located the same directory as this .JSON rhythm definition file</p>
     </span>
   </div>
@@ -575,7 +577,7 @@ for the track. Possible values "Off", "On" or "7th"
   <div class="tooltip">"with_major"
     <span class="tooltiptext" style="width: 620px"><p>Value 0 or 1</p>
       <p>If set to 1, indicates that the track should be sounded over a major-type
-chord (including augmented and dominant 7th chords, or if no chord is specified).
+chord (including augmented and dominant 7th chords, or &mdash; in the case of a Drum part &mdash; if no chord is specified).
 If set to 0, it will be silent over major-type chords</p>
       <p>Optional; defaults to 1</p>
     </span>
@@ -601,14 +603,14 @@ over minor-type chords</p>
       <p>If set to 1, indicates that the music data from the MIDI file should be regarded as
 being in C major and needs to be transposed to the chord that is currently playing. If
 set to 0, indicates that the music data should be performed without any transposing or chord
-conversion. It may be useful to set it to 0 in several cases:
+conversion. It may be useful to set to 0 in several cases:
       <ul>
       <li>To create a drone sound, for example with Bagpipes</li>
       <li>With non-melodic instruments such as Drum Kits or Berimbau</li>
       <li>With upper octaves of "Versatile" instruments</li>
       </ul></p>
       <p>Optional; defaults to 1 for non-Drum parts. For Drum parts (part 1 and 2), it defaults to 0 and
-has no effect if set to 1</p>
+may have no effect if set to 1</p>
     </span>
   </div>
   <div style="display: inline">: 1</div>
