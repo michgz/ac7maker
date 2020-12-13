@@ -106,6 +106,25 @@ Atom structure:     33h     Atom type
                     <byte>  Parameter 3. Often unused (set to 0)
 
 
+34h : "Dirty" effect
+====================
+
+Location:           After FEh atom (multiple instances allowed)
+Payload length:     4
+Usage:              Applies an effect to the sound. It is a "dirty" effect, i.e.
+                    distortion, heavy limiting, or similar.
+                    This change is persistent, i.e. even after changing to a new
+                    rhythm the effect is still applied to the part. That suggests
+                    it is a bug in the software and not supposed to be used.                    
+Atom structure:     34h     Atom type
+                    4       Payload length
+                    <byte>  Always zero
+                    <byte>  Zero-indexed MIDI channel number of the part to apply the
+                            effect to. Possible values 8 - 15.
+                    <byte>  Dry/wet parameter. 0=fully dry, 127=fully wet
+                    <byte>  Gain following the effect (0-127)
+
+
 35h : Melody sound EQ
 =====================
 
@@ -127,86 +146,8 @@ Atom structure:     35h     Atom type
                                 6   Notch filter
                                 7   Treble shelf filter
                     <byte>  Parameter 1. Possible values 0 -127. Often frequency
-                            (see Note 1).
                     <byte>  Parameter 2. Possible values 0 - 127. Often cut/boost
-                            (see Note 2).
                     <byte>  Parameter 3. Possible values 0 - 15.
-
-Note 1: when Parameter 1 is used to represent frequency (e.g. roll-off frequency,
-center frequency, etc., depending on the type of EQ) then the specified value x
-is related to the frequency f in Hz by a power law relation:
-
-    x = 127 * (f / 10000Hz) ^ 3.14      [TODO: verify this!]
-
-Note 2: when Parameter 2 is used to represent cut/boost, then the relation is
-approximately as follows:
-
-    x = 0: cut -12.7dB
-    x = 64: no cut/boost
-    x = 127: boost +12.7dB
-
-
-The effect of this atom can be seen by reading out Category 2 Memory 3 ("performance
-parameters") in Bulk and observing locations 0xCB0-0xCEF. There is a correspondence
-with Category 3 Bulk readings which can be related back to Category 3 (Tone)
-parameters as follows:
-
-0x35 atom Byte 3  |  Tone parameter
-(Filter type)     |    117
-------------------+-----------------
-  no 0x35 atoms   |      0
-      0           |      1
-      1           |      4
-      2           |      2
-      3           |      5
-      4           |      3
-      5           |      6
-      6           |      7
-      7           |      8
-
-
-0x35 atom Byte 4  |  Tone parameter
-(Parameter 1)     |    118
-------------------+-----------------
-     0-22         |      0
-     23-26        |      1
-     27-30        |      2
-     31-          |      3
-        (some omitted)
-        -90       |      17
-      91-94       |      18
-      95-98       |      19
-      99-         |      20
-        (some omitted)
-     -127         |      22
-
-
-0x35 atom Byte 5  |  Tone parameter
-(Parameter 2)     |    119
-------------------+-----------------
-      0-40        |      0
-      41-42       |      1
-      43-44       |      2
-      45-46       |      3
-      47-48       |      4
-      49-50       |      5
-      51-52       |      6
-      53-54       |      7
-      55-56       |      8
-      57-58       |      9
-      59-60       |      10
-         (etc...)
-      70          |      15
-      80          |      20
-    87-127        |      24
-
-
-
-0x35 atom Byte 6  |  Tone parameter
-(Parameter 3)     |    120
-------------------+-----------------
-     All values 0-15 correspond
-
 
 
 36h : DSP chain definition

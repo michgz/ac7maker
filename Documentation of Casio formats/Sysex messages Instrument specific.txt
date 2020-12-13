@@ -7,7 +7,7 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
 
    2           0-5                        0            0          0                       0xE08           Performance parameters (incl. mixer)
 
-   3          0-122         0-819        0-99         0-9        0-47                     0x1C8           Tones
+   3          0-122         0-819        0-99         0-9        0-47 (*)                 0x1C8           Tones
 
    4          0-29           0-4                                                          0x1826          [PSets 3&4 are empty]
 
@@ -92,3 +92,6 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
 0 = only possible value is 0.
 0-nn = all values from 0 to nn are possible.
 A = any value works
+
+(*) For ordering of the Category 3 Mem 3 parameter sets, see file "Performance
+      Parameters format.txt" under "Mixer settings"
