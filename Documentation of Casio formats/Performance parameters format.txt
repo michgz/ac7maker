@@ -34,18 +34,27 @@ Reverb/Chorus/Delay
 
 Global offset     Meaning
 -------------     -------
-0x000-0x01F       System delay parameters
-0x010-0x01F       Rhythm delay parameters
-0x020-0x02F       System chorus parameters
-0x030-0x03F       Rhythm chorus parameters
-0x040-0x04F       System reverb parameters
-0x050-0x05F       Rhythm reverb parameters
+0x000-0x01F       System chorus parameters
+0x010-0x01F       Rhythm chorus parameters
+0x020-0x02F       System delay parameters
+0x030-0x03F       Rhythm delay parameters
+0x040-0x04B       System reverb parameters
+0x04C-0x057       Rhythm reverb parameters
+0x058-0x05F       Equaliser settings
 
 
-0x03B = "Chorus sent to Reverb"
 0x044 & 0x054  are "Reverb type" (not equal to keyboard UI values)
 0x024 & 0x034  are "Chorus type" (not equal to keyboard UI values)
-0x002-0x00D & 0x012-0x01D roughly correspond to DSP parameters for the "Delay" effect
+
+0x015 = "Chorus modulation rate"
+0x016 = "Chorus modulation depth"
+0x017 = unnamed parameter 3
+0x01B = "Chorus sent to Reverb"
+0x051 = "Reverb time"
+
+
+0x002-0x00D & 0x012-0x01D roughly correspond to DSP parameters for the "Delay"
+effect, excluding Wet & Dry levels
 
 
 Mixer settings
@@ -86,7 +95,8 @@ n     Channel
 2     Lower Keyboard 1
 3     Lower Keyboard 2
 4     Auto harmonise
-5-7   unused
+5-6   unused
+7     Metronome
 8-15  Rhythm parts 1-8
 16-20 Song System parts 1-5
 21-23 unused
@@ -129,3 +139,10 @@ F0H 44H 19H 01H 7FH 01H 02H 03H 00H 00H 00H 00H 00H 00H 00H 00H 00H 00H 04H 00H 
 
 Writing Volume followed by Pan overrides the physical volume knob on the keyboard.
 (Writing volume only doesn't override it, instead just reduces it multiplicatively).
+
+
+Other settings
+--------------
+
+0xC65 = Accompaniment volume
+0xC68 = Song volume
