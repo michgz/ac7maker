@@ -154,8 +154,8 @@ continuing...
 97              181h                7               
 98              182h                7               
 99              17Eh (bit 0)        1               
-100             190h-193h           32              DSP chain number
-101             188h                32              [Reads back as 32 bits, but only 1 bit can be written]
+100             184h-187h           32              DSP chain number
+101             188h-18Bh           32              [Reads back as 32 bits, but only 1 bit can be written]
 102             18Ch                8               [Reads back as 8 bits, but only 1 bit can be written]
 103             18Dh                7               
 104             18Eh                7               
