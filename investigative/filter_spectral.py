@@ -7,6 +7,8 @@ sys.path.append('../internal')
 import struct
 import time
 import os
+import os.path
+import datetime
 from sysex_comms_internal import upload_ac7_internal
 from sysex_comms_internal import set_single_parameter
 
@@ -110,8 +112,8 @@ def arb_tone(wavtab1, wavtab2=0x00, name = 'No Name \x00       ', type_of_waveta
 if False:
   os.system("amixer -D pulse cset iface=MIXER,name='Capture Volume' {0}".format(3830)) # Default = 3830, maximum=65536
 else:
-  os.system("amixer -c 0 cset iface=MIXER,name='Capture Volume' {0}".format(46)) # Default = 46, maximum=46
-  os.system("amixer -c 0 cset iface=MIXER,name='Line Boost Volume' {0}".format(1)) # Default = 0, maximum=3
+  os.system("amixer -c 2 cset iface=MIXER,name='Capture Volume' {0}".format(46)) # Default = 46, maximum=46
+  os.system("amixer -c 2 cset iface=MIXER,name='Line Boost Volume' {0}".format(1)) # Default = 0, maximum=3
 
 # Possible values:
 #  'Sine'     : use a Sine signal, with RMS detection
@@ -134,6 +136,12 @@ if METHOD=='Arb':
     f1.write(make_tone_into_file(t))
 
   upload_ac7_internal(USER_TONE-801, t, category=3, memory=1)
+
+
+
+# Create a folder for outputs
+dir_name = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
+os.mkdir(dir_name)
 
 
 # Open MIDI
@@ -174,14 +182,6 @@ time.sleep(0.2)
 
 # Select the notes to be played -- only used if USE_SINE is true
 notes = range(15, 75, 5)
-output = ''
-
-# Select the parameter values to try
-#params = [-1, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
-params = [-1] + list(range(0,16,2))
-
-# An array to put results into -- only used if USE_SINE is true
-ar = numpy.zeros([len(params),len(notes)])
 
 
 SAMPLE_TIME = 1.0   # units of seconds. Used to scale FFT bins to Hz
@@ -197,164 +197,236 @@ x = p.open(format=pyaudio.paInt16,
             start=False)
 
 
-
-b = []
-
-
-for j in range(len(params)):
-  
-  pm = params[j]
-  print('Doing parameter {0}'.format(pm))
-
-  FILTER_TYPE = 5
-  PARAM_1 = pm
-  PARAM_2 = 0
-  PARAM_3 = 0
-
-  # Set Memory=3, Category=3 (Tones), Parameter set = 32 (currently selected MIDI In Channel 1), Parameters 117-119
-  if pm < 0:
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00u\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7')
-    time.sleep(0.1)
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00\x00\x00' + struct.pack('B', 12) + b'\xf7')
-    time.sleep(0.1)
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00w\x00\x00\x00\x00\x00' + struct.pack('B', 12) + b'\xf7')
-    time.sleep(0.1)
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00x\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7')
-    time.sleep(0.1)
-  else:
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00u\x00\x00\x00\x00\x00' + struct.pack('B', FILTER_TYPE) + b'\xf7')
-    time.sleep(0.1)
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00\x00\x00' + struct.pack('B', PARAM_1) + b'\xf7')
-    time.sleep(0.1)
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00w\x00\x00\x00\x00\x00' + struct.pack('B', PARAM_2) + b'\xf7')
-    time.sleep(0.1)
-    os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00x\x00\x00\x00\x00\x00' + struct.pack('B', PARAM_3) + b'\xf7')
-    time.sleep(0.1)
+Filter_Types = [1,2,3,4,5,6,7,8]
+Parameters_To_Sweep = [1,2,3]
+Plot_Divisor = 3   # When plotting, keep only every 3rd trace
 
 
-  if METHOD=='Sine':
-    for k in range(len(notes)):
+for FILTER_TYPE in Filter_Types:
+
+  for PARAMETER_TO_SWEEP in Parameters_To_Sweep:
+
+    output = ''
+    b = []
 
 
-      nn = notes[k]
+    if PARAMETER_TO_SWEEP == 1:
+      params = [-1] + list(range(0,23))
+    elif PARAMETER_TO_SWEEP == 2:
+      params = [-1] + list(range(0,25))
+    elif PARAMETER_TO_SWEEP == 3:
+      params = [-1] + list(range(0,16))
+    else:
+      raise Exception("Parameter to Sweep must be 1, 2 or 3")
+
+
+    # Set the default parameter values (used for the non-swept parameters)
+    DEFAULT_1 = 12
+    DEFAULT_2 = 12
+    DEFAULT_3 = 0
+
+    if FILTER_TYPE==1:
+      DEFAULT_3 = 8
+    elif FILTER_TYPE==2:
+      DEFAULT_3 = 8
+    elif FILTER_TYPE==3:
+      DEFAULT_3 = 6
+    elif FILTER_TYPE==4:
+      DEFAULT_2 = 24
+      DEFAULT_3 = 12
+    elif FILTER_TYPE==5:
+      DEFAULT_2 = 24
+      DEFAULT_3 = 12
+    elif FILTER_TYPE==6:
+      DEFAULT_2 = 24
+      DEFAULT_3 = 6
+    elif FILTER_TYPE==7:
+      DEFAULT_3 = 0
       
+      
+    # An array to put results into -- only used if USE_SINE is true
+    ar = numpy.zeros([len(params),len(notes)])
 
 
-      # MIDI note on
-      os.write(f, b'\x90' + struct.pack('B', nn) + b'\x6e')
-      time.sleep(0.1)
-
-      lx = []
-
-      x.start_stream()
-
-      #Read chunks
-      for i in range(1):
-        y = x.read(round(RATE*SAMPLE_TIME))
-        w = 0
-        while w+4 <= len(y):
-          (l, r) = struct.unpack('<2h', y[w:w+4]) # left & right samples
-          lx.append(l)
-          w += 4
-
-        #with open('y.bin', 'wb') as f1:
-        #  f1.write(y)
-
-
-
-      x.stop_stream()
-
-      # MIDI note off
-      os.write(f, b'\x80' + struct.pack('B', nn) + b'\x7f')
-      time.sleep(0.4)
-
-      ly = numpy.abs(numpy.fft.fft(lx))
-      excl = 4   # Ignore a certain number of readings around 0 (DC) since there is
-                 # often a big spike there
-      idx = numpy.argmax(ly[excl:-excl])+excl
-      if idx > RATE*SAMPLE_TIME/2:
-        idx = RATE*SAMPLE_TIME - idx
-      ampl = numpy.sqrt(numpy.mean(numpy.square(lx-numpy.mean(lx))))
-      output += '{0} {1} {2} {3}\n'.format(nn, 2.0*numpy.max(ly)/len(ly), ampl, idx/SAMPLE_TIME)
-      ar[j,k] = ampl
-
-  else:
-    
-    nn = 60   # Minimum 60 for METHOD 'EDMWht' (EDM SW WHT doesn't play any lower than this!!)
-    
-    # MIDI note on
-    os.write(f, b'\x90' + struct.pack('B', nn) + b'\x6e')
-    time.sleep(0.1)
-
-    x.start_stream()
-
-    lx = []
-
-    #Read chunks - currently just use 1
-    for i in range(1):
-      y = x.read(round(RATE*SAMPLE_TIME))
-      w = 0
-      while w+4 <= len(y):
-        (l, r) = struct.unpack('<2h', y[w:w+4]) # left & right samples
-        lx.append(l)
-        w += 4
-
-    x.stop_stream()
-
-    # MIDI note off
-    os.write(f, b'\x80' + struct.pack('B', nn) + b'\x7f')
-    time.sleep(0.5)
-    
-    fr, pw = signal.welch(lx, RATE)
-    b.append(pw)
-
-plt.figure()
-
-output_2 = ''
-if METHOD=='Sine':
-
-  # Post-process into a tabular text format
-
-  for k in range(len(notes)):
-    true_freq = 440.*numpy.power(2., (notes[k]-69)/12.)
-    output_2 += '{0} '.format(true_freq)
     for j in range(len(params)):
-      output_2 += '{0} '.format(ar[j,k])
-    output_2 += '\n'
-else:
+      
+      pm = params[j]
+      print('Doing parameter {0}'.format(pm))
 
-  # Post-process into a tabular text format, and also display as a
-  # pyplot graph in dB.
 
-  idx_0 = 0   # Which index to use as comparison
-  
-  
-  for k in range(len(b[0])):
-    true_freq = fr[k]
-    output_2 += '{0} '.format(true_freq)
-    for j in range(len(params)):
-      if j != idx_0:
-        output_2 += '{0} '.format(10.*numpy.log10(b[j][k]/b[idx_0][k]))
+      if PARAMETER_TO_SWEEP == 1:
+        PARAM_1 = pm
+        PARAM_2 = DEFAULT_2
+        PARAM_3 = DEFAULT_3
+      elif PARAMETER_TO_SWEEP == 2:
+        PARAM_1 = DEFAULT_1
+        PARAM_2 = pm
+        PARAM_3 = DEFAULT_3
+      elif PARAMETER_TO_SWEEP == 3:
+        PARAM_1 = DEFAULT_1
+        PARAM_2 = DEFAULT_2
+        PARAM_3 = pm
+
+      # Set Memory=3, Category=3 (Tones), Parameter set = 32 (currently selected MIDI In Channel 1), Parameters 117-119
+      if pm < 0:
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00u\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7')
+        time.sleep(0.1)
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00\x00\x00' + struct.pack('B', 12) + b'\xf7')
+        time.sleep(0.1)
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00w\x00\x00\x00\x00\x00' + struct.pack('B', 12) + b'\xf7')
+        time.sleep(0.1)
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00x\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7')
+        time.sleep(0.1)
+      else:
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00u\x00\x00\x00\x00\x00' + struct.pack('B', FILTER_TYPE) + b'\xf7')
+        time.sleep(0.1)
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00\x00\x00' + struct.pack('B', PARAM_1) + b'\xf7')
+        time.sleep(0.1)
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00w\x00\x00\x00\x00\x00' + struct.pack('B', PARAM_2) + b'\xf7')
+        time.sleep(0.1)
+        os.write(f, b'\xf0\x44\x19\x01\x7f\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00x\x00\x00\x00\x00\x00' + struct.pack('B', PARAM_3) + b'\xf7')
+        time.sleep(0.1)
+
+
+      if METHOD=='Sine':
+        for k in range(len(notes)):
+
+
+          nn = notes[k]
+          
+
+
+          # MIDI note on
+          os.write(f, b'\x90' + struct.pack('B', nn) + b'\x6e')
+          time.sleep(0.1)
+
+          lx = []
+
+          x.start_stream()
+
+          #Read chunks
+          for i in range(1):
+            y = x.read(round(RATE*SAMPLE_TIME))
+            w = 0
+            while w+4 <= len(y):
+              (l, r) = struct.unpack('<2h', y[w:w+4]) # left & right samples
+              lx.append(l)
+              w += 4
+
+            #with open('y.bin', 'wb') as f1:
+            #  f1.write(y)
+
+
+
+          x.stop_stream()
+
+          # MIDI note off
+          os.write(f, b'\x80' + struct.pack('B', nn) + b'\x7f')
+          time.sleep(0.4)
+
+          ly = numpy.abs(numpy.fft.fft(lx))
+          excl = 4   # Ignore a certain number of readings around 0 (DC) since there is
+                     # often a big spike there
+          idx = numpy.argmax(ly[excl:-excl])+excl
+          if idx > RATE*SAMPLE_TIME/2:
+            idx = RATE*SAMPLE_TIME - idx
+          ampl = numpy.sqrt(numpy.mean(numpy.square(lx-numpy.mean(lx))))
+          output += '{0} {1} {2} {3}\n'.format(nn, 2.0*numpy.max(ly)/len(ly), ampl, idx/SAMPLE_TIME)
+          ar[j,k] = ampl
+
+      else:
         
-    output_2 += '\n'
-  for j in range(len(params)):
-    if j != idx_0:
-      c = []
+        nn = 60   # Minimum 60 for METHOD 'EDMWht' (EDM SW WHT doesn't play any lower than this!!)
+        
+        # MIDI note on
+        os.write(f, b'\x90' + struct.pack('B', nn) + b'\x6e')
+        time.sleep(0.1)
+
+        x.start_stream()
+
+        lx = []
+
+        #Read chunks - currently just use 1
+        for i in range(1):
+          y = x.read(round(RATE*SAMPLE_TIME))
+          w = 0
+          while w+4 <= len(y):
+            (l, r) = struct.unpack('<2h', y[w:w+4]) # left & right samples
+            lx.append(l)
+            w += 4
+
+        x.stop_stream()
+
+        # MIDI note off
+        os.write(f, b'\x80' + struct.pack('B', nn) + b'\x7f')
+        time.sleep(0.5)
+        
+        fr, pw = signal.welch(lx, RATE)
+        b.append(pw)
+
+    plt.figure()
+
+    output_2 = ''
+    output_3 = ''
+    if METHOD=='Sine':
+
+      # Post-process into a tabular text format
+
+      for k in range(len(notes)):
+        true_freq = 440.*numpy.power(2., (notes[k]-69)/12.)
+        output_2 += '{0} '.format(true_freq)
+        for j in range(len(params)):
+          output_2 += '{0} '.format(ar[j,k])
+        output_2 += '\n'
+    else:
+
+      # Post-process into a tabular text format, and also display as a
+      # pyplot graph in dB.
+
+      idx_0 = 0   # Which index to use as comparison
+      
+      
       for k in range(len(b[0])):
-        c.append(10.*numpy.log10(b[j][k]/b[idx_0][k]))
-      plt.plot(fr, c, label='{0}'.format(params[j]))
-  plt.xlim(0,2500)  # Most interesting stuff happens under 2.5kHz
-  plt.legend(loc='lower right')
+        true_freq = fr[k]
+        output_2 += '{0} '.format(true_freq)
+        for j in range(len(params)):
+          if j != idx_0:
+            output_2 += '{0} '.format(10.*numpy.log10(b[j][k]/b[idx_0][k]))
+            
+        output_2 += '\n'
         
-    
+        # Output 3 will hold the absolute magnitude of the comparison sample
+        output_3 += '{0} '.format(true_freq)
+        for j in range(len(params)):
+          if j == idx_0:
+            output_3 += '{0} '.format(10.*numpy.log10(b[j][k]))
+            
+        output_3 += '\n'
+      for j in range(len(params)):
+        if j != idx_0:
+          if Plot_Divisor==0 or j%Plot_Divisor == 0:
+            c = []
+            for k in range(len(b[0])):
+              c.append(10.*numpy.log10(b[j][k]/b[idx_0][k]))
+            plt.plot(fr, c, label='{0}'.format(params[j]))
+      plt.xlim(0,2500)  # Most interesting stuff happens under 2.5kHz
+      plt.legend(loc='lower right')
+            
+        
 
-with open('Out.txt', 'w') as f2:
-  f2.write(output)
-with open('Out_2.txt', 'w') as f3:
-  f3.write(output_2)
+    with open(os.path.join(dir_name, 'Out_FILTER_{0}_sweeping_{1}.txt'.format(FILTER_TYPE, PARAMETER_TO_SWEEP)), 'w') as f2:
+      f2.write(output)
+    with open(os.path.join(dir_name, 'Out_FILTER_{0}_sweeping_{1}_2.txt'.format(FILTER_TYPE, PARAMETER_TO_SWEEP)), 'w') as f3:
+      f3.write(output_2)
+    with open(os.path.join(dir_name, 'Out_FILTER_{0}_sweeping_{1}_3.txt'.format(FILTER_TYPE, PARAMETER_TO_SWEEP)), 'w') as f4:
+      f4.write(output_3)
 
-# Show the plot -- will be empty if METHOD is 'Sine'. Just close it
-plt.show()
+    # Show the plot -- will be empty if METHOD is 'Sine'. Just close it
+    #plt.show()
+
+
+    if METHOD!='Sine':
+      plt.savefig(os.path.join(dir_name, "FILTER_{0}_sweeping_{1}.png".format(FILTER_TYPE, PARAMETER_TO_SWEEP)))
 
 
 
