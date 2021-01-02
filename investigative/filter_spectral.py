@@ -1,7 +1,14 @@
+import sys
+
+# We're importing from a sibling directory.
+sys.path.append('..')
+sys.path.append('../internal')
+
 import struct
 import time
-import sys
 import os
+from sysex_comms_internal import upload_ac7_internal
+from sysex_comms_internal import set_single_parameter
 
 import numpy
 import scipy.signal as signal
@@ -12,10 +19,86 @@ import scipy.signal as signal
 #
 import pyaudio
 
+# If crcmod is not installed, type:
+#   > pip3 install crcmod
+#
+import crcmod
+
 #If matplotlib is not install, type
 #   > pip3 install matplotlib
 #
 import matplotlib.pyplot as plt
+
+
+# Set the raw MIDI device name to use.
+DEVICE_NAME = '/dev/midi1'
+
+
+
+
+# Turn a tone bulk data into a tone file. Not needed if uploading with
+# upload_ac7_internal (that just accepts the bulk data).
+def make_tone_into_file(x):
+  c = b'CT-X3000' + b'\x00'*8
+  c += b'TONH' + b'\x00'*4
+  crc = crcmod.predefined.PredefinedCrc('crc-32')
+  crc.update(x)
+  c += struct.pack('<I', crc.crcValue)
+  c += struct.pack('<I', len(x))
+  c += x
+  c += b'EODA'
+  return c
+  
+
+# Create a tone structure based on arbitrary wavetable type and number.
+# Everything else is just default, including DSP which will be empty.
+#
+# "wavtab1" defines the sound that is created. "wavtab2" is also specified; it
+# can be 0x00, or the same as "wavtab1", or something different. In most
+# cases it doesn't make much audible difference to the sound.
+#
+# Some special values of "wavtab1" are listed below. These do not correspond
+# to any of the built-in tones (at least, on the CT-X3000/5000) so they are
+# only accessible by uploading a custom-built tone. These appear to be
+# provided specifically for the purposes of tuning filters, exactly what
+# we're attempting to do here:
+#
+#     8  octave sine sweep
+#   738  white noise
+#   739  brown noise   
+#
+def arb_tone(wavtab1, wavtab2=0x00, name = 'No Name \x00       ', type_of_wavetable=0x00):
+  c = b''
+  for x in [wavtab1, wavtab2]:
+    c += b'\x00\x02\x80\x00' *31
+    c += b'\x80' * 4
+    c += b'\x7f'
+    c += b'\x00'
+    c += struct.pack('<H', x)
+    c += b'\x7f' * 3
+    c += struct.pack('<B', type_of_wavetable)
+  reverb_send = 0  # for testing purposes make this zero. In most use-cases, a small non-zero number is best
+  chorus_send = 0
+  delay_send = 0
+  c += struct.pack('3B', chorus_send, reverb_send, delay_send)
+  c += b'\x40' * 4 + b'\x48' * 2 + b'\x40' * 11
+  c += b'\xff\x00'
+  
+  # Now do the DSP. Just put in an empty one.
+  c += b'MonoEQ1B        '
+  for x in [0x3FFF, 0x3FFF, 0x3FFF, 0x3FFF]:
+    c += struct.pack('<H', x) + b'\x00' * 16
+  
+  c += b'\x00\x08'
+  c += b'\x64' * 3 + b'\x00\x02' + b'\x00' * 8 + b'\x01' + b'\x00' * 7 + b'\x04' + b'\x00' * 4 + b'\x01\x00'
+  c += struct.pack('<I', 0x830C0)
+  c += struct.pack('<I', 0x830C0)
+  c += struct.pack('<B', 0x85)
+  c += struct.pack('<B', 8)    # 9 if DSP required
+  c += bytes((name[:15] + '\x00').ljust(16, ' '), 'latin-1')
+  c += b'\x64\x7f\x02\x02\x02\x7f\x02\x7f\x02\x7f\x00\x00\x7f\x02\x02\x00\x00\x00'
+  
+  return c
 
 
 
@@ -30,11 +113,32 @@ else:
   os.system("amixer -c 0 cset iface=MIXER,name='Capture Volume' {0}".format(46)) # Default = 46, maximum=46
   os.system("amixer -c 0 cset iface=MIXER,name='Line Boost Volume' {0}".format(1)) # Default = 0, maximum=3
 
+# Possible values:
+#  'Sine'     : use a Sine signal, with RMS detection
+#  'EDMWht'   : use the EDM SE WHITE noise signal, with spectral analysis
+#  'Arb'      : use an arbitrary tone signal (such as white or brown noise),
+#                  with spectral analysis
+METHOD = 'Arb'
+
+# Define the wavetable. Only used in "Arb" method
+ARB_WAVTAB = 738   # White noise.
+
+# Define the user tone to write to. Must lie in range 801-900. Only used
+# in 'Arb' method
+USER_TONE = 801
+
+
+if METHOD=='Arb':
+  t = arb_tone(738, name = "WhtNoise")
+  with open("WhtNoise.TON", "wb") as f1:
+    f1.write(make_tone_into_file(t))
+
+  upload_ac7_internal(USER_TONE-801, t, category=3, memory=1)
+
+
 # Open MIDI
 
-f = os.open('/dev/midi1', os.O_RDWR)
-
-USE_SINE = False
+f = os.open(DEVICE_NAME, os.O_RDWR)
 
 # Set volume and pan in the keyboard. Writing this combination overrides the
 # physical volume control, meaning this test should be repeatable.
@@ -43,9 +147,13 @@ time.sleep(0.2)
 os.write(f, b'\xf0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00' + struct.pack('B', 64) + b'\xf7')
 time.sleep(0.2)
 
-if USE_SINE:
+if METHOD=='Sine':
   # Set "SINE LEAD"
   os.write(f, b'\xb0\x00' + struct.pack('B', 2) + b'\xc0' + struct.pack('B', 80))
+elif METHOD=='Arb':
+  # Set user tone
+  os.write(f, b'\xb0\x00' + struct.pack('B', 65) + b'\xc0' + struct.pack('B', USER_TONE-801))
+  time.sleep(0.2)
 else:
   # Set "EDM SW WHITE"
   os.write(f, b'\xb0\x00' + struct.pack('B', 15) + b'\xc0' + struct.pack('B', 96))
@@ -124,7 +232,7 @@ for j in range(len(params)):
     time.sleep(0.1)
 
 
-  if USE_SINE:
+  if METHOD=='Sine':
     for k in range(len(notes)):
 
 
@@ -172,7 +280,7 @@ for j in range(len(params)):
 
   else:
     
-    nn = 60   # Minimum 60 (EDM SW WHT doesn't play any lower than this!!)
+    nn = 60   # Minimum 60 for METHOD 'EDMWht' (EDM SW WHT doesn't play any lower than this!!)
     
     # MIDI note on
     os.write(f, b'\x90' + struct.pack('B', nn) + b'\x6e')
@@ -203,7 +311,7 @@ for j in range(len(params)):
 plt.figure()
 
 output_2 = ''
-if USE_SINE:
+if METHOD=='Sine':
 
   # Post-process into a tabular text format
 
@@ -245,7 +353,7 @@ with open('Out.txt', 'w') as f2:
 with open('Out_2.txt', 'w') as f3:
   f3.write(output_2)
 
-# Show the plot -- will be empty if USE_SINE is true. Just close it
+# Show the plot -- will be empty if METHOD is 'Sine'. Just close it
 plt.show()
 
 
@@ -256,5 +364,4 @@ os.close(f)
 x.close()
 
 p.terminate()
-
 
