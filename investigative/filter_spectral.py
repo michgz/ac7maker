@@ -67,7 +67,7 @@ def make_tone_into_file(x):
 #
 #     8  octave sine sweep
 #   738  white noise
-#   739  brown noise   
+#   739  pink noise
 #
 def arb_tone(wavtab1, wavtab2=0x00, name = 'No Name \x00       ', type_of_wavetable=0x00):
   c = b''
@@ -118,12 +118,10 @@ else:
 # Possible values:
 #  'Sine'     : use a Sine signal, with RMS detection
 #  'EDMWht'   : use the EDM SE WHITE noise signal, with spectral analysis
-#  'Arb'      : use an arbitrary tone signal (such as white or brown noise),
+#  'Arb'      : use an arbitrary tone signal (such as white or pink noise),
 #                  with spectral analysis
 METHOD = 'Arb'
 
-# Define the wavetable. Only used in "Arb" method
-ARB_WAVTAB = 738   # White noise.
 
 # Define the user tone to write to. Must lie in range 801-900. Only used
 # in 'Arb' method
@@ -131,11 +129,24 @@ USER_TONE = 801
 
 
 if METHOD=='Arb':
+  # Create a white noise tone
   t = arb_tone(738, name = "WhtNoise")
   with open("WhtNoise.TON", "wb") as f1:
     f1.write(make_tone_into_file(t))
 
-  upload_ac7_internal(USER_TONE-801, t, category=3, memory=1)
+  upload_ac7_internal(USER_TONE-801+0, t, category=3, memory=1)
+
+  # Create a pink noise tone
+  t = arb_tone(739, name = "PnkNoise")
+  with open("PnkNoise.TON", "wb") as f1:
+    f1.write(make_tone_into_file(t))
+
+  upload_ac7_internal(USER_TONE-801+1, t, category=3, memory=1)
+
+
+# Create a folder for outputs
+dir_name = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
+os.mkdir(dir_name)
 
 
 
@@ -160,7 +171,7 @@ if METHOD=='Sine':
   os.write(f, b'\xb0\x00' + struct.pack('B', 2) + b'\xc0' + struct.pack('B', 80))
 elif METHOD=='Arb':
   # Set user tone
-  os.write(f, b'\xb0\x00' + struct.pack('B', 65) + b'\xc0' + struct.pack('B', USER_TONE-801))
+  os.write(f, b'\xb0\x00' + struct.pack('B', 65) + b'\xc0' + struct.pack('B', USER_TONE-801+0))  # For pink noise, change "+0" to "+1"
   time.sleep(0.2)
 else:
   # Set "EDM SW WHITE"
@@ -242,8 +253,8 @@ for FILTER_TYPE in Filter_Types:
       DEFAULT_3 = 6
     elif FILTER_TYPE==7:
       DEFAULT_3 = 0
-      
-      
+
+
     # An array to put results into -- only used if USE_SINE is true
     ar = numpy.zeros([len(params),len(notes)])
 
