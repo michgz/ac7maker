@@ -11,7 +11,7 @@ Parameter       Offset in Bulk      Size (bits)     Meaning
 Parameters 1-20 (bulk offsets 0-87h) relate to Sound A, used for playing note-on
 events.
 
-Parameters 21-40 (bulk offsets 88h-12Fh) relate to Sound B, used for various
+Parameters 21-40 (bulk offsets 88h-10Fh) relate to Sound B, used for various
 other events depending on the specific tone.
 
 (Parameters here are given as offsets relative to 0 or 20. Offset in Bulk is given
