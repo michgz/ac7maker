@@ -593,7 +593,10 @@ def ac7make_element(b, elements, start_addr):
   g2 += b'\x00\x01\x00\x00'
   g2 += ac7make_element_atom(1, struct.pack('B', ac7make_time_signature(b['rhythm'].get('time_signature', '4/4')))) # Time signature. This probably
   # isn't used for anything
-  g2 += ac7make_element_atom(2, struct.pack('B', 120)) # Tempo bpm. Ignored by the keyboard
+  # Tempo
+  v = b['rhythm'].get('tempo', -1)
+  if v >= 0:
+    g2 += ac7make_element_atom(2, struct.pack('B', v)) # Tempo bpm
   # Volume
   v = b['rhythm'].get('volume', -1)
   if v >= 0:
@@ -611,7 +614,19 @@ def ac7make_element(b, elements, start_addr):
   if v >= 0:
     g2 += ac7make_element_atom(66, struct.pack('B', v)) # Delay type
   
-  # The following stuff is optional. I don't know what it is...
+  # The following stuff is required to get Variations 3 & 4 working on CT-X3/5000
+  # keyboards. It assigns elements by number to front-panel buttons. A single
+  # element can be assigned to multiple front-panel buttons, but not vice-versa.
+  # Defined as follows:
+  #
+  #    00H, 01H           :  Intro 1, (Intro 2?)
+  #    10H, 11H, 12H, 13H :  Var 1, Var 2, Var 3, Var 4
+  #    20H, 21H, 22H, 23H :  Fill 1, Fill 2, Fill 3, Fill 4
+  #    30H, 31H           :  Ending 1, (Ending 2?)
+  #
+  # Elements numbers 1-6 have default definitions which are presumably common
+  # across all CT-X keyboards. There is normally no reason to change them. Numbers
+  # 7-12 however need to be explicitly defined as follows:
   if True:
     g2 += ac7make_element_atom(17, b'\x06\x01') # ??
     g2 += ac7make_element_atom(17, b'\x07\x12') # ??
