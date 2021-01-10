@@ -614,26 +614,26 @@ def ac7make_element(b, elements, start_addr):
   if v >= 0:
     g2 += ac7make_element_atom(66, struct.pack('B', v)) # Delay type
   
-  # The following stuff is required to get Variations 3 & 4 working on CT-X3/5000
+  # The following stuff is required to get Variations 3 & 4 working on CT-X3/5000/9000IN
   # keyboards. It assigns elements by number to front-panel buttons. A single
   # element can be assigned to multiple front-panel buttons, but not vice-versa.
   # Defined as follows:
   #
-  #    00H, 01H           :  Intro 1, (Intro 2?)
+  #    00H, 01H           :  Intro, (Intro 2?)
   #    10H, 11H, 12H, 13H :  Var 1, Var 2, Var 3, Var 4
   #    20H, 21H, 22H, 23H :  Fill 1, Fill 2, Fill 3, Fill 4
-  #    30H, 31H           :  Ending 1, (Ending 2?)
+  #    30H, 31H           :  Ending, (Ending 2?)
   #
   # Elements numbers 1-6 have default definitions which are presumably common
   # across all CT-X keyboards. There is normally no reason to change them. Numbers
   # 7-12 however need to be explicitly defined as follows:
   if True:
-    g2 += ac7make_element_atom(17, b'\x06\x01') # ??
-    g2 += ac7make_element_atom(17, b'\x07\x12') # ??
-    g2 += ac7make_element_atom(17, b'\x08\x13') # ??
-    g2 += ac7make_element_atom(17, b'\x09\x22') # ??
-    g2 += ac7make_element_atom(17, b'\x0A\x23') # ??
-    g2 += ac7make_element_atom(17, b'\x0B\x31') # ??
+    g2 += ac7make_element_atom(17, b'\x06\x01') # Element 7 (Intro 2?)
+    g2 += ac7make_element_atom(17, b'\x07\x12') # Element 8 = Var 3
+    g2 += ac7make_element_atom(17, b'\x08\x13') # Element 9 = Var 4
+    g2 += ac7make_element_atom(17, b'\x09\x22') # Element 10 = Fill 3
+    g2 += ac7make_element_atom(17, b'\x0A\x23') # Element 11 = Fill 4
+    g2 += ac7make_element_atom(17, b'\x0B\x31') # Element 12 (Ending 2?)
 
   g2 += ac7make_element_atom(255, b'') # End
 
