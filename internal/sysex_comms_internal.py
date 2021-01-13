@@ -33,7 +33,7 @@
 #
 # Example:
 #
-#    upload_ac7_internal(62, 0x1EC*b'\x00', category=3, memory=1)
+#    upload_ac7_internal(62, 0x1C8*b'\x00', category=3, memory=1)
 #    #   ^-- Deletes (overwrites) user tone 863
 #
 #
