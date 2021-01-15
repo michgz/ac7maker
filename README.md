@@ -35,5 +35,4 @@ will upload the rhythms without need for a USB stick:
 
 ## Prerequisites
 Python 3 should be installed, ideally version 3.7 or newer. Beyond that, no special libraries
-are needed for the `ac7maker.py` script. To use `sysex_comms.py`, the
-[crcmod](https://pypi.org/project/crcmod) library is needed.
+are needed.

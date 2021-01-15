@@ -10,12 +10,6 @@
 # functions, but none have been tested.
 #
 #
-## Dependencies:
-#
-# Needs crcmod. Install using:
-#
-#     pip3 install crcmod
-#
 #
 ## Functions:
 #
@@ -113,7 +107,7 @@ import time
 import os
 import struct
 import sys
-import crcmod
+import binascii
 
 
 
@@ -173,11 +167,9 @@ def handle_pkt(p):
       
       
   if type_of_pkt == 3 or type_of_pkt == 5:   # This takes a CRC
-    crc = crcmod.predefined.PredefinedCrc('crc-32')
-    crc.update(p[1:-6])
     c = struct.unpack('<5B', p[-6:-1])
     crc_compare = c[0] + (1<<7)*c[1] + (1<<14)*c[2] + (1<<21)*c[3] + (1<<28)*c[4]
-    if crc.crcValue == crc_compare:
+    if binascii.crc32(p[1:-6]) == crc_compare:
       must_send_ack = True
       if type_of_pkt == 5:
         have_got_ack = True # This one must look like an ACK
@@ -271,9 +263,8 @@ def make_packet(tx=False,
   elif command == 5:
     w += struct.pack('<2B', length%128, length//128)
     w += midi_8bit_to_7bit(data)
-    crc = crcmod.predefined.PredefinedCrc('crc-32')
-    crc.update(w[1:])
-    w += midi_8bit_to_7bit(struct.pack('<I', crc.crcValue))
+    crc_val = binascii.crc32(w[1:])
+    w += midi_8bit_to_7bit(struct.pack('<I', crc_val))
     w += b'\xf7'
     return w
 

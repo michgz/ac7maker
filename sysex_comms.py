@@ -18,12 +18,6 @@ __version__ = "0.0.0"
 # functions, but none have been tested.
 #
 #
-## Dependencies:
-#
-# Needs crcmod. Install using:
-#
-#     pip3 install crcmod
-#
 #
 ## Functions:
 #
