@@ -28,7 +28,7 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
                             Mem=0       Mem=1       Mem=2       Mem=3       Mem=4        (bytes)
 
 
-   12         0-56            A          0-1                                              0x294
+   12         0-56          0-1499       0-1                                               0x294
    
    13         0-39          0-1299        0                                                0x96           "Instruments" (i.e. individual drum sounds)
 
@@ -91,7 +91,6 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
 
 0 = only possible value is 0.
 0-nn = all values from 0 to nn are possible.
-A = any value works
 
 (*) For ordering of the Category 3 Mem 3 parameter sets, see file "Performance
       Parameters format.txt" under "Mixer settings"

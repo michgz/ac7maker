@@ -17,7 +17,7 @@ other events depending on the specific tone.
 (Parameters here are given as offsets relative to 0 or 20. Offset in Bulk is given
 relative to 00h or 88h).
 
-+1              +81h                7               Tone timbre type. Possible values:
++1              +87h                4               Tone timbre type. Possible values:
                                                         0   Melody
                                                         2   Drum
                                                         4   Piano
