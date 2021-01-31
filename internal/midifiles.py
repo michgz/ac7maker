@@ -3,6 +3,16 @@
 import struct
 
 
+
+# Implement a "running status" variable. This is required for compatibility with
+# MIDI files as rendered by Traktion Waveform. It's not clear from reading online
+# whether this is part of the official MIDI spec *for files* (as opposed to
+# streamed data, where it definitely is part of the official spec), and it seems
+# to be inconsistently supported by other software. May as well support it here.
+#
+running_status = 0
+
+
 def consume_midi_time(b, pos):
   p = pos
   v = 0
@@ -37,84 +47,109 @@ def consume_midi_event(b, pos):
   global c101
   global c6
   global c38
+  global running_status
 
   p = pos
   evt = b[p]
+  
+  if evt >= 0xF0:
+      # Fx cancels running status
+      running_status = 0
+      p += 1
+  elif evt <= 0x7F:
+      if running_status >= 0x80:
+          # Use the running status
+          evt = running_status
+      else:
+          # This is an error condition! The exception at the end of this function
+          # will be triggered.
+          pass
+  else:
+      # Update the running status
+      running_status = evt
+      p += 1
+  
+  
   # Records of the "Registered parameters" entry
   if evt == 0xFF:
     # Meta-event
-    n = b[p+2]
-    if b[p+1]==0x51 and n==3:
+    n = b[p+1]
+    if b[p+0]==0x51 and n==3:
       # Tempo
-      x = 0x10000*b[p+3] + 0x100*b[p+4] + b[p+5]
+      x = 0x10000*b[p+2] + 0x100*b[p+3] + b[p+4]
       tempo = round(60000000.0 / float(x))
       # Note this is tempo per quarter note. Depending on the time signature,
       # may need to adjust to eighth notes.
       e = {'event':'tempo_change', 'absolute_time':0, 'value':tempo}
-      return (e, p+3+n)
-    elif b[p+1]==0x58 and n==4:
-      e = {'event':'time_signature', 'absolute_time':0, 'numerator':b[p+3], 'log_denominator':b[p+4]}
-      return (e, p+3+n)
-    elif b[p+1]==0x2F and n==0:
+      return (e, p+2+n)
+    elif b[p+0]==0x58 and n==4:
+      e = {'event':'time_signature', 'absolute_time':0, 'numerator':b[p+2], 'log_denominator':b[p+3]}
+      return (e, p+2+n)
+    elif b[p+0]==0x2F and n==0:
       e = {'event':'track_end', 'absolute_time':0}
-      return (e, p+3+n)
+      return (e, p+2+n)
     else:
       e = {'event':'metadata', 'absolute_time':0, 'data': b''}
-    return (e, p+3+n)
+    return (e, p+2+n)
   elif evt == 0xF0:
     # System exclusive
-    n = b[p+1]
+    n = b[p+0]
     e = {'event':'sysex', 'absolute_time':0, 'data': b''}
-    return (e, p+2+n)
+    return (e, p+1+n)
   else:
     if evt&0xF0 == 0xB0:
       # Controller
       ch = evt&0x0F
-      if b[p+1] == 100:
-        c100[ch] = b[p+2]
-      elif b[p+1] == 101:
-        c101[ch] = b[p+2]
-      elif b[p+1] == 6:
-        c6[ch] = b[p+2]
-      elif b[p+1] == 38:
-        c38[ch] = b[p+2]
+      if b[p+0] == 100:
+        c100[ch] = b[p+1]
+      elif b[p+0] == 101:
+        c101[ch] = b[p+1]
+      elif b[p+0] == 6:
+        c6[ch] = b[p+1]
+      elif b[p+0] == 38:
+        c38[ch] = b[p+1]
       else:
-        e = {'event':'control_change', 'absolute_time':0, 'channel':ch+1, 'controller':b[p+1], 'value':b[p+2]}
-        return (e, p+3)
+        e = {'event':'control_change', 'absolute_time':0, 'channel':ch+1, 'controller':b[p+0], 'value':b[p+1]}
+        return (e, p+2)
       if c100[ch]>=0 and c101[ch]>=0 and c6[ch]>=0 and c38[ch]>=0: # TODO: is 38 optional?
         e = {'event':'registered_param', 'absolute_time':0, 'channel':ch+1, 'parameter':c100[ch]+128*c101[ch], 'value':c38[ch]+128*c6[ch]}
         c100[ch] = -1
         c101[ch] = -1
         c6[ch] = -1
         c38[ch] = -1
-        return (e, p+3)
-      return (None, p+3)
+        return (e, p+2)
+      return (None, p+2)
     elif evt&0xF0 == 0xC0:
       # Patch change
-      e = {'event':'patch_change', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'patch':b[p+1]}
-      return (e, p+2)
+      e = {'event':'patch_change', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'patch':b[p+0]}
+      return (e, p+1)
     elif evt&0xF0 == 0x80:
       # Note off
-      e = {'event':'note_off', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'note':b[p+1], 'velocity':b[p+2]}
-      return (e, p+3)
+      e = {'event':'note_off', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'note':b[p+0], 'velocity':b[p+1]}
+      return (e, p+2)
     elif evt&0xF0 == 0x90:
       # Note on
-      e = {'event':'note_on', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'note':b[p+1], 'velocity':b[p+2]}
-      return (e, p+3)
+      e = {'event':'note_on', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'note':b[p+0], 'velocity':b[p+1]}
+      return (e, p+2)
     elif evt&0xF0 == 0xE0:
       # Pitch bend. Record it as a signed integer, values -0x2000 -- +0x1FFF
-      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'bend':128*b[p+1]+(127&b[p+2])-0x2000}
-      return (e, p+3)
+      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'bend':128*b[p+0]+(127&b[p+1])-0x2000}
+      return (e, p+2)
+    elif evt&0xF0 == 0xD0:
+      # Channel pressure. Not handled, but don't fail because of this.
+      return (None, p+1)
     
   raise Exception("Unknown event {0:02X}".format(evt))
 
-  
+
 def process_track(b, division):
+    global running_status
     
     clear_midi_events()
     
     pos = 0
     total_time = 0
+    running_status = 0
     trk = []
     while pos < len(b):
     
