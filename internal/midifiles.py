@@ -133,7 +133,7 @@ def consume_midi_event(b, pos):
       return (e, p+2)
     elif evt&0xF0 == 0xE0:
       # Pitch bend. Record it as a signed integer, values -0x2000 -- +0x1FFF
-      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'bend':128*b[p+0]+(127&b[p+1])-0x2000}
+      e = {'event':'pitch_bend', 'absolute_time':0, 'channel':(evt&0x0F)+1, 'bend':128*b[p+1]+(127&b[p+0])-0x2000}
       return (e, p+2)
     elif evt&0xF0 == 0xD0:
       # Channel pressure. Not handled, but don't fail because of this.
