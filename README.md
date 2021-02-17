@@ -19,17 +19,17 @@ Opens in any browser.
 
 ### examples/
 A directory with example rhythms ready to be made with `ac7maker.py`. The
-following command will create files `ex01.AC7` and `ex02.AC7` which can be copied
+following commands will create files `ex01.AC7` and `ex02.AC7` which can be copied
 to a USB stick and saved to the keyboard:
 
-On Linux:
+(On Linux:)
 
 ```
   python ac7maker.py examples/example-1.json > ex01.AC7
   python ac7maker.py examples/example-2.json > ex02.AC7
 ```
 
-On Windows:
+(On Windows:)
 
 ```
   python ac7maker.py examples\example-1.json > ex01.AC7
