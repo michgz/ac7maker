@@ -8,6 +8,8 @@ from sysex_comms_internal import get_single_parameter
 import binascii
 import struct
 
+import pickle
+
 
 PARAM_COUNT = 123  # Number of parameters. This is correct for CT-X3000/5000
 TONE_CATEGORY = 3
@@ -24,6 +26,12 @@ def block_count_for_parameter(p):
     return 3
   if p >= 6 and p <= 7:
     return 3
+  if p >= 37 and p <= 40:
+    return 7
+  if p >= 30 and p <= 33:
+    return 3
+  if p >= 26 and p <= 27:
+    return 3
   return 1
 
 
@@ -33,24 +41,39 @@ def to_1b(v):
 
 # Number to dual-byte parameter
 def to_2b(v):
-  return struct.pack('2B', v//128, v%128)
+  #return struct.pack('2B', v//128, v%128)
+  return struct.pack('<H', v)
 
 def tone_read(parameter_set, memory=3):
   
-  y = []
-  for p in range(1, PARAM_COUNT):   # don't read parameter 0. It's the name, and it's not important.
+  
+  if False:
+  
+    y = []
+    for p in range(0, PARAM_COUNT):
+      
+      z = []
+      if p != 0 and p != 84:  # Name or DSP name. They will be filled with default values only, so don't need to read
+        for b in range(block_count_for_parameter(p)):
+          z.append(get_single_parameter(p, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b))
+      
+      y.append(z)
+      
     
-    z = []
-    if p != 84:  # DSP name
-      for b in range(block_count_for_parameter(p)):
-        z.append(get_single_parameter(p, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b))
+    with open('pp.bin', 'wb') as f8:
+      pickle.dump(y, f8)
+  
+
+  else:
     
-    y.append(z)
-    
-  x = b'\x00' * 0x1A0
+    with open('pp.bin', 'rb') as f9:
+      y = pickle.load(f9)
+
+  
+  x = bytearray(b'\x00' * 0x1C8)
   
   # Name
-  x[0x186:0x192] = b'            '
+  x[0x1A6:0x1B2] = b'            '
 
   for (a, b) in [(0, 0x00), (20, 0x88)]:
     
@@ -71,9 +94,9 @@ def tone_read(parameter_set, memory=3):
 
     x[b+0x1C] = y[a+8][0]
     x[b+0x1D] = y[a+9][0]
-    x[b+0x7E] = to_1b(y[a+14][0])
-    x[b+0x7F] = to_1b(y[a+15][0])
-    x[b+0x80] = to_1b(y[a+16][0])
+    x[b+0x7E:b+0x7F] = to_1b(y[a+14][0])
+    x[b+0x7F:b+0x80] = to_1b(y[a+15][0])
+    x[b+0x80:b+0x81] = to_1b(y[a+16][0])
 
     x[b+0x28:b+0x2A] = to_2b(y[a+13][0])
     x[b+0x2A:b+0x2C] = to_2b(y[a+12][0])
@@ -112,11 +135,11 @@ def tone_read(parameter_set, memory=3):
     x[b+0x78:b+0x7A] = to_2b(y[a+20][6])
     x[b+0x7A:b+0x7C] = to_2b(y[a+19][6])
 
-    x[b+0x82:b+0x84] = to_2b(y[a+2])
-    x[b+0x84] = to_1b(y[a+3])
-    x[b+0x85] = to_1b(y[a+4])
-    x[b+0x86] = to_1b(y[a+5])
-    x[b+0x87] = y[a+1]
+    x[b+0x82:b+0x84] = to_2b(y[a+2][0])
+    x[b+0x84:b+0x85] = to_1b(y[a+3][0])
+    x[b+0x85:b+0x86] = to_1b(y[a+4][0])
+    x[b+0x86:b+0x87] = to_1b(y[a+5][0])
+    x[b+0x87] = y[a+1][0]
     
 
   x[0x110] = y[56][0]
@@ -140,46 +163,116 @@ def tone_read(parameter_set, memory=3):
   x[0x11F] = y[73][0]
   x[0x120] = y[74][0]
 
-  x[0x121] = y[75][0]
-  x[0x122] = y[76][0]
-  x[0x123] = y[77][0]
+  x[0x121:0x122] = to_1b(y[75][0])
+  x[0x122:0x123] = to_1b(y[76][0])
+  x[0x123:0x124] = to_1b(y[77][0])
 
-  x[0x180] = to_1b(y[93][0])
-  x[0x181] = to_1b(y[97][0])
+  x[0x180:0x181] = to_1b(y[93][0])
+  x[0x181:0x182] = to_1b(y[97][0])
+  x[0x182:0x183] = to_1b(y[98][0])
 
-  x[0x182] = to_1b(y[98][0])
-
-
-
+  x[0x184:0x188] = struct.pack('<I', y[100][0])
+  x[0x188:0x18C] = struct.pack('<I', y[101][0])
   x[0x18C] = y[102][0]
-  x[0x18D] = to_1b(y[103][0])
-  x[0x18E] = to_1b(y[104][0])
-  x[0x18F] = to_1b(y[105][0])
-  x[0x194] = to_1b(y[107][0])
-  x[0x195] = to_1b(y[108][0])
+  x[0x18D:0x18E] = to_1b(y[103][0])
+  x[0x18E:0x18F] = to_1b(y[104][0])
+  x[0x18F:0x190] = to_1b(y[105][0])
+  x[0x190:0x194] = struct.pack('<I', y[106][0])
+  x[0x194:0x195] = to_1b(y[107][0])
+  x[0x195:0x196] = to_1b(y[108][0])
 
+  x[0x1B6:0x1B7] = to_1b(y[45][0])
+  x[0x1B7:0x1B8] = to_1b(y[46][0])
+  x[0x1B8:0x1B9] = to_1b(y[47][0])
+  x[0x1B9:0x1BA] = to_1b(y[48][0])
+  x[0x1BA:0x1BB] = to_1b(y[49][0])
+  x[0x1BB:0x1BC] = to_1b(y[50][0])
+  x[0x1BC:0x1BD] = to_1b(y[51][0])
+  x[0x1BD:0x1BE] = to_1b(y[52][0])
+  x[0x1BE:0x1BF] = to_1b(y[53][0])
+  x[0x1BF:0x1C0] = to_1b(y[54][0])
+
+  x[0x1C0:0x1C1] = to_1b(y[78][0])
+  x[0x1C1:0x1C2] = to_1b(y[79][0])
   
-  x[0x1B6] = y[45][0]
-  x[0x1B7] = y[46][0]
-  x[0x1B8] = y[47][0]
-  x[0x1B9] = y[48][0]
-  x[0x1BA] = y[49][0]
-  x[0x1BB] = y[50][0]
-  x[0x1BC] = y[51][0]
-  x[0x1BD] = y[52][0]
-  x[0x1BE] = y[53][0]
-  x[0x1BF] = y[54][0]
-
-  x[0x1C0] = to_1b(y[78][0])
-  x[0x1C1] = to_1b(y[79][0])
-
-
+  x[0x124] = 0xFF  # ??
+  
   # DSP parameters
   
-  x[0x126:0x115] = b'                ' # Name
+  x[0x126:0x135] = b'                ' # Name
   for j in range(4):
-    x[0x136+j*0x12] = y[85][j]
-    x[0x137+j*0x12] = to_1b(y[86][j])
+    x[0x136+j*0x12:0x138+j*0x12] = struct.pack('<H', y[85][j])
+    # where is parameter 86?
+
+  # Bit field parameters
+  
+  if y[109][0]:
+    x[0x196] = 1
+  if y[110][0]:
+    x[0x197] = 1
+  if y[111][0]:
+    x[0x198] = 1
+  if y[112][0]:
+    x[0x199] = 1
+
+  v = 0
+  if y[113][0]:
+    v += 1
+  if y[114][0]:
+    v += 0x10
+  if y[115][0]:
+    v += 0x20
+  if y[116][0]:
+    v += 0x40
+  x[0x19A] = v
+
+  v = 0
+  if y[99][0]:
+    v += 1
+  if y[96][0]:
+    v += 0x04
+  if y[95][0]:
+    v += 0x08
+  if y[94][0]:
+    v += 0x10
+  x[0x17E] = v
+
+  v = 0
+  if y[91][0]:
+    v += 0x02
+  if y[90][0]:
+    v += 0x04
+  if y[89][0]:
+    v += 0x08
+  if y[92][0]:
+    v += 0x20
+  if y[88][0]:
+    v += 0x80
+  x[0x17F] = v
+
+  v = 0
+  if y[83][0]:
+    v += 0x01
+  if y[82][0]:
+    v += 0x02
+  if y[81][0]:
+    v += 0x04
+  if y[80][0]:
+    v += 0x08
+  if y[55][0]:
+    v += 0x80
+  x[0x1A4] = v
+
+  v = 0
+  if y[44][0]:
+    v += 0x01
+  v += 2*(y[43][0] % 8)
+  if y[42][0]:
+    v += 0x40
+  if y[41][0]:
+    v += 0x80
+  x[0x1A5] = v
+
 
   # Filters
   
@@ -192,12 +285,12 @@ def tone_read(parameter_set, memory=3):
   x[0x19E] = (y[122][0] % 8) + 8*(y[121][0] % 2) + 16*(y[120][0] % 16)
   x[0x1A3] = (y[122][1] % 8) + 8*(y[121][1] % 2) + 16*(y[120][1] % 16)
 
-
   return x
 
 
 def wrap_tone_file(x):
-  y = b'CT-X3000        '
+  y = b'CT-X3000'
+  y += struct.pack('<2I', 0, 0)
   y += b'TONH'
   y += struct.pack('<3I', 0, binascii.crc32(x), len(x))
   y += x
