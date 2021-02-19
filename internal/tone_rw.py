@@ -51,7 +51,7 @@ def check_less(v, mx):
 def tone_read(parameter_set, memory=3):
   
   
-  if False:
+  if True:
   
     y = []
     for p in range(0, PARAM_COUNT):
@@ -59,7 +59,10 @@ def tone_read(parameter_set, memory=3):
       z = []
       if p != 0 and p != 84:  # Name or DSP name. They will be filled with default values only, so don't need to read
         for b in range(block_count_for_parameter(p)):
-          z.append(get_single_parameter(p, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b))
+          length = 0
+          if p == 87:
+            length = 10
+          z.append(get_single_parameter(p, length=length, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b))
       
       y.append(z)
       
@@ -79,7 +82,7 @@ def tone_read(parameter_set, memory=3):
   # Name
   x[0x1A6:0x1B6] = b'                '
 
-  for (a, b) in [(0, 0x00), (20, 0x88)]:
+  for (a, b) in [(20, 0x00), (0, 0x88)]:
     
     x[b+0x00:b+0x02] = to_2b(y[a+7][0])
     x[b+0x02:b+0x04] = to_2b(y[a+6][0])
@@ -206,7 +209,11 @@ def tone_read(parameter_set, memory=3):
   x[0x126:0x136] = b'                ' # Name
   for j in range(4):
     x[0x136+j*0x12:0x138+j*0x12] = struct.pack('<H', y[85][j])
+    if y[86][j] != 0:
+      raise Exception
     # where is parameter 86?
+    if len(y[87][j]) > 0 and len(y[87][j]) < 16:
+      x[0x138+j*0x12:0x138+len(y[87][j])+j*0x12] = y[87][j]
 
   # Bit field parameters
   
@@ -241,7 +248,7 @@ def tone_read(parameter_set, memory=3):
   x[0x19A] = v
 
   v = 0
-  check_less(y[94][0], 2)
+  check_less(y[94][0], 16)
   check_less(y[95][0], 2)
   check_less(y[96][0], 2)
   check_less(y[99][0], 2)
@@ -251,8 +258,7 @@ def tone_read(parameter_set, memory=3):
     v += 0x04
   if y[95][0]:
     v += 0x08
-  if y[94][0]:
-    v += 0x10
+  v += 0x10*(y[94][0] % 16)
   x[0x17E] = v
 
   v = 0
@@ -260,15 +266,14 @@ def tone_read(parameter_set, memory=3):
   check_less(y[89][0], 2)
   check_less(y[90][0], 2)
   check_less(y[91][0], 2)
-  check_less(y[92][0], 2)
+  check_less(y[92][0], 4)
   if y[91][0]:
     v += 0x02
   if y[90][0]:
     v += 0x04
   if y[89][0]:
     v += 0x08
-  if y[92][0]:
-    v += 0x20
+  v += 0x20*(y[92][0] % 4)
   if y[88][0]:
     v += 0x80
   x[0x17F] = v
