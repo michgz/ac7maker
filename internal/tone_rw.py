@@ -44,6 +44,10 @@ def to_2b(v):
   #return struct.pack('2B', v//128, v%128)
   return struct.pack('<H', v)
 
+def check_less(v, mx):
+  if v >= mx:
+    raise Exception
+
 def tone_read(parameter_set, memory=3):
   
   
@@ -73,7 +77,7 @@ def tone_read(parameter_set, memory=3):
   x = bytearray(b'\x00' * 0x1C8)
   
   # Name
-  x[0x1A6:0x1B2] = b'            '
+  x[0x1A6:0x1B6] = b'                '
 
   for (a, b) in [(0, 0x00), (20, 0x88)]:
     
@@ -199,12 +203,18 @@ def tone_read(parameter_set, memory=3):
   
   # DSP parameters
   
-  x[0x126:0x135] = b'                ' # Name
+  x[0x126:0x136] = b'                ' # Name
   for j in range(4):
     x[0x136+j*0x12:0x138+j*0x12] = struct.pack('<H', y[85][j])
     # where is parameter 86?
 
   # Bit field parameters
+  
+  
+  check_less(y[109][0], 2)
+  check_less(y[110][0], 2)
+  check_less(y[111][0], 2)
+  check_less(y[112][0], 2)
   
   if y[109][0]:
     x[0x196] = 1
@@ -216,6 +226,10 @@ def tone_read(parameter_set, memory=3):
     x[0x199] = 1
 
   v = 0
+  check_less(y[113][0], 2)
+  check_less(y[114][0], 2)
+  check_less(y[115][0], 2)
+  check_less(y[116][0], 2)
   if y[113][0]:
     v += 1
   if y[114][0]:
@@ -227,6 +241,10 @@ def tone_read(parameter_set, memory=3):
   x[0x19A] = v
 
   v = 0
+  check_less(y[94][0], 2)
+  check_less(y[95][0], 2)
+  check_less(y[96][0], 2)
+  check_less(y[99][0], 2)
   if y[99][0]:
     v += 1
   if y[96][0]:
@@ -238,6 +256,11 @@ def tone_read(parameter_set, memory=3):
   x[0x17E] = v
 
   v = 0
+  check_less(y[88][0], 2)
+  check_less(y[89][0], 2)
+  check_less(y[90][0], 2)
+  check_less(y[91][0], 2)
+  check_less(y[92][0], 2)
   if y[91][0]:
     v += 0x02
   if y[90][0]:
@@ -251,6 +274,11 @@ def tone_read(parameter_set, memory=3):
   x[0x17F] = v
 
   v = 0
+  check_less(y[55][0], 2)
+  check_less(y[80][0], 2)
+  check_less(y[81][0], 2)
+  check_less(y[82][0], 2)
+  check_less(y[83][0], 2)
   if y[83][0]:
     v += 0x01
   if y[82][0]:
@@ -264,6 +292,10 @@ def tone_read(parameter_set, memory=3):
   x[0x1A4] = v
 
   v = 0
+  check_less(y[41][0], 2)
+  check_less(y[42][0], 2)
+  check_less(y[43][0], 8)
+  check_less(y[44][0], 2)
   if y[44][0]:
     v += 0x01
   v += 2*(y[43][0] % 8)
@@ -272,9 +304,29 @@ def tone_read(parameter_set, memory=3):
   if y[41][0]:
     v += 0x80
   x[0x1A5] = v
+  
+  v = 0
+  check_less(y[59][0], 16)
+  check_less(y[66][0], 16)
+  v += 16*(y[59][0] % 16)
+  v += (y[66][0] % 16)
+  x[0x124] = v
 
 
   # Filters
+
+  check_less(y[117][0], 16)
+  check_less(y[118][0], 64)
+  check_less(y[119][0], 64)
+  check_less(y[120][0], 16)
+  check_less(y[121][0], 2)
+  check_less(y[122][0], 8)
+  check_less(y[117][1], 16)
+  check_less(y[118][1], 64)
+  check_less(y[119][1], 64)
+  check_less(y[120][1], 16)
+  check_less(y[121][1], 2)
+  check_less(y[122][1], 8)
   
   x[0x19C] = (y[117][0] % 16) + 16*((y[118][0]//4) % 16)
   x[0x1A0] = (y[117][1] % 16) + 16*((y[118][1]//4) % 16)
@@ -284,6 +336,8 @@ def tone_read(parameter_set, memory=3):
 
   x[0x19E] = (y[122][0] % 8) + 8*(y[121][0] % 2) + 16*(y[120][0] % 16)
   x[0x1A3] = (y[122][1] % 8) + 8*(y[121][1] % 2) + 16*(y[120][1] % 16)
+
+
 
   return x
 
@@ -295,9 +349,8 @@ def wrap_tone_file(x):
   y += struct.pack('<3I', 0, binascii.crc32(x), len(x))
   y += x
   y += b'EODA'
-  return y 
+  return y
   
-
 
 
 if __name__=="__main__":
