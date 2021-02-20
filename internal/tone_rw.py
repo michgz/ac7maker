@@ -4,7 +4,7 @@
 """
 
 import sys
-from sysex_comms_internal import get_single_parameter
+from internal.sysex_comms_internal import get_single_parameter
 import binascii
 import struct
 
@@ -46,12 +46,13 @@ def to_2b(v):
 
 def check_less(v, mx):
   if v >= mx:
+    print(v)
     raise Exception
 
 def tone_read(parameter_set, memory=3):
   
   
-  if True:
+  if False:
   
     y = []
     for p in range(0, PARAM_COUNT):
@@ -67,13 +68,13 @@ def tone_read(parameter_set, memory=3):
       y.append(z)
       
     
-    with open('pp.bin', 'wb') as f8:
+    with open('{0:03d}_PICKLE.bin'.format(parameter_set+801), 'wb') as f8:
       pickle.dump(y, f8)
   
 
   else:
     
-    with open('pp.bin', 'rb') as f9:
+    with open('{0:03d}_PICKLE.bin'.format(parameter_set+801), 'rb') as f9:
       y = pickle.load(f9)
 
   
@@ -82,7 +83,7 @@ def tone_read(parameter_set, memory=3):
   # Name
   x[0x1A6:0x1B6] = b'                '
 
-  for (a, b) in [(20, 0x00), (0, 0x88)]:
+  for (a, b) in [(0, 0x00), (20, 0x88)]:
     
     x[b+0x00:b+0x02] = to_2b(y[a+7][0])
     x[b+0x02:b+0x04] = to_2b(y[a+6][0])
@@ -90,7 +91,7 @@ def tone_read(parameter_set, memory=3):
     x[b+0x06:b+0x08] = to_2b(y[a+6][1])
     x[b+0x08:b+0x0A] = to_2b(y[a+7][2])
     x[b+0x0A:b+0x0C] = to_2b(y[a+6][2])
-    x[b+0x0C:b+0x0E] = to_2b(y[a+6][1])
+    ###x[b+0x0C:b+0x0E] = to_2b(y[a+6][1])  #####
 
     x[b+0x0E:b+0x10] = to_2b(y[a+10][0])
     x[b+0x10:b+0x12] = to_2b(y[a+11][0])
@@ -99,8 +100,8 @@ def tone_read(parameter_set, memory=3):
     x[b+0x16:b+0x18] = to_2b(y[a+10][2])
     x[b+0x18:b+0x1A] = to_2b(y[a+11][2])
 
-    x[b+0x1C] = y[a+8][0]
-    x[b+0x1D] = y[a+9][0]
+    x[b+0x1A] = y[a+8][0]   ### Was 0x1C
+    x[b+0x1E] = y[a+9][0]   ### Was 0x1D
     x[b+0x7E:b+0x7F] = to_1b(y[a+14][0])
     x[b+0x7F:b+0x80] = to_1b(y[a+15][0])
     x[b+0x80:b+0x81] = to_1b(y[a+16][0])
@@ -219,14 +220,12 @@ def tone_read(parameter_set, memory=3):
   
   
   check_less(y[109][0], 2)
-  check_less(y[110][0], 2)
   check_less(y[111][0], 2)
   check_less(y[112][0], 2)
   
   if y[109][0]:
     x[0x196] = 1
-  if y[110][0]:
-    x[0x197] = 1
+  x[0x197] = y[110][0]
   if y[111][0]:
     x[0x198] = 1
   if y[112][0]:
@@ -236,15 +235,14 @@ def tone_read(parameter_set, memory=3):
   check_less(y[113][0], 2)
   check_less(y[114][0], 2)
   check_less(y[115][0], 2)
-  check_less(y[116][0], 2)
+  check_less(y[116][0], 4)
   if y[113][0]:
     v += 1
   if y[114][0]:
     v += 0x10
   if y[115][0]:
     v += 0x20
-  if y[116][0]:
-    v += 0x40
+  v += 0x40*(y[116][0] % 4)
   x[0x19A] = v
 
   v = 0
@@ -333,14 +331,14 @@ def tone_read(parameter_set, memory=3):
   check_less(y[121][1], 2)
   check_less(y[122][1], 8)
   
-  x[0x19C] = (y[117][0] % 16) + 16*((y[118][0]//4) % 16)
-  x[0x1A0] = (y[117][1] % 16) + 16*((y[118][1]//4) % 16)
+  x[0x19C] = (y[117][0] % 16) + 16*(y[118][0] % 16)
+  x[0x1A0] = (y[117][1] % 16) + 16*(y[118][1] % 16)
 
-  x[0x19D] = (y[118][0] % 4) + 4*(y[119][0] % 64)
-  x[0x1A1] = (y[118][1] % 4) + 4*(y[119][1] % 64)
+  x[0x19D] = ((y[118][0]//16) % 4) + 4*(y[119][0] % 64)
+  x[0x1A1] = ((y[118][1]//16) % 4) + 4*(y[119][1] % 64)
 
   x[0x19E] = (y[122][0] % 8) + 8*(y[121][0] % 2) + 16*(y[120][0] % 16)
-  x[0x1A3] = (y[122][1] % 8) + 8*(y[121][1] % 2) + 16*(y[120][1] % 16)
+  x[0x1A2] = (y[122][1] % 8) + 8*(y[121][1] % 2) + 16*(y[120][1] % 16)
 
 
 
@@ -359,5 +357,5 @@ def wrap_tone_file(x):
 
 
 if __name__=="__main__":
-  sys.stdout.buffer.write(wrap_tone_file(tone_read(0)))
+  sys.stdout.buffer.write(wrap_tone_file(tone_read(12)))
 
