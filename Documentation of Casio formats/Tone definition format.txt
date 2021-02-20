@@ -32,8 +32,8 @@ relative to 00h or 88h).
 +7 Block 0      +00h-+01h           10              
    Block 1      +04h-+05h           10              
    Block 2      +08h-+09h           10              
-+8              +1Ch                8               
-+9              +1Dh                8               
++8              +7Ch                8               
++9              +7Dh                8               
 +10 Block 0     +0Eh                8               
     Block 1     +12h                8               
     Block 2     +16h                8               
@@ -43,9 +43,17 @@ relative to 00h or 88h).
 +12 Block 0     +2Ah                8               
     Block 1     +2Eh                8               
     Block 2     +32h                8               
+    Block 3     +36h                8               
+    Block 4     +3Ah                8               
+    Block 5     +3Eh                8               
+    Block 6     +42h                8               
 +13 Block 0     +28h-+29h           10              
     Block 1     +2Ch-+2Dh           10              
     Block 2     +30h-+31h           10              
+    Block 3     +34h-+35h           10              
+    Block 4     +38h-+39h           10              
+    Block 5     +3Ch-+3Dh           10              
+    Block 6     +40h-+41h           10              
 +14             +7Eh                7               Cutoff frequency
 +15             +7Fh                7               Cutoff resonance
 +16             +80h                7               
@@ -124,7 +132,7 @@ continuing...
 76              122h                7               
 77              123h                7               
 78              1C0h                7               
-79              1C1h                7               
+79              1C1h                4               
 80              1A4h (bit 3)        1               
 81              1A4h (bit 2)        1               [Read-only]
 82              1A4h (bit 1)        1               
