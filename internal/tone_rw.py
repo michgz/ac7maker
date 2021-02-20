@@ -22,14 +22,18 @@ def block_count_for_parameter(p):
     return 4
   if p >= 17 and p <= 20:
     return 7
-  if p >= 10 and p <= 13:
-    return 3
+  if p >= 10 and p <= 11:
+    return 7
+  if p >= 12 and p <= 13:
+    return 7
   if p >= 6 and p <= 7:
     return 3
   if p >= 37 and p <= 40:
     return 7
-  if p >= 30 and p <= 33:
-    return 3
+  if p >= 30 and p <= 31:
+    return 7
+  if p >= 32 and p <= 33:
+    return 7
   if p >= 26 and p <= 27:
     return 3
   return 1
@@ -91,17 +95,25 @@ def tone_read(parameter_set, memory=3):
     x[b+0x06:b+0x08] = to_2b(y[a+6][1])
     x[b+0x08:b+0x0A] = to_2b(y[a+7][2])
     x[b+0x0A:b+0x0C] = to_2b(y[a+6][2])
-    ###x[b+0x0C:b+0x0E] = to_2b(y[a+6][1])  #####
 
+    x[b+0x0C:b+0x0E] = to_2b(y[a+11][0])
     x[b+0x0E:b+0x10] = to_2b(y[a+10][0])
-    x[b+0x10:b+0x12] = to_2b(y[a+11][0])
+    x[b+0x10:b+0x12] = to_2b(y[a+11][1])
     x[b+0x12:b+0x14] = to_2b(y[a+10][1])
-    x[b+0x14:b+0x16] = to_2b(y[a+11][1])
+    x[b+0x14:b+0x16] = to_2b(y[a+11][2])
     x[b+0x16:b+0x18] = to_2b(y[a+10][2])
-    x[b+0x18:b+0x1A] = to_2b(y[a+11][2])
+    x[b+0x18:b+0x1A] = to_2b(y[a+11][3])
 
-    x[b+0x1A] = y[a+8][0]   ### Was 0x1C
-    x[b+0x1E] = y[a+9][0]   ### Was 0x1D
+    x[b+0x1A:b+0x1C] = to_2b(y[a+10][3])
+    x[b+0x1C:b+0x1E] = to_2b(y[a+11][4])
+    x[b+0x1E:b+0x20] = to_2b(y[a+10][4])
+    x[b+0x20:b+0x22] = to_2b(y[a+11][5])
+    x[b+0x22:b+0x24] = to_2b(y[a+10][5])
+    x[b+0x24:b+0x26] = to_2b(y[a+11][6])
+    x[b+0x26:b+0x28] = to_2b(y[a+10][6])
+
+    x[b+0x7C] = y[a+8][0] 
+    x[b+0x7D] = y[a+9][0] 
     x[b+0x7E:b+0x7F] = to_1b(y[a+14][0])
     x[b+0x7F:b+0x80] = to_1b(y[a+15][0])
     x[b+0x80:b+0x81] = to_1b(y[a+16][0])
@@ -112,6 +124,14 @@ def tone_read(parameter_set, memory=3):
     x[b+0x2E:b+0x30] = to_2b(y[a+12][1])
     x[b+0x30:b+0x32] = to_2b(y[a+13][2])
     x[b+0x32:b+0x34] = to_2b(y[a+12][2])
+    x[b+0x34:b+0x36] = to_2b(y[a+13][3])
+    x[b+0x36:b+0x38] = to_2b(y[a+12][3])
+    x[b+0x38:b+0x3A] = to_2b(y[a+13][4])
+    x[b+0x3A:b+0x3C] = to_2b(y[a+12][4])
+    x[b+0x3C:b+0x3E] = to_2b(y[a+13][5])
+    x[b+0x3E:b+0x40] = to_2b(y[a+12][5])
+    x[b+0x40:b+0x42] = to_2b(y[a+13][6])
+    x[b+0x42:b+0x44] = to_2b(y[a+12][6])
 
     x[b+0x44:b+0x46] = to_2b(y[a+18][0])
     x[b+0x46:b+0x48] = to_2b(y[a+17][0])
