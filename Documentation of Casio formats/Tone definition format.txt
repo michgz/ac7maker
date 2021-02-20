@@ -37,9 +37,17 @@ relative to 00h or 88h).
 +10 Block 0     +0Eh                8               
     Block 1     +12h                8               
     Block 2     +16h                8               
-+11 Block 0     +10h-+11h           10              
-    Block 1     +14h-+15h           10              
-    Block 2     +18h-+19h           10              
+    Block 3     +1Ah                8               
+    Block 4     +1Eh                8               
+    Block 5     +22h                8               
+    Block 6     +26h                8               
++11 Block 0     +0Ch-+0Dh           10              
+    Block 1     +10h-+11h           10              
+    Block 2     +14h-+15h           10              
+    Block 3     +18h-+19h           10              
+    Block 4     +1Ch-+1Dh           10              
+    Block 5     +20h-+21h           10              
+    Block 6     +24h-+25h           10              
 +12 Block 0     +2Ah                8               
     Block 1     +2Eh                8               
     Block 2     +32h                8               
