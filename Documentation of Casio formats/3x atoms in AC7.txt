@@ -64,7 +64,7 @@ Usage:              Applies an effect to an individual drum sound. The effects
                     be a drum patch.
 Atom structure:     32h     Atom type
                     4       Payload length
-                    <byte>  Effect to apply. Possible values 0 - 13. Some of the
+                    <byte>  Effect to apply. Possible values 0 - 27. Some of the
                             effects are:
                                 1   Bass/treble adjust
                                 2   Fine tuning
@@ -74,6 +74,9 @@ Atom structure:     32h     Atom type
                                 11  Reverb send
                                 12  Chorus send
                                 13  Delay send
+                                14  DSP (0=off, 127=on)
+                            It's likely these follow the same ordering as in pp19.1
+                            of the MZ-X500 MIDI Implementation document.
                     <byte>  Zero-indexed MIDI channel number of the part to apply the effect
                             to. Since it must have a drum patch selected, it will
                             usually be value 8 or 9 (i.e. Part 1 or Part 2).
