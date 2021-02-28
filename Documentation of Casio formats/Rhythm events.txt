@@ -24,7 +24,7 @@ The known event types are:
 0xBB Filter resonance (equivalent to MIDI CC 0x47)
 0xBC Attack time (equivalent to MIDI CC 0x49)
 0xBD Release time (equivalent to MIDI CC 0x48)
-0xE0 chord conversion table (values 0-15)
+0xE0 chord conversion table (values 0-31. Other values ignored)
 0xE1 chord inversion (value 0="Off", 1="On", 2="7th", 3=undocumented setting for forcing a 7th chord) (Casio-specific MIDI CC 0x57)
 0xE2 retrigger (value 2="Off", other value="On")
 0xE3 Tempo fast (value add to original tempo in bpm, up to maximum of 255)
