@@ -31,7 +31,7 @@ The known event types are:
 0xE4 Tempo slow (value subtracted from original tempo in bpm, down to minimum of 20)
 0xE5 (allow user editing)
 0xE6 highest note after chord conversion (values 0-127)
-0xE7
+0xE7 "hint" for note pitch at change of chord (values 0-127, default 64)
 0xE9   (Casio-specific MIDI CC 0x59)
 0xFC End of track. <byte 3> is always 0x00
 0xFF Time jump. Used for time deltas larger than 255. <byte 3> = time delta MSByte, <byte 1> = time delta LSByte

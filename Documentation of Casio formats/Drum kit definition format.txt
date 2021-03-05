@@ -52,6 +52,8 @@ Parameter lengths: all 1 (i.e. up to 16 bits. Most are 7- or 8-bit values)
 
 
 Some parameter meanings affecting the overall sound (all layers affected):
+(These may follow the same ordering as in pp19.1 of the MZ-X500 MIDI
+Implementation document.)
 --
 5:  high-pass filter cutoff (values 0-65535)
 6:  [low-pass?] filter cutoff (values 0-255)
