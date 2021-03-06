@@ -1,0 +1,65 @@
+Atom #     Length       Meaning
+
+0x01          12       Name
+0x02           3       Tempo
+0x03           2       Selected rhythm number
+0x04           1       Synchro start
+0x0A           1       Chord fingering mode
+0x0B           1       Accomp on/off
+0x0C           1       Auto harmonise mode
+0x10          10       Patch/Bank for U1, U2, L1, L2, ?
+0x11           5       
+0x12           5       
+0x13           5       Coarse tune, parts 1-5
+0x14           5       
+0x15           5       
+0x16           5       Chorus send, parts 1-5
+0x17           5       
+0x18           5       Pitch bend per part
+0x19           5       Part on/off, parts 1-5 (0=on, 1=off)
+0x1A           5       
+0x1F           7       Mixer for parts 8-47: part number, volume, ?, ?, ?, on/off (0=on, 1=off). FF means "no change"
+0x20           1       Upper split
+0x21           1       Split point
+0x22           4
+0x23           4       Octave transpose
+0x25           4
+0x26           1       Split point
+0x27           1       Split point
+0x28           1       Chord input priority
+0x2A           1       Upper split
+0x29           4
+0x33           1       Pitch bend overall
+0x34           4       Arp type, Arp hold, ?, ?
+0x3C           1       Pedal 1
+0x3D           1       Auto harm/Arp selection
+0x3E           5
+0x3F           5       Pedal 1 per-part
+0x40           1       Accomp volume
+0x5E           3       Reverb type, chorus type, delay type
+0x81           1       Transpose
+0x83           1       Touch sensitivity
+0x84           1       
+0x85           1       Scale type
+0x86           1       Scale root
+0x87           1       Accomp scale type
+0x99          24       Fine tuning (12 x 16 bits?)
+0xA0           1       Phrase set number
+0xA1           4       Phrase set loop
+0xA2           4       Phrase set key shift
+0xA3           4       Phrase set chord sync
+0xA4           4       Phrase set break point
+0xB0           1       Synchro start
+0xB1           3       Tempo
+0xD0           1       Pedal 2
+0xD1           5       Pedal 2 per-part
+0xD2           1       
+0xD3           3
+0xD4           3       Modulation/assignable button
+0xD5           4
+0xD6           1
+0xD7           4       Portamento U1, U2, L1, L2
+0xD8           1       Sustain
+0xD9           1       Portamento overall
+0xF0           2
+0xFF           0       End of data
