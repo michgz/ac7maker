@@ -9,16 +9,16 @@ Atom #     Length       Meaning
 0x0C           1       Auto harmonise mode
 0x10          10       Patch/Bank for U1, U2, L1, L2, ?
 0x11           5       
-0x12           5       
+0x12           5       Pan, parts 1-5
 0x13           5       Coarse tune, parts 1-5
 0x14           5       
-0x15           5       
+0x15           5       Reverb send, parts 1-5
 0x16           5       Chorus send, parts 1-5
-0x17           5       
+0x17           5       Delay send, parts 1-5
 0x18           5       Pitch bend per part
 0x19           5       Part on/off, parts 1-5 (0=on, 1=off)
 0x1A           5       
-0x1F           7       Mixer for parts 8-47: part number, volume, ?, ?, ?, on/off (0=on, 1=off). FF means "no change"
+0x1F           7       Mixer for parts 8-47: part number, volume, reverb send, ?, delay send, on/off (0=on, 1=off). FF means "no change"
 0x20           1       Upper split
 0x21           1       Split point
 0x22           4
