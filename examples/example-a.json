@@ -1,11 +1,10 @@
 {
-	"name": "example-3",
+	"name": "example-A",
 	"target_model": "CT-X3000",
 	"target_family": "CT-X",
 	"rhythm": {
-		"name": "Haydn",
+		"name": "PseudoE",
 		"volume": 127,
-		"tempo": 120,
 		"parts_number": 8,
 		"parts": [
 			{
@@ -15,7 +14,7 @@
 			{
 				"part": 2,
 				"_comment": "Drums",
-				"patch": 48,
+				"patch": 0,
 				"bank_msb": 120
 			},
 			{
@@ -24,21 +23,28 @@
 			},
 			{
 				"part": 4,
-				"_comment": "Chord 1"
+				"_comment": "Chord 1",
+				"patch": 60,
+				"bank_msb": 1,
+				"delay_send": 0
 			},
 			{
 				"part": 5,
-				"_comment": "Chord 2"
+				"_comment": "Chord 2",
+				"patch": 0,
+				"bank_msb": 1,
+				"delay_send": 0
 			},
 			{
 				"part": 6,
-				"_comment": "Chord 3"
+				"_comment": "Chord 3",
+				"patch": 24,
+				"bank_msb": 1,
+				"delay_send": 0
 			},
 			{
 				"part": 7,
-				"_comment": "Chord 4",
-				"patch": 48,
-				"bank_msb": 120
+				"_comment": "Chord 4"
 			},
 			{
 				"part": 8,
@@ -101,32 +107,36 @@
 		],
 		"tracks": [
 			{
-				"part": 2,
+				"part": 4,
 				"element": 2,
-				"source_file": "ex3-v1.mid",
-				"source_channel": 5
+				"source_file": "exA-v1.mid",
+				"source_channel": 1
 			},
 			{
-				"part": 7,
+				"part": 5,
 				"element": 2,
-				"source_file": "ex3-v1.mid",
-				"source_channel": 4,
-				"lowest_note": 41,
-				"conversion_table": "Intro h-minor"
+				"source_file": "exA-v1.mid",
+				"source_channel": 2
 			},
 			{
 				"part": 2,
 				"element": 3,
-				"source_file": "ex3-v2.mid",
-				"source_channel": 5
+				"source_file": "exA-v2.mid",
+				"source_channel": 10
 			},
 			{
-				"part": 7,
+				"part": 5,
 				"element": 3,
-				"source_file": "ex3-v2.mid",
+				"source_file": "exA-v2.mid",
+				"source_channel": 3,
+				"chord_sync": 0
+			},
+			{
+				"part": 6,
+				"element": 8,
+				"source_file": "exA-v3.mid",
 				"source_channel": 4,
-				"lowest_note": 41,
-				"conversion_table": "Intro h-minor"
+				"conversion_table": "Intro m-minor"
 			}
 		]
 	}

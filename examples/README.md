@@ -28,7 +28,18 @@ Elements defined:
   - variation 1, variation 2, fill 1 & fill 2.
 
 ## Example 3
-A non-musical example for unit-testing a few features. Var1 tests pitch bend with
-a french horn bending down a 4th followed by up a 5th. Var2 is pitch bend being
-applied to a drum kit creating a melodic "roto-tom" sound. Var3 is for proving the
-handling of 12/8 time
+Haydn's "Austria" played on orchestral percussion. It shows how chord syncing can be
+applied to drum set instruments using the "lowest_note" specifier. The track is assigned
+to a "melody" part (part number 3-8) and recorded in a low octave -- in this case,
+C1 - C2. The value of "lowest_note" is 41, causing the track to be transposed to
+notes 41-53, suitable for timpani sounds.
+
+Parts defined:
+  - part 2: ORCHESTRA SET
+  - part 7: ORCHESTRA SET
+
+Elements defined:
+  - variation 1, variation 2.
+
+## Example A
+A non-musical example for unit-testing a few features.
