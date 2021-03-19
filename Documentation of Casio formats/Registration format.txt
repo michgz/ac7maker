@@ -13,7 +13,7 @@ Atom #     Length    Support    Meaning
 0x0B           1      7/3/5     Accomp on/off
 0x0C           1      7/3/5     Auto harmonise mode
 0x10          10      7/3/5     Patch/Bank for U1, U2, L1, L2, ?
-0x11           5      7/3/5     
+0x11           5      7/3/5     Volume, parts 1-5
 0x12           5      7/3/5     Pan, parts 1-5
 0x13           5      7/3/5     Coarse tune, parts 1-5
 0x14           5      7/3/5     
