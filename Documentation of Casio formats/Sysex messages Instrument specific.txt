@@ -55,7 +55,7 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
                             Mem=0       Mem=1       Mem=2       Mem=3       Mem=4        (bytes)
 
 
-   22          0             0-7                                  0                        0xB0           Appears to be a curve
+   22          0             0-7                                  0                        0xB0           Piano stretch tuning ("Railsback curve")
 
    23         0-4                                                0-7                       0x160
 

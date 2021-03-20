@@ -141,7 +141,7 @@ continuing...
 77              123h                7               
 78              1C0h                7               
 79              1C1h                4               
-80              1A4h (bit 3)        1               
+80              1A4h (bits 3-5)     3               Stretch tuning
 81              1A4h (bit 2)        1               [Read-only]
 82              1A4h (bit 1)        1               
 83              1A4h (bit 0)        1               
