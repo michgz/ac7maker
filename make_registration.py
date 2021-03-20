@@ -49,9 +49,7 @@ def make_rbk_file(regs):
   b += b'RBKH'
   b += struct.pack('<I', 0)
   
-  for k, reg in enumerate(regs):
-    
-    reg[2:14] = "Regist    {0}".format(21+k).encode('ascii')
+  for reg in regs:
     
     b += b'REGH'
     b += struct.pack('<3I', 0, binascii.crc32(reg), len(reg))
@@ -64,15 +62,13 @@ def make_rbk_file(regs):
 
 if __name__=="__main__":
 
-  #r = [change_volumes(BASIC_REG, [0x7F, 0x7F, 0x7F, 0x7F]),  # Reg 1 -- all volumes at default
-  #     change_volumes(BASIC_REG, [0x7F, 0x50, 0x50, 0x50]),  # Reg 2 -- U1 slightly higher than others
-  ##     change_volumes(BASIC_REG, [0x50, 0x7F, 0x50, 0x50]),  # Reg 3 -- U2 slightly higher than others
-  #     change_volumes(BASIC_REG, [0x50, 0x50, 0x7F, 0x00])]  # Reg 4 -- L1 slightly higher than others
-
-  r = [BASIC_REG, BASIC_REG, BASIC_REG, BASIC_REG]
+  r = [change_volumes(BASIC_REG, [0x7F, 0x7F, 0x7F, 0x7F]),  # Reg 1 -- all volumes at default
+       change_volumes(BASIC_REG, [0x7F, 0x50, 0x50, 0x50]),  # Reg 2 -- U1 slightly higher than others
+       change_volumes(BASIC_REG, [0x50, 0x7F, 0x50, 0x50]),  # Reg 3 -- U2 slightly higher than others
+       change_volumes(BASIC_REG, [0x50, 0x50, 0x7F, 0x00])]  # Reg 4 -- L1 slightly higher than others
 
   
-  with open("002.RBK", "wb") as f1:
+  with open("001.RBK", "wb") as f1:
     f1.write(make_rbk_file(r))
 
 
