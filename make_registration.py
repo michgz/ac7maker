@@ -58,7 +58,7 @@ def change_volumes(original, volumes):
 def make_rbk_file(regs):
   
   if len(regs) != BANK_SIZE:
-    raise Exception("Need exactly {0} registrations to make an .RBK file. Got {1}".format(BANK_SIZE, len(regs)))
+    raise Exception(f"Need exactly {BANK_SIZE} registrations to make an .RBK file. Got {len(regs)}")
     
   bank_size_log = 0
   if BANK_SIZE >= 8:
