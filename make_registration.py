@@ -10,6 +10,16 @@ import binascii
 # matter too much.
 TARGET_KEYBOARD = "CT-X700"
 
+
+# Define the number of registrations in a registration bank. This **does** matter,
+# need to make sure it is correct for the intented keyboard, i.e. 4 for X700/800
+# and is 8 for X3000/X5000 (and probably X8000IN/X9000IN).
+BANK_SIZE = 4
+
+
+
+
+
 # A basic registration to use as a starting point
 BASIC_REG = b'\x01\x0c            \x02\x01x\x03\x02\x0b\x07\x10\n\x00\x011\x01 \x01\x00\x01\x00\x00"\x04\x01\x01\x01\x00#\x04\x00\x00\xff\x00%\x04\x00\x00\x01\x01 \x01\x01!\x016\x0c\x01\x00\n\x01\x00\x0b\x01\x00\xf0\x02\x00\x04\xf0\x02\x01\x00\xf0\x02\x02\x04\xf0\x02\x03\x04\xf0\x02\x042\xf0\x02\x05\x00\xf0\x02\x06\x00\x04\x01\x00\x11\x05\x7f\x7f\x7f\x7fd\x12\x05@@@@@\x13\x05\x00\x00\x00\x00\x00\x14\x05\x00\x00\x00\x00\x00\x15\x05\x1e$\x07((\x16\x05\x00\x00\x00\x00\x00\x17\x05\x00\x00\x00\x00\x00\x1a\x05\x01\x00\x00\x00\x00\x18\x05\x02\x02\x02\x02\x02<\x01A4\x04\x00\x00\x00\x00=\x01\x00^\x02\x17\x10\x0e\x01\x00\r\x01\x00\x0f\x02\xff\xff\x81\x01\x00\t\x01\x00\x83\x01\x02\x84\x01d@\x01s\x85\x01\x00\x86\x01\x00\x87\x01\x00\xff\x00'
 
@@ -42,17 +52,21 @@ def change_volumes(original, volumes):
 
 def make_rbk_file(regs):
   
-  if len(regs) != 4:
-    raise Exception("Need exactly 4 registrations to make an .RBK file. Got {0}".format(len(regs)))
+  if len(regs) != BANK_SIZE:
+    raise Exception("Need exactly {0} registrations to make an .RBK file. Got {0}".format(BANK_SIZE, len(regs)))
+    
+  bank_size_log = 0
+  if BANK_SIZE >= 8:
+    bank_size_log = 1
     
   b = TARGET_KEYBOARD.encode('ascii').ljust(16, b'\x00')
   b += b'RBKH'
-  b += struct.pack('<I', 0)
+  b += struct.pack('<I', bank_size_log)
   
   for reg in regs:
     
     b += b'REGH'
-    b += struct.pack('<3I', 0, binascii.crc32(reg), len(reg))
+    b += struct.pack('<3I', bank_size_log, binascii.crc32(reg), len(reg))
     b += reg
     b += b'EODA'
     
