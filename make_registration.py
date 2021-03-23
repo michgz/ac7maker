@@ -25,6 +25,15 @@ REGISTRATION_FORMATS = {
 #
 BASIC_REG = b'\x01\x0c            \x02\x01x\x03\x02\x0b\x07\x10\n\x00\x011\x01 \x01\x00\x01\x00\x00"\x04\x01\x01\x01\x00#\x04\x00\x00\xff\x00%\x04\x00\x00\x01\x01 \x01\x01!\x016\x0c\x01\x00\n\x01\x00\x0b\x01\x00\xf0\x02\x00\x04\xf0\x02\x01\x00\xf0\x02\x02\x04\xf0\x02\x03\x04\xf0\x02\x042\xf0\x02\x05\x00\xf0\x02\x06\x00\x04\x01\x00\x11\x05\x7f\x7f\x7f\x7fd\x12\x05@@@@@\x13\x05\x00\x00\x00\x00\x00\x14\x05\x00\x00\x00\x00\x00\x15\x05\x1e$\x07((\x16\x05\x00\x00\x00\x00\x00\x17\x05\x00\x00\x00\x00\x00\x1a\x05\x01\x00\x00\x00\x00\x18\x05\x02\x02\x02\x02\x02<\x01A4\x04\x00\x00\x00\x00=\x01\x00^\x03\x17\x10\x00\x0e\x01\x00\r\x01\x00\x0f\x02\xff\xff\x81\x01\x00\t\x01\x00\x83\x01\x02\x84\x01d@\x01s\x85\x01\x00\x86\x01\x00\x87\x01\x00\xff\x00'
 
+# Similar, taken from "Delay2.RBK" (also CT-X700).
+BASIC_REG2= b'\x01\x0c            \x02\x01x\x03\x02\x0b\x07\x10\n\x51\x0f1\x01 \x01\x00\x01\x00\x00"\x04\x01\x00\x01\x00#\x04\x00\x00\xff\x00%\x04\x00\x00\x01\x01 \x01\x00!\x016\x0c\x01\x00\n\x01\x00\x0b\x01\x00\xf0\x02\x00\x04\xf0\x02\x01\x00\xf0\x02\x02\x04\xf0\x02\x03\x04\xf0\x02\x042\xf0\x02\x05\x00\xf0\x02\x06\x00\x04\x01\x00\x11\x05\x7f\x7f\x7f\x7fd\x12\x05@@@@@\x13\x05\x00\x00\x00\x00\x00\x14\x05\x00\x00\x00\x00\x00\x15\x05\x1e$\x07((\x16\x05(\x00\x00\x00\x00\x17\x05\x00\x00\x00\x00\x00\x1a\x05\x00\x00\x00\x00\x00\x18\x05\x02\x02\x02\x02\x02<\x01A4\x04\x00\x00\x00\x00=\x01\x00^\x02\x0e\x10\x0e\x01\x00\r\x01\x00\x0f\x02\xff\xff\x81\x01\x00\t\x01\x00\x83\x01\x02\x84\x01d@\x01s\x85\x01\x00\x86\x01\x00\x87\x01\x00\xff\x00'
+
+# Same as BASIC_REG2, but with reverb send swapped to before tone selection
+BASIC_REG3= b'\x01\x0c            \x02\x01x\x03\x02\x0b\x07\x15\x05\x1e$\x07((\x10\n\x51\x0f1\x01 \x01\x00\x01\x00\x00"\x04\x01\x00\x01\x00#\x04\x00\x00\xff\x00%\x04\x00\x00\x01\x01 \x01\x00!\x016\x0c\x01\x00\n\x01\x00\x0b\x01\x00\xf0\x02\x00\x04\xf0\x02\x01\x00\xf0\x02\x02\x04\xf0\x02\x03\x04\xf0\x02\x042\xf0\x02\x05\x00\xf0\x02\x06\x00\x04\x01\x00\x11\x05\x7f\x7f\x7f\x7fd\x12\x05@@@@@\x13\x05\x00\x00\x00\x00\x00\x14\x05\x00\x00\x00\x00\x00\x16\x05(\x00\x00\x00\x00\x17\x05\x00\x00\x00\x00\x00\x1a\x05\x00\x00\x00\x00\x00\x18\x05\x02\x02\x02\x02\x02<\x01A4\x04\x00\x00\x00\x00=\x01\x00^\x02\x0e\x10\x0e\x01\x00\r\x01\x00\x0f\x02\xff\xff\x81\x01\x00\t\x01\x00\x83\x01\x02\x84\x01d@\x01s\x85\x01\x00\x86\x01\x00\x87\x01\x00\xff\x00'
+
+# Same as BASIC_REG2, but with reverb send swapped to after reverb type
+BASIC_REG4= b'\x01\x0c            \x02\x01x\x03\x02\x0b\x07\x10\n\x51\x0f1\x01 \x01\x00\x01\x00\x00"\x04\x01\x00\x01\x00#\x04\x00\x00\xff\x00%\x04\x00\x00\x01\x01 \x01\x00!\x016\x0c\x01\x00\n\x01\x00\x0b\x01\x00\xf0\x02\x00\x04\xf0\x02\x01\x00\xf0\x02\x02\x04\xf0\x02\x03\x04\xf0\x02\x042\xf0\x02\x05\x00\xf0\x02\x06\x00\x04\x01\x00\x11\x05\x7f\x7f\x7f\x7fd\x12\x05@@@@@\x13\x05\x00\x00\x00\x00\x00\x14\x05\x00\x00\x00\x00\x00\x16\x05(\x00\x00\x00\x00\x17\x05\x00\x00\x00\x00\x00\x1a\x05\x00\x00\x00\x00\x00\x18\x05\x02\x02\x02\x02\x02<\x01A4\x04\x00\x00\x00\x00=\x01\x00^\x02\x0e\x10\x0e\x01\x00\r\x01\x00\x0f\x02\xff\xff\x81\x01\x00\t\x01\x00\x83\x01\x02\x84\x01d@\x01s\x85\x01\x00\x86\x01\x00\x87\x01\x00\x15\x05\x1e$\x07((\xff\x00'
+
 
 
 
@@ -32,6 +41,8 @@ BASIC_REG = b'\x01\x0c            \x02\x01x\x03\x02\x0b\x07\x10\n\x00\x011\x01 \
 #
 class Atom:
   Volumes = 0x11
+  Pans = 0x12
+  OnOff = 0x19
   Rhythm_Number = 0x3
   Delay = 0x5E
   Reverb_Send = 0x15
@@ -59,6 +70,49 @@ def change_volumes(original, volumes):
       return bytes(b)
     i += 2 + atom_len
   raise Exception("Didn't find volumes atom")
+
+
+def change_pans(original, pans):
+  # original: a registration string to change
+  # pans: an array of up to 4 values to write into the 0x12 atom.
+  
+  i = 0
+  while i < len(original):
+    
+    atom_type, atom_len = struct.unpack_from('<2B', original, i)
+    if atom_type == Atom.Pans:
+      if len(pans) > atom_len:
+        raise Exception("Too many pan values")
+      b = bytearray(original)
+      for j, x in enumerate(pans):
+        
+        b[i+2+j] = x
+      return bytes(b)
+    i += 2 + atom_len
+  raise Exception("Didn't find pan atom")
+
+
+def change_onoff(original, onoff):
+  # original: a registration string to change
+  # pans: an array of up to 4 values to write into the 0x19 atom.
+  
+  b = bytearray(original)
+  i = 0
+  while i < len(original):
+    
+    atom_type, atom_len = struct.unpack_from('<2B', original, i)
+    if atom_type == Atom.OnOff:
+      if len(onoff) > atom_len:
+        raise Exception("Too many onoff values")
+      for j, x in enumerate(onoff):
+        
+        b[i+2+j] = x
+      return bytes(b)
+    i += 2 + atom_len
+  # Haven't found the atom, must add it before the final ff 00.
+  b = b[:-2] + struct.pack('<7B', Atom.OnOff, 5, onoff[0], 0, 0, 0, 0) + struct.pack('<2B', 0xff, 0)
+  return bytes(b)
+
 
 def change_reverb_and_delay_send(original, reverb_sends, delay_sends):
   i = 0
@@ -201,9 +255,11 @@ def make_rbk_file(regs, keyboard_name="CT-X700"):
 if __name__=="__main__":
   
   # Use the first registration from "Delay2" as our starting point
-  with open("cdp-reg/Delay2.RBK", "rb") as f1:
-    basic_reg = parse_rbk_file(f1.read())[0]
+  #with open("cdp-reg/Delay2.RBK", "rb") as f1:
+  #  basic_reg = parse_rbk_file(f1.read())[0]
   
+  
+  basic_reg = BASIC_REG3
   
   # Change the reverb and delay send values for U1 part
   r = [change_reverb_and_delay_send(basic_reg, [0],   [0]  ),
@@ -213,25 +269,51 @@ if __name__=="__main__":
 
 
   # Save in CT-x700 format
-  with open("002.RBK", "wb") as f1:
+  with open("004.RBK", "wb") as f1:
     f1.write(make_rbk_file(r))
 
   # Save the same thing in CT-X3000 format
-  with open("002-X3000.RBK", "wb") as f1:
+  with open("004-X3000.RBK", "wb") as f1:
     f1.write(make_rbk_file(r, "CT-X3000"))
     
     
-  # Now change reverb and delay send, and also the delay type
-  r = [change_delay_type(change_reverb_and_delay_send(basic_reg, [0],   [0]  ),  DelayType.LongPan1),
-       change_delay_type(change_reverb_and_delay_send(basic_reg, [127], [0]  ),  DelayType.LongPan1),
-       change_delay_type(change_reverb_and_delay_send(basic_reg, [0],   [127]),  DelayType.LongPan1),
-       change_delay_type(change_reverb_and_delay_send(basic_reg, [127], [127]),  DelayType.LongPan1)]
+  # Now change pan and on/off
   
+  basic_reg = BASIC_REG
+  
+  r = [change_pans(basic_reg, [0x40]),
+       change_pans(basic_reg, [0x00]),
+       change_pans(basic_reg, [0x7f]),
+       change_onoff(basic_reg, [0x1])]
+
   
   # Save in CT-x700 format
-  with open("003.RBK", "wb") as f1:
+  with open("005.RBK", "wb") as f1:
     f1.write(make_rbk_file(r))
 
   # Save the same thing in CT-X3000 format
-  with open("003-X3000.RBK", "wb") as f1:
+  with open("005-X3000.RBK", "wb") as f1:
     f1.write(make_rbk_file(r, "CT-X3000"))
+
+
+
+
+
+  basic_reg = BASIC_REG4
+  
+  # Change the reverb and delay send values for U1 part
+  r = [change_reverb_and_delay_send(basic_reg, [0],   [0]  ),
+       change_reverb_and_delay_send(basic_reg, [127], [0]  ),
+       change_reverb_and_delay_send(basic_reg, [0],   [127]),
+       change_reverb_and_delay_send(basic_reg, [127], [127])]
+
+
+  # Save in CT-x700 format
+  with open("006.RBK", "wb") as f1:
+    f1.write(make_rbk_file(r))
+
+  # Save the same thing in CT-X3000 format
+  with open("006-X3000.RBK", "wb") as f1:
+    f1.write(make_rbk_file(r, "CT-X3000"))
+
+
