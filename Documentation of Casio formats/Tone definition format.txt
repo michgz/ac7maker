@@ -159,14 +159,14 @@ continuing...
    Block 2      15Ch-16Bh           16 bytes        DSP parameters 3
    Block 3      16Eh-17Dh           16 bytes        DSP parameters 4
 88              17Fh (bit 7)        1               
-89              17Fh (bit 3)        1               
+89              17Fh (bits 3-4)     2               
 90              17Fh (bit 2)        1               
 91              17Fh (bit 1)        1               
-92              17Fh (bit 5)        1               
+92              17Eh (bits 5-7)     3               
 93              180h                7               
-94              17Eh (bit 4)        1               
-95              17Eh (bit 3)        1               
-96              17Eh (bit 2)        1               
+94              17Eh (bits 3-4)     2               
+95              17Eh (bit 2)        1               
+96              17Eh (bit 1)        1               
 97              181h                7               
 98              182h                7               
 99              17Eh (bit 0)        1               
@@ -182,8 +182,8 @@ continuing...
 109             196h (bit 0)        1               
 110             197h (bit 0)        1               
 111             198h (bit 0)        1               
-112             199h (bit 0)        1               
-113             19Ah (bit 0)        1               
+112             199h                7               
+113             19Ah (bits 0-3)     4               
 114             19Ah (bit 4)        1               =1 if monophonic
 115             19Ah (bit 5)        1               =1 if Sound B used for harmony notes
 116             19Ah (bit 6)        1               

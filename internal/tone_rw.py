@@ -412,7 +412,7 @@ def tone_read(parameter_set, memory=3, _debug=False):
         for b in range(block_count_for_parameter(p)):
           length = 0
           if p == 87:
-            length = 10
+            length = 15
           z.append(get_single_parameter_time_optimised(f, p, length=length, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b, _debug=_debug))
       
       y.append(z)
@@ -579,6 +579,9 @@ def tone_read(parameter_set, memory=3, _debug=False):
   
   x[0x124] = 0xFF  # ??
   
+  x[0x1C2:0x1C8] = b'\x7f\x02\x02\x00\x00\x00'  # ??   This is definitely not fixed,
+     # but the parameters for it haven't been found.
+  
   # DSP parameters
   
   x[0x126:0x136] = b'                ' # Name
@@ -595,23 +598,21 @@ def tone_read(parameter_set, memory=3, _debug=False):
   
   check_less(y[109][0], 2)
   check_less(y[111][0], 2)
-  check_less(y[112][0], 2)
   
   if y[109][0]:
     x[0x196] = 1
   x[0x197] = y[110][0]
   if y[111][0]:
     x[0x198] = 1
-  if y[112][0]:
-    x[0x199] = 1
+  x[0x199] = y[112][0]
 
   v = 0
-  check_less(y[113][0], 2)
+  check_less(y[113][0], 16)
   check_less(y[114][0], 2)
   check_less(y[115][0], 2)
   check_less(y[116][0], 4)
   if y[113][0]:
-    v += 1
+    v += (y[113][0] % 16)
   if y[114][0]:
     v += 0x10
   if y[115][0]:
@@ -620,32 +621,31 @@ def tone_read(parameter_set, memory=3, _debug=False):
   x[0x19A] = v
 
   v = 0
-  check_less(y[94][0], 16)
+  check_less(y[92][0], 8)
+  check_less(y[94][0], 4)
   check_less(y[95][0], 2)
   check_less(y[96][0], 2)
   check_less(y[99][0], 2)
   if y[99][0]:
     v += 1
   if y[96][0]:
-    v += 0x04
+    v += 0x02
   if y[95][0]:
-    v += 0x08
-  v += 0x10*(y[94][0] % 16)
+    v += 0x04
+  v += 0x08*(y[94][0] % 4)
+  v += 0x20*(y[92][0] % 8)
   x[0x17E] = v
 
   v = 0
   check_less(y[88][0], 2)
-  check_less(y[89][0], 2)
+  check_less(y[89][0], 4)
   check_less(y[90][0], 2)
   check_less(y[91][0], 2)
-  check_less(y[92][0], 4)
   if y[91][0]:
     v += 0x02
   if y[90][0]:
     v += 0x04
-  if y[89][0]:
-    v += 0x08
-  v += 0x20*(y[92][0] % 4)
+  v += 0x08*(y[89][0] % 4)
   if y[88][0]:
     v += 0x80
   x[0x17F] = v
@@ -713,7 +713,6 @@ def tone_read(parameter_set, memory=3, _debug=False):
 
   x[0x19E] = (y[122][0] % 8) + 8*(y[121][0] % 2) + 16*(y[120][0] % 16)
   x[0x1A2] = (y[122][1] % 8) + 8*(y[121][1] % 2) + 16*(y[120][1] % 16)
-
 
 
   return x
