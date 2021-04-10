@@ -4,11 +4,349 @@
 """
 
 import sys
-from internal.sysex_comms_internal import get_single_parameter
 import binascii
 import struct
+import time
+import os
 
 import pickle
+
+
+## Functions:
+#
+#   tone_read(param_set, ...)
+#   =========================
+#
+# Reads a tone from the "currently selected" memory segment (memory 3), and returns it
+# in HBR form. This particular memory segment doesn't permit true HBR reads, so under
+# the hood this is multiple single parameter reads. The same result could be
+# achieved using internal.sysex_comms_internal.get_single_parameter() on every
+# parameter, but that would be very slow -- about 90 seconds. This function takes
+# only 10 seconds.
+#
+# Parameters:
+#
+#    param_set      The parameter set to read. Some possible values are:
+#                      0-3   Keyboard tones
+#                      8-15  Rhythm tones
+#                      32-47 MIDI tones
+#
+# Returns:
+#
+#     HBR data as a byte-string
+#
+#
+#
+#   wrap_tone_file(x)
+#   =================
+#
+# Wraps tone data in HBR format (for example, as returned by tone_read()) in file
+# form that can be written to the keyboard over USB. Suitable for CT-X3000 or 
+# CT-X5000.
+#
+# Parameter:
+#
+#    x             The HBR data as a byte-string
+#
+#
+#  Returns:
+#
+#     File data as a byte-string
+#
+
+
+
+
+
+#### The below section taken from internal.sysex_comms_internal. Copied here in
+#    order to make time optimisations to it
+
+
+from internal.midi7bit import midi_7bit_to_8bit
+from internal.midi7bit import midi_8bit_to_7bit
+
+
+# Define the Linux device name. Assumes this is the only MIDI connection
+DEVICE_NAME = "/dev/midi1"
+
+# Define the device ID. Constructed as follows:
+#    0x44       Manufacturer ID ( = Casio)
+#    0x19 0x01  Model ID ( = CT-X3000 or CT-X5000)
+#    0x7F       Device. This is a "don't care" value
+#
+DEVICE_ID = b"\x44\x19\x01\x7F"
+
+
+
+
+
+is_busy = False
+must_send_ack = False
+have_got_ack = False
+have_got_ess = False
+
+so_far = b''
+
+total_rxed = b''
+
+type_1_rxed = b''
+
+def handle_pkt(p):
+  global is_busy
+  global must_send_ack
+  global have_got_ack
+  global have_got_ess
+  global total_rxed
+  global type_1_rxed
+  if len(p) < 7:
+    print("BAD PACKET!!")
+    return
+  if p[0] != 0xF0 or p[1] != 0x44 or p[4] != 0x7F or p[-1] != 0xF7:
+    print("BAD PACKET!!")
+    return
+  type_of_pkt = p[5]
+  if type_of_pkt == 0xB:
+    is_busy = True
+  else:
+    is_busy = False
+    if type_of_pkt == 0xA:
+      have_got_ack = True
+    if type_of_pkt == 0xD:
+      have_got_ack = True
+      have_got_ess = True
+      
+      
+  if type_of_pkt == 3 or type_of_pkt == 5:   # This takes a CRC
+    c = struct.unpack('<5B', p[-6:-1])
+    crc_compare = c[0] + (1<<7)*c[1] + (1<<14)*c[2] + (1<<21)*c[3] + (1<<28)*c[4]
+    if binascii.crc32(p[1:-6]) == crc_compare:
+      must_send_ack = True
+      if type_of_pkt == 5:
+        have_got_ack = True # This one must look like an ACK
+        mm = midi_7bit_to_8bit(p[12:-6])
+        total_rxed += mm
+    else:
+      print("BAD CRC!!!")
+
+
+  if type_of_pkt == 1:
+    v = p[24:-1]
+    type_1_rxed = v
+
+
+def parse_response(b):
+  global so_far
+  
+  in_pkt = True
+  if len(so_far) == 0:
+    in_pkt = False
+  
+  for i in range(len(b)):
+    x = b[i]
+    if in_pkt:
+      if x == 0xF7:
+        so_far += b'\xf7'
+        # Have completed. Do something!
+        handle_pkt(so_far)
+        in_pkt = False
+        so_far = b''
+      elif x == 0xF0:
+        # Error! but start a new packet
+        so_far = b'\xf0'
+      elif x >= 0x80:
+        # Error!
+        in_pkt = False
+        so_far = b''
+      else:
+        so_far += b[i:i+1]
+    else:
+      if x == 0xF0:
+        so_far = b'\xf0'
+        in_pkt = True
+
+
+def wait_for_ack(f):
+  global have_got_ack
+  have_got_ack = False
+  st = time.monotonic()
+  while True:
+    parse_response(os.read(f, 20))
+    if have_got_ack:
+      # Success!
+      return
+    time.sleep(0.02)
+    if time.monotonic() > st + 4.0:
+      # Timed out. Completely exit the program
+      raise Exception("SYSEX communication timed out. Exiting ...")
+
+
+def make_packet(tx=False,
+                category=30,
+                memory=1,
+                parameter_set=0,
+                block=[0,0,0,0],
+                parameter=0,
+                index=0,
+                length=1,
+                command=-1,
+                sub_command=3,
+                data=b''):
+
+
+  w = b'\xf0' + DEVICE_ID
+  if command < 0:
+    if (tx):
+      command = 1
+    else:
+      command = 0
+  w += struct.pack('<B', command)
+
+  if command == 0x8:
+    return w + struct.pack('<B', sub_command) + b'\xf7'
+
+  w += struct.pack('<2B', category, memory)
+  w += struct.pack('<2B', parameter_set%128, parameter_set//128)
+
+  if command == 0xA:
+    return w + b'\xf7'
+  
+  elif command == 5:
+    w += struct.pack('<2B', length%128, length//128)
+    w += midi_8bit_to_7bit(data)
+    crc_val = binascii.crc32(w[1:])
+    w += midi_8bit_to_7bit(struct.pack('<I', crc_val))
+    w += b'\xf7'
+    return w
+
+  elif (command >= 2 and command < 8) or command == 0xD or command == 0xE: # OBR/HBR doesn't have the following stuff
+
+    pass
+
+    
+  else:
+    if len(block) != 4:
+      print("Length of block should be 4, was {0}; setting to all zeros".format(len(block)))
+      block = [0,0,0,0]
+    for blk_x in block:
+      w += struct.pack('<H', 0x7F7F & blk_x)
+    w += struct.pack('<3H', parameter, index, length-1)
+  if (tx):
+    w += data
+  w += b'\xf7'
+  return w
+
+
+
+def flush_port(f):
+  # Flush the input queue
+  parse_response(os.read(f, 20))
+  time.sleep(0.02)
+
+
+def get_single_parameter_time_optimised(f, parameter, category=3, memory=3, parameter_set=0, block0=0, block1=0, length=0, _debug=False):
+
+  global type_1_rxed
+
+
+  if _debug:
+    t1 = time.time()
+
+  # Flush the input queue - now don't!! This is very time-consuming
+  
+  #parse_response(os.read(f, 20))
+  #time.sleep(0.02)
+  
+  if length>0:
+    l = length
+  else:
+    l = 1
+  
+  
+  type_1_rxed = b''
+
+  # Read the parameter
+  
+  x1 = make_packet(parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=l)
+  
+  os.write(f, x1)
+  time.sleep(0.01)
+  
+  
+  if _debug:
+    t2 = time.time()
+  
+  # Handle any response
+  
+  # The minimum length of a response packet is 26. The value "25" here ensures
+  # that every response is split across 2 packets, which is optimal for speed.
+  # (I think because otherwise the second read ends up waiting for the next b"\xfe"
+  # MIDI clock, which can take many 10s of milliseconds).
+  x2 = os.read(f,25)
+  parse_response(x2)
+  time.sleep(0.02)
+  x3 = os.read(f,20)
+  parse_response(x3)
+  time.sleep(0.01)
+
+
+  if _debug:
+    t3 = time.time()
+  
+ 
+ 
+    print("Parameter {0} ([{1},{2}])".format(parameter, block1, block0))
+    print("------------------------------------")
+   
+    
+    print("     TX time: {0:.4f}".format(t2-t1))
+    print("     RX time: {0:.4f} (lengths: {1}, {2})".format(t3-t2, len(x2), len(x3)))
+
+
+    print("> " + str(binascii.hexlify(x1)))
+    print("< " + str(binascii.hexlify(x2)))
+    print("< " + str(binascii.hexlify(x3)))
+  
+  
+  # Now decode the response. Value of "length" determines whether to regard it as
+  # a string or a number
+  if length > 0:
+    # Regard the response as a string
+    if len(type_1_rxed)>0:   # should maybe check this is equal to length??
+      return type_1_rxed
+    else:
+      return b''   # Error! Nothing read
+  else:
+    # Regard the response as a number
+    f = -1
+    if len(type_1_rxed)>0:
+      # A number has been received. Decode it.
+      if len(type_1_rxed) == 1:
+        f = struct.unpack('<B', type_1_rxed)[0]
+      elif len(type_1_rxed) == 2:
+        g = struct.unpack('<2B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1]
+      elif len(type_1_rxed) == 3:
+        g = struct.unpack('<3B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128 or g[2] >= 128:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1] + 128*128*g[2]
+      elif len(type_1_rxed) == 4:
+        g = struct.unpack('<4B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128 or g[2] >= 128  or g[3] >= 128:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1] + 128*128*g[2] + 128*128*128*g[3]
+      elif len(type_1_rxed) == 5:
+        g = struct.unpack('<5B', type_1_rxed)
+        if g[0] >= 128 or g[1] >= 128 or g[2] >= 128  or g[3] >= 128 or g[4] >= 16:
+          raise Exception("Invalid packed value")
+        f = g[0] + 128*g[1] + 128*128*g[2] + 128*128*128*g[3] + 128*128*128*128*g[4]
+      else:
+        #raise Exception("Too long to be a number")
+        pass
+    return f
+
 
 
 PARAM_COUNT = 123  # Number of parameters. This is correct for CT-X3000/5000
@@ -53,10 +391,18 @@ def check_less(v, mx):
     print(v)
     raise Exception
 
-def tone_read(parameter_set, memory=3):
+def tone_read(parameter_set, memory=3, _debug=False):
   
   
-  if False:
+  if True:
+  
+    if _debug:
+      t1 = time.time()
+  
+    # Open the device
+    f = os.open(DEVICE_NAME, os.O_RDWR)  
+    
+    flush_port(f)
   
     y = []
     for p in range(0, PARAM_COUNT):
@@ -67,13 +413,21 @@ def tone_read(parameter_set, memory=3):
           length = 0
           if p == 87:
             length = 10
-          z.append(get_single_parameter(p, length=length, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b))
+          z.append(get_single_parameter_time_optimised(f, p, length=length, memory=memory, category=TONE_CATEGORY, parameter_set=parameter_set, block0=b, _debug=_debug))
       
       y.append(z)
+
+    # Close the device
+    os.close(f)
+
+    if _debug:
+      t2 = time.time()
+      print(" tone_read() function: time elapsed {0:.3f} seconds".format(t2-t1))
       
     
     with open('{0:03d}_PICKLE.bin'.format(parameter_set+801), 'wb') as f8:
       pickle.dump(y, f8)
+  
   
 
   else:
