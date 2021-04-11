@@ -279,7 +279,7 @@ def make_packet(tx=False,
       block = [0,0,0,0]
     for blk_x in block:
       w += struct.pack('<H', 0x7F7F & blk_x)
-    w += struct.pack('<3H', parameter, index, length-1)
+    w += struct.pack('<BBHH', parameter%128, parameter//128, index, length-1)
   if (tx):
     w += data
   w += b'\xf7'
