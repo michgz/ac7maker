@@ -128,6 +128,7 @@ number          HBR                                 OBR/OBS
 
 
 ======= The following indexed by Block0 taking values 0..3 ======
+=======    and Block1 taking values 0..1                   ======
 259             674h                7               2               
 260             675h                7               2                
 261             676h                7               1                
@@ -140,6 +141,7 @@ number          HBR                                 OBR/OBS
 =================================================================
 
 ======= The following indexed by Block0 taking values 0..5 ======
+=======    and Block1 taking values 0..1                   ======
 268             6F4h                7               2               
 269             6F5h                7               2                
 270             6F6h                7               1                
@@ -223,16 +225,25 @@ number          HBR                                 OBR/OBS
 
 
 
-======= The following indexed by Block0  ======
+======= The following indexed by Block0 taking values 0..47 =====
 605             B78h (bits 0-3)     4               1                
 606             B79h (bits 0-3)     4               1                
 607             B7Ah (bit 2)        1               1                
 608             B7Ah (bit 1)        1               1                
 609             B7Ah (bit 0)        1               1                
+=================================================================
+
+
+======= The following indexed by Block0 taking values 0..1 ======
 610             C28h                7               1               
 611             C29h                7               1               
 612             C2Ah                7               1                
 613             C2Bh                7               1               
+=================================================================
+
+
+======= The following indexed by Block0 taking values 0..1 ======
+=======    and Block1 taking values 0..1                   ======
 614             C10h                7               2               
 615             C11h                7               2                
 616             C12h                7               1                
@@ -242,7 +253,7 @@ number          HBR                                 OBR/OBS
 620             C16h (bit 0)        1               1                
 621             C08h (bit 0)        1               1                
 622             C0Ch (bit 0)        1               5               
-=======================================================
+=================================================================
 
 
 ======= The following indexed by Block0 taking values 0..47 ======
@@ -254,6 +265,8 @@ number          HBR                                 OBR/OBS
 626             C72h (bits 4-7)     4               1               EQ filter parameter 3
 627             C72h (bit 3)        1               1                
 628             C72h (bits 0-2)     3               1                
+=================================================================
+
 
 ======= The following indexed by Block0 taking values 0..1 ======
 629             DF0h                7               1               
