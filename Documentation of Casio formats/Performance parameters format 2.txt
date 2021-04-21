@@ -111,7 +111,7 @@ number          HBR                                 OBR/OBS
 245             06Ch (bit 0)        1               5                
 246             070h (bit 0)        1               5                
 247             074h (bit 0)        1               5               
-==================================================================
+=================================================================
 
 
 248             C54h                7               1               
@@ -127,7 +127,7 @@ number          HBR                                 OBR/OBS
 258                                                                 read only?
 
 
-======= The following indexed by Block0  ======
+======= The following indexed by Block0 taking values 0..3 ======
 259             674h                7               2               
 260             675h                7               2                
 261             676h                7               1                
@@ -137,6 +137,9 @@ number          HBR                                 OBR/OBS
 265             67Ah (bit 0)        1               1                
 266             66Ch (bit 0)        1               1                
 267             670h (bit 0)        1               5                
+=================================================================
+
+======= The following indexed by Block0 taking values 0..5 ======
 268             6F4h                7               2               
 269             6F5h                7               2                
 270             6F6h                7               1                
@@ -146,6 +149,9 @@ number          HBR                                 OBR/OBS
 274             6FAh (bit 0)        1               1                
 275             6ECh (bit 0)        1               1                
 276             6F0h (bit 0)        1               5                
+=================================================================
+
+======= The following indexed by Block0 taking values 0..1 ======
 277             7B4h                7               2                
 278             7B5h                7               2                
 279             7B6h                7               1                
@@ -155,7 +161,7 @@ number          HBR                                 OBR/OBS
 283             7BAh (bit 0)        1               1                
 284             7ACh (bit 0)        1               1                
 285             7B0h (bit 0)        1               5                
-=======================================================
+=================================================================
 
 
 
@@ -165,7 +171,7 @@ number          HBR                                 OBR/OBS
 
 
 
-======= The following indexed by Block0  ======
+======= The following indexed by Block0 taking values 0..3 ======
 289             8A8h (bit 0)        1               1                
 290             8AAh                7               1                
 291             8ABh                7               1               
@@ -249,13 +255,13 @@ number          HBR                                 OBR/OBS
 627             C72h (bit 3)        1               1                
 628             C72h (bits 0-2)     3               1                
 
-======= The following indexed by Block0  ======
+======= The following indexed by Block0 taking values 0..1 ======
 629             DF0h                7               1               
 630             DF1h                7               1               
 631             DF2h                7               1                
 632             DF3h                7               1               
 633             DF4h                7               1                
 634             DF5h (bit 0)        1               1                
-=======================================================
+==================================================================
 
 
