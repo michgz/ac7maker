@@ -1,3 +1,8 @@
+*** NOTE: this info is mostly superceded by "Performance parameter format 2.txt".   ***
+******                                                                           ******
+
+
+
 Category 2 Memory 3 contains current mixer/performance settings.
 
 0x000 - 0x05F   System & Rhythm reverb/chorus/delay settings
@@ -66,43 +71,58 @@ Typical hexdump of the 32 bytes of mixer settings for a single channel:
   7f 40 00 1b 00 02 00 00 7f 03 00 00 00 00 00 00 
 
 
-  Relative offset     Meaning
-  ---------------     -------
-  +0x08-0x09          Fine tune (usually 0x0200)
-  +0x0A-0x0B          Indicates the selected tone:
-                        preset tones (001-800)  = 4*tone_number - 3
-                        user tones (801-900)   = 4*tone_number + 77
-  +0x0E               Volume
-  +0x10               Part on/off (0=on, 0x7F=off)
-  +0x11               Pan
-  +0x12               Chorus send
-  +0x13               Reverb send
-  +0x14               Delay send
-  +0x15               Pitch bend sensitivity
-  +0x17               Dry/wet of "dirty" effect (usually 0x00)
-  +0x18               Gain following "dirty" effect (usually 0x7F)
+Parameter        Relative offset     Meaning
+----------       ---------------     -------
+224              +0x0A (bit 0)
+225              +0x0A (bit 1)
+226              +0x17 (bit 3)
+227              +0x19 (bit 2)
+228              +0x0A-0x0B (bits 2-15)     Indicates the selected tone:
+                        0-799    preset tones (001-800)
+                        800-819  audio test tones
+                        820-919  user tones (801-900)
+229              +0x08-0x09          Fine tune (usually 0x0200)
+230
+231              +0x19 (bit 1)
+232              +0x19 (bit 0)
+233              +0x0D
+234              +0x0E               Volume/Level
+235              +0x0F
+236              +0x10               Part on/off (0=off, 0x7F=on)
+237              +0x11               Pan
+238              +0x12               Chorus send
+239              +0x13               Reverb send
+240              +0x14               Delay send
+241              +0x15               Pitch bend sensitivity
+242
+243              +0x17               Dry/wet of "dirty" effect (usually 0x00)
+244              +0x18               Gain following "dirty" effect (usually 0x7F)
+245              +0x1C (bit 0)
+246              +0x00 (bit 0)
+247              +0x04 (bit 0)
+
 
 
 Channel ordering is the same as Parameter Set ordering of Category 3 Memory 3.
-The mixer settings are located at the 32 bytes starting at 0x070+0x020*n, where
-n takes the following values:
+The mixer settings are located at the 32 bytes starting at 0x070+0x020*Block0, where
+Block0 takes the following values:
 
 
-n     Channel
--     -------
-0     Upper Keyboard 1
-1     Upper Keyboard 2
-2     Lower Keyboard 1
-3     Lower Keyboard 2
-4     Auto harmonise
-5-6   unused
-7     Metronome
-8-15  Rhythm parts 1-8
-16-20 Song System parts 1-5
-21-23 unused
-24-27 Phrase Pads 1-4
-28-31 Song System parts 6-9
-32-47 Song Solo 1-16/MIDI In 1-16 (shared)
+Block0  Channel
+------  -------
+0       Upper Keyboard 1
+1       Upper Keyboard 2
+2       Lower Keyboard 1
+3       Lower Keyboard 2
+4       Auto harmonise
+5-6     unused
+7       Metronome
+8-15    Rhythm parts 1-8
+16-20   Song System parts 1-5
+21-23   unused
+24-27   Phrase Pads 1-4
+28-31   Song System parts 6-9
+32-47   Song Solo 1-16/MIDI In 1-16 (shared)
 
 
 

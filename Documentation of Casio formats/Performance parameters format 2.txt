@@ -1,0 +1,261 @@
+The following taken from CT-X3000.
+
+
+
+Parameter       Offset in           Bits            Data bytes      Meaning
+number          HBR                                 OBR/OBS       
+--------        ---------           -----           ----------      -------
+
+
+0               DFCh-DFDh           10                              
+1               DFEh-DFFh           10                              Master fine tune
+2               E00h                7               1               Master coarse tune
+3               E01h                7               1               Master volume
+4               E02h                7               1               Master pan
+5               E05h (bit 0)        1               1               
+
+======= The following indexed by Block0 taking values 0..1 =======
+=======    (period 0x10)
+80              004h                4                               Chorus Type (affects 004h-00Ah)
+81              005h                7               1               Chorus modulation rate
+82              006h                7               1               Chorus modulation depth
+83              007h                7               1               
+84              008h                7               1               
+85              000h               10                                
+86              009h                7               1               
+87              00Ah                7               1               
+88              00Bh                7               1               Chorus send to Reverb
+89              00Ch                7               1               
+==================================================================
+
+
+======= The following indexed by Block0 taking values 0..1 =======
+=======    (period 0x10)
+96              020h                4                               Delay type (affects 020h - 02Ah)
+97              022h                7                                
+98              024h                7               1               
+99              025h                7               1               
+100             026h                7               1               
+101             027h                7               1               
+102             028h                7               1                
+103             029h                7               1                
+104             02Ah                7               1               
+105             02Bh                7               1               
+106             02Ch (bits 0-2)     3               1                
+107             02Dh                7               1               
+108             02Eh                7               1                
+==================================================================
+
+
+======= The following indexed by Block0 taking values 0..1 =======
+=======    (period 0x0C)
+128             044h                5                               Reverb type (affects 044h - 048h)
+129             045h                7               1               Reverb time
+130             046h                7               1               
+131             047h                7               1               
+132             048h                7               1               
+133             040h               32                                
+134             049h                7               1               
+==================================================================
+
+
+135             E03h (bits 0-4)     5               2               
+160             058h (bits 0-2)     3               1               System equaliser settings
+161             059h (bits 0-4)     5               1                
+162             05Ah                5
+163             05Bh (bits 0-3)     4               1                
+164             05Ch (bits 0-3)     4               1                
+165             05Dh                5                                
+166             05Eh (bits 0-2)     3               1                
+167             05Fh (bits 0-4)     5               1                
+168             060h                7               1               
+169             061h                7               1               
+192             062h                7               1                
+193             063h                7               1                
+194             064h                7               1               
+195             065h                7               1                
+196             066h                7               1               
+197             E04h                7               2                
+198             068h (bits 5-7), 069h (bit 0)                        
+199             068h (bits 1-4)     4               1                
+200             068h (bit 0)        1               1               
+
+
+======= The following indexed by Block0 taking values 0..47 ======
+=======    (period 0x20)
+224             07Ah (bit 0)        1               1                
+225             07Ah (bit 1)        1               1                
+226             089h (bit 3)        1               1                
+227             089h (bit 2)        1               1                
+228             07Ah-07Bh (bits 2-10) 10                            Part tone
+                                                                       0-799    Preset tones 001-800
+                                                                       800-809  For calibration purposes
+                                                                       810-819  unused
+                                                                       820-919  User tones 801-900
+229             078                10                               Part fine tune
+230                                                                 read only?
+231             089h (bit 1)        1               1                
+232             089h (bit 0)        1               1                
+233             07Dh                7               1                
+234             07Eh                7               1               Part volume
+235             07Fh                7               1               
+236             080h                7               1               Part on/off
+237             081h                7               1               Part pan
+238             082h                7               1               Part chorus send
+239             083h                7               1               Part reverb send
+240             084h                7               1               Part delay send
+241             085h                                                Part pitch bend sensitivity (multiple assignment)
+242             086h (bits 0-1)     2               1                
+243             087h                7               1               Part dry/wet of "dirty" effect
+244             088h                7               1               Part gain following "dirty" effect
+245             06Ch (bit 0)        1               5                
+246             070h (bit 0)        1               5                
+247             074h (bit 0)        1               5               
+==================================================================
+
+
+248             C54h                7               1               
+249             C64h                7               1               
+250             C65h                7               1               Accompaniment volume
+251             C66h                7               1               
+252             C67h                7               1               
+253             C68h                7               1               Song volume
+254             C69h                7               1               
+255             C6Ah                7               1               
+256             C6Bh                7               1               
+257             C6Dh (bit 5)        1               1                
+258                                                                 read only?
+
+
+======= The following indexed by Block0  ======
+259             674h                7               2               
+260             675h                7               2                
+261             676h                7               1                
+262             677h                7               1               
+263             678h                7               1                
+264             679h                7               1                
+265             67Ah (bit 0)        1               1                
+266             66Ch (bit 0)        1               1                
+267             670h (bit 0)        1               5                
+268             6F4h                7               2               
+269             6F5h                7               2                
+270             6F6h                7               1                
+271             6F7h                7               1               
+272             6F8h                7               1                
+273             6F9h                7               1                
+274             6FAh (bit 0)        1               1                
+275             6ECh (bit 0)        1               1                
+276             6F0h (bit 0)        1               5                
+277             7B4h                7               2                
+278             7B5h                7               2                
+279             7B6h                7               1                
+280             7B7h                7               1                
+281             7B8h                7               1                
+282             7B9h                7               1                
+283             7BAh (bit 0)        1               1                
+284             7ACh (bit 0)        1               1                
+285             7B0h (bit 0)        1               5                
+=======================================================
+
+
+
+286             C6Ch                7               2               
+287             C50h                7               5                
+288             C6Dh (bits 0-2)     3               1                
+
+
+
+======= The following indexed by Block0  ======
+289             8A8h (bit 0)        1               1                
+290             8AAh                7               1                
+291             8ABh                7               1               
+292             8ACh (bits 0-4)     5               1                
+293             8ADh                7               1               
+294             8AEh (bits 0-4)     5               1                
+295             8AFh                5                               related to pitch bend?
+296             8B0h                7                               read only?
+297             8B1h                7               1               
+298             8A8h (bit 1)        1               1                
+299             8A8h (bit 2)        1               1                
+300             8A8h (bit 3)        1               1                
+301             8A8h (bit 4)        1               1                
+302             8A8h (bit 5)        1               1                
+303             8A8h (bit 6)        1               1                
+304             8A8h (bit 7)        1               1                
+305             8A9h (bit 0)        1               1                
+306             8A9h (bit 1)        1               1                
+307             8A9h (bit 2)        1               1                
+308             8A9h (bit 3)        1               1                
+309             8A9h (bit 4)        1               1                
+310             8A9h (bit 5)        1               1                
+311             8A9h (bit 6)        1               1                
+312             8A9h (bit 7)        1               1                
+313             8B2h (bit 2)        1               1                
+314             7CFh (bits 0-1)     2               1                
+315             7CCh                7               1                
+316             7CDh                7               1                
+317             7CEh                7               1                
+318             899h (bit 2)        1               1                
+319             89Ah                7               2               
+320             89Bh                7               2                
+321             898h                7               2                
+322             7D0h                7               2                
+323             8B2h (bit 1)        1               1               
+324             8B2h (bit 0)        1               1               
+325             89Ch (bit 0)        1               5               
+326             8A0h (bit 0)        1               5                
+327             8A4h (bit 0)        1               5                
+=======================================================
+
+
+328             B6Ch (bit 0)        1               5                
+600             B70h (bits 0-3)     4               1                
+601             B70h (bits 4-7)     4               1                
+602             B71h (bit 0)        1               2                
+603             B72h (bit 0)        1               3                
+604             B74h (bit 0)        1               5                
+
+
+
+======= The following indexed by Block0  ======
+605             B78h (bits 0-3)     4               1                
+606             B79h (bits 0-3)     4               1                
+607             B7Ah (bit 2)        1               1                
+608             B7Ah (bit 1)        1               1                
+609             B7Ah (bit 0)        1               1                
+610             C28h                7               1               
+611             C29h                7               1               
+612             C2Ah                7               1                
+613             C2Bh                7               1               
+614             C10h                7               2               
+615             C11h                7               2                
+616             C12h                7               1                
+617             C13h                7               1               
+618             C14h                7               1                
+619             C15h                7               1                
+620             C16h (bit 0)        1               1                
+621             C08h (bit 0)        1               1                
+622             C0Ch (bit 0)        1               5               
+=======================================================
+
+
+======= The following indexed by Block0 taking values 0..47 ======
+=======   and Block 1 taking values 0..1                    ======
+=======  Block0 period: 0x08,  Block1 period: 0x04          ======
+623             C70h (bits 0-2)     3               1               EQ filter type
+624             C70h (bits 4-7)     4               1               EQ filter parameter 1
+625             C71h (bits 2-6)     5               1               EQ filter parameter 2
+626             C72h (bits 4-7)     4               1               EQ filter parameter 3
+627             C72h (bit 3)        1               1                
+628             C72h (bits 0-2)     3               1                
+
+======= The following indexed by Block0  ======
+629             DF0h                7               1               
+630             DF1h                7               1               
+631             DF2h                7               1                
+632             DF3h                7               1               
+633             DF4h                7               1                
+634             DF5h (bit 0)        1               1                
+=======================================================
+
+
