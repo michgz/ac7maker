@@ -115,14 +115,14 @@ number          HBR                                 OBR/OBS
 
 
 248             C54h                7               1               
-249             C64h                7               1               
+249             C64h                7               1               Keyboard volume
 250             C65h                7               1               Accompaniment volume
 251             C66h                7               1               
 252             C67h                7               1               
 253             C68h                7               1               Song volume
-254             C69h                7               1               
+254             C69h                7               1                - additional control for keyboard & accompaniment volume
 255             C6Ah                7               1               
-256             C6Bh                7               1               
+256             C6Bh                7               1                - additional control for song volume
 257             C6Dh (bit 5)        1               1                
 258                                                                 read only?
 
