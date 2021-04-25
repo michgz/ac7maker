@@ -1,0 +1,48 @@
+Category 16
+
+
+--- HBR Structure:
+
+   Offset                   Parameter       Block0
+    0x0-0x1                     0             -
+    0x2-0x11                    1             -
+    0x12-0x13 (bits 0-13)       2             0
+    0x12-0x13 (bit 14)          3             0
+    0x14-0x21                   4             0
+    0x24-0x15 (bits 0-13)       2             1
+    0x24-0x15 (bit 14)          3             1
+    0x26-0x33                   4             1
+    0x36-0x37 (bits 0-13)       2             2
+    0x36-0x37 (bit 14)          3             2
+    0x38-0x45                   4             2
+    0x48-0x49 (bits 0-13)       2             3
+    0x48-0x49 (bit 14)          3             3
+    0x4A-0x57                   4             3
+    0x5A                        5             -
+    0x5B                        6             -
+    0x5C                        7             -
+
+    Total size: 0x5E
+
+
+
+
+
+--- Parameters:
+
+ Parameter 0: always 0. Setting to 1 seems to turn off the DSP effect. ("Bypass all"??)
+ Parameter 1: Name  (length 16)
+ Parameter 2: DSP type
+ Parameter 3: Bypass
+ Parameter 4: DSP settings (length 14)
+ Parameter 5: Unknown. values 0-127.
+ Parameter 6: Unknown. values 0-127.
+ Parameter 7: Unknown. values 0-127.
+
+
+
+
+--- Memory 3:
+   Param set 1 = Tone ("User")
+   Param sets 5 & 6 = Rhythm ("System")
+

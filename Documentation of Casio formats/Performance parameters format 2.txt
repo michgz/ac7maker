@@ -83,7 +83,7 @@ number          HBR                                 OBR/OBS
 
 ======= The following indexed by Block0 taking values 0..47 ======
 =======    (period 0x20)
-224             07Ah (bit 0)        1               1                
+224             07Ah (bit 0)        1               1               0 = mute, 1 = unmute
 225             07Ah (bit 1)        1               1                
 226             089h (bit 3)        1               1                
 227             089h (bit 2)        1               1                
@@ -93,21 +93,33 @@ number          HBR                                 OBR/OBS
                                                                        810-819  unused
                                                                        820-919  User tones 801-900
 229             078                10                               Part fine tune
-230                                                                 read only?
+230                                 7               1               Part coarse tune
 231             089h (bit 1)        1               1                
 232             089h (bit 0)        1               1                
 233             07Dh                7               1                
-234             07Eh                7               1               Part volume
+234             07Eh                7               1               Part volume  -- (post-DSP)
 235             07Fh                7               1               
-236             080h                7               1               Part on/off
+236             080h                7               1               Part on/off  -- (both pre-and post-DSP gain)
 237             081h                7               1               Part pan
 238             082h                7               1               Part chorus send
 239             083h                7               1               Part reverb send
 240             084h                7               1               Part delay send
-241             085h                                                Part pitch bend sensitivity (multiple assignment)
-242             086h (bits 0-1)     2               1                
+241             085h                5                               Part pitch bend sensitivity
+242             086h (bits 0-2)     3               1               DSP select
+                                                                     Write:  0 = no DSP ("dry")
+                                                                             1 = DSP param set 1 ("User" DSP)
+                                                                             2 =  no sound
+                                                                             3 = DSP param set 5 ("System 1" DSP)
+                                                                             4 = DSP param set 6 ("System 2" DSP)
+                                                                             other = no change
+                                                                     Read:  Affected by a bug where system-assigned
+                                                                        DSP must be read from a Block0 value *twice*
+                                                                        what it should be. Readback of written values
+                                                                        is not affected in this way.
+                                                                        The only practical way to read this value for parts
+                                                                        above 24 is using HBR.
 243             087h                7               1               Part dry/wet of "dirty" effect
-244             088h                7               1               Part gain following "dirty" effect
+244             088h                7               1               Part gain following "dirty" effect  -- (pre-DSP)
 245             06Ch (bit 0)        1               5                
 246             070h (bit 0)        1               5                
 247             074h (bit 0)        1               5               
@@ -222,7 +234,6 @@ number          HBR                                 OBR/OBS
 602             B71h (bit 0)        1               2                
 603             B72h (bit 0)        1               3                
 604             B74h (bit 0)        1               5                
-
 
 
 ======= The following indexed by Block0 taking values 0..47 =====
