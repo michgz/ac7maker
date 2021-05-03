@@ -63,7 +63,7 @@ Atom #     Length    Support    Meaning
 0xA3           4        3/5     Phrase set timing sync
 0xA4           4        3/5     Phrase set chord sync
 0xA5           4        3/5     Phrase set break point
-0xB0           1        3/5     Synchro start (FFh=off, 00h=Var1 or Intro, 01h=Var2, 02h=Var3, 03h=Var4)
+0xB0           1        3/5     Rhythm variation (FFh=no change, 00h=Var1, 01h=Var2, 02h=Var3, 03h=Var4)
 0xB1           3        3/5     Tempo:
                                     byte 1: 0=crotchets, 1=quavers
                                     byte 2: bpm
