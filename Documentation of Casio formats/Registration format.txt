@@ -7,7 +7,7 @@ Atom #     Length    Support    Meaning
 0x01          12      7/3/5     Name
 0x02           3      7/3/5     Tempo
 0x03           2      7/3/5     Selected rhythm number
-0x04           1      7/3/5     Synchro start (00=off, 80h=on)
+0x04           1      7/3/5     Synchro start (00=off, 80h=Var1, 81h=Var2, 82h=Var3, 83h=Var4, C0h=Intro)
 0x09           1      7/3/5     
 0x0A           1      7/3/5     Chord fingering mode
 0x0B           1      7/3/5     Accomp on/off (0=off, 1=on)
@@ -63,7 +63,7 @@ Atom #     Length    Support    Meaning
 0xA3           4        3/5     Phrase set timing sync
 0xA4           4        3/5     Phrase set chord sync
 0xA5           4        3/5     Phrase set break point
-0xB0           1        3/5     Synchro start (00=on, FF=off)
+0xB0           1        3/5     Synchro start (FFh=off, 00h=Var1 or Intro, 01h=Var2, 02h=Var3, 03h=Var4)
 0xB1           3        3/5     Tempo:
                                     byte 1: 0=crotchets, 1=quavers
                                     byte 2: bpm
