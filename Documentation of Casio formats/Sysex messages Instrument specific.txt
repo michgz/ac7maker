@@ -5,7 +5,7 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
 
    0           0-9                                                0                       0x294           Model/Serial number
 
-   1                          0                                   0                        0xD
+   1                          0                                   0                        0xE
 
    2           0-5                        0            0          0                       0xE08           Performance parameters (incl. mixer)
 
@@ -85,6 +85,10 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
    45         0-2                       0-127                                              0x1C2          Registrations
 
    48         0-20            0                                   0                        0x70C
+
+   49         0-5             0                                                            0x10           
+
+   50         0-13            0                                                            0x1C           
 
    64         0-1                                                 0                         0x2C          [All zeros]
 

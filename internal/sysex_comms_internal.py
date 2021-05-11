@@ -214,6 +214,8 @@ def parse_response(b):
         so_far = b'\xf0'
         in_pkt = True
 
+class SysexTimeoutError(Exception):
+  pass
 
 def wait_for_ack(f):
   global have_got_ack
@@ -226,8 +228,11 @@ def wait_for_ack(f):
       return
     time.sleep(0.02)
     if time.monotonic() > st + 4.0:
+      # Clean up. We're exiting with an exception, but just in case a higher-
+      # level process catches the exception we should have the port closed.
+      os.close(f)
       # Timed out. Completely exit the program
-      raise Exception("SYSEX communication timed out. Exiting ...")
+      raise SysexTimeoutError("SYSEX communication timed out. Exiting ...")
 
 
 def make_packet(tx=False,
