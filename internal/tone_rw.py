@@ -229,7 +229,8 @@ def make_packet(tx=False,
       block = [0,0,0,0]
     for blk_x in block:
       w += struct.pack('<H', 0x7F7F & blk_x)
-    w += struct.pack('<3H', parameter, index, length-1)
+    w += struct.pack('<2B', parameter%128, parameter//128)
+    w += struct.pack('<2H', index, length-1)
   if (tx):
     w += data
   w += b'\xf7'
@@ -349,7 +350,6 @@ def get_single_parameter_time_optimised(f, parameter, category=3, memory=3, para
 
 
 
-PARAM_COUNT = 123  # Number of parameters. This is correct for CT-X3000/5000
 TONE_CATEGORY = 3
 
 # Return the number of blocks for a specific parameter
@@ -394,6 +394,8 @@ def check_less(v, mx):
 def tone_read(parameter_set, memory=3, _debug=False):
   
   
+  PARAM_LIST = list(range(0, 123)) + [200, 201, 202] # Correct for CT-X3000/5000
+  
   if True:
   
     if _debug:
@@ -405,7 +407,7 @@ def tone_read(parameter_set, memory=3, _debug=False):
     flush_port(f)
   
     y = []
-    for p in range(0, PARAM_COUNT):
+    for p in PARAM_LIST:
       
       z = []
       if p != 0 and p != 84:  # Name or DSP name. They will be filled with default values only, so don't need to read
@@ -437,6 +439,8 @@ def tone_read(parameter_set, memory=3, _debug=False):
 
   
   x = bytearray(b'\x00' * 0x1C8)
+
+  
   
   # Name
   x[0x1A6:0x1B6] = b'                '
@@ -577,10 +581,15 @@ def tone_read(parameter_set, memory=3, _debug=False):
   x[0x1C0:0x1C1] = to_1b(y[78][0])
   x[0x1C1:0x1C2] = to_1b(y[79][0])
   
-  x[0x124] = 0xFF  # ??
+  x[0x124] = 0xFF  # ?? Always 0xFF but no parameters
   
-  x[0x1C2:0x1C8] = b'\x7f\x02\x02\x00\x00\x00'  # ??   This is definitely not fixed,
-     # but the parameters for it haven't been found.
+
+  x[0x1C2] = y[123][0]   # parameter 200
+  check_less(y[124][0], 4)
+  x[0x1C3] = y[124][0]   # parameter 201
+  check_less(y[125][0], 4)
+  x[0x1C4] = y[125][0]   # parameter 202
+  x[0x1C5:0x1C8] = b'\x00\x00\x00'
   
   # DSP parameters
   
