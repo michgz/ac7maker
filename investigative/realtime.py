@@ -90,13 +90,21 @@ TONES = [(85, 16, "VOCAL CHOP SYNTH 1"),
          (96, 36, "EDM LEAD SYNTH"),
          (96, 12, "EDM BRASS HIT"),
          (49, 1, "MELLOW STRINGS"),
-         (6, 1, "HARPSICHORD 1")
-         
+         (6, 1, "HARPSICHORD 1"),
+         (17, 1, "PERC. ORGAN 1"),
+         (17, 35, "PERC. ORGAN 2"),
+         (29, 33, "WAH OD GUITAR"),
+         (30, 32, "METAL AMBIENT GUITAR"),
+         (81, 7, "X SYNTH LEAD 1"),
+                  
          ]     # List of Patch, Bank pairs of available instruments. Maximum of 128
 
 SELECTED_TONE = 0
 
-CH = 0
+CH = 0   # MIDI channel
+
+CAT_2_TESTING = False      # Some code is left over from experiments on Category 2.
+                          # This should be false, so that code is never called.
 
 
 
@@ -119,7 +127,7 @@ DEVICE_ID = b"\x44\x19\x01\x7F"
 
 def process_parameter(x, v):
   
-  if x in [7,11,13,18,20]:   # Time parameter
+  if x in [7,11,13,18,20,27,31,33,38,40]:   # Time parameter
   
     if v <= 10:
       y = [1023,944,800,831,797,778,769,760,752,744,736][v]
@@ -135,13 +143,19 @@ def process_parameter(x, v):
     return struct.pack('BB', y%128, y//128)
     
   
-  if x in [6,10,12,17,19]:    # 8-bit parameter
+  if x in [6,10,12,17,19,26,30,32,37,39]:    # 8-bit parameter
     
     return struct.pack('BB', v%128, v//128)
     
-  if x in [3,4,5,8,9,14,15,16]:    # 7-bit parameters
+  if x in [3,4,5,8,9,14,15,16,23,24,25,28,29,34,35,36]:    # 7-bit parameters
     
     return struct.pack('B', v%128)
+    
+  if (x >= 41 and x<= 116):    #? not sure about these ones
+    
+    return struct.pack('B', v%128)
+    
+    
     
   raise Exception
   
@@ -195,7 +209,9 @@ def set_parameter(parameter, data,
 
 last_download = b''
 
-TIME_BLOCK = 6
+TIME_BLOCK = 7
+TIME_BLOCK_LAYER = 0
+DO_TIMES = 1
 
 
 
@@ -208,18 +224,24 @@ def do_time_block(tb, ctl_num, v):
   #   0 = just sliders
   #   1 = short block
   #   2-6 = long blocks
+  #   7 = no meaning
   
   
   global TIME_BLOCK
+  global TIME_BLOCK_LAYER
   
+    
   if tb == 0:
     
     if (ctl_num >= 11 and ctl_num <=18):
       
       p_num = [3, 4, 5, 8, 9, 14, 15, 16][ctl_num - 11]
       
+      if TIME_BLOCK_LAYER != 0:
+        p_num += 20
+      
       t = set_parameter(p_num, v, block0 = 0)
-      print(binascii.hexlify(t, " ").decode('ascii').upper())
+      print("\r       " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
       
     return
@@ -231,8 +253,14 @@ def do_time_block(tb, ctl_num, v):
       
       block0 = ctl_num-1
       
-      t = set_parameter(7, v, block0 = block0)
-      print(binascii.hexlify(t, " ").decode('ascii').upper())
+      
+      p_num = 7
+      if TIME_BLOCK_LAYER != 0:
+        p_num += 20
+
+      
+      t = set_parameter(p_num, v, block0 = block0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
       
     
@@ -240,16 +268,22 @@ def do_time_block(tb, ctl_num, v):
     elif (ctl_num >= 11 and ctl_num <=13):
       
       block0 = ctl_num-11
+
+      p_num = 6
+      if TIME_BLOCK_LAYER != 0:
+        p_num += 20
+
       
-      t = set_parameter(19, v, block0 = block0)
-      print(binascii.hexlify(t, " ").decode('ascii').upper())
+      t = set_parameter(p_num, v, block0 = block0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
       
     return
 
 
 
-  else:
+
+  elif tb <= 6:
 
 
  
@@ -259,9 +293,15 @@ def do_time_block(tb, ctl_num, v):
       block0 = ctl_num-1
       if ctl_num == 9:
         block0 = 5
+
+
+      p_num = [11,13,18,20][tb-2]
+      if TIME_BLOCK_LAYER != 0:
+        p_num += 20
+
       
-      t = set_parameter([11,13,18,20][tb-2], v, block0 = block0)
-      print(binascii.hexlify(t, " ").decode('ascii').upper())
+      t = set_parameter(p_num, v, block0 = block0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
       
     
@@ -269,20 +309,96 @@ def do_time_block(tb, ctl_num, v):
     elif (ctl_num >= 11 and ctl_num <=17):
       
       block0 = ctl_num-11
+
+
+      p_num = [10,12,17,19][tb-2]
+      if TIME_BLOCK_LAYER != 0:
+        p_num += 20
+
+
       
-      t = set_parameter([10,12,17,19][tb-2], v, block0 = block0)
-      print(binascii.hexlify(t, " ").decode('ascii').upper())
+      t = set_parameter(p_num, v, block0 = block0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
     
+    return
+
+
+  else:
+    
+    # Unknown value of tb.
     return
 
 
 
 
 
+def do_non_time_block(tb, ctl_num, v):
 
 
+  if tb == 0:
+  
+    if ctl_num == 19:
+      
+      t = set_parameter(45, v, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+    
+    elif (ctl_num >= 11 and ctl_num <=18):
+      
+      t = set_parameter(ctl_num-11 + 46, v, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+    
+    elif ctl_num == 1:
+      
+      t = set_parameter(54, v, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
 
+    elif (ctl_num >= 2 and ctl_num <=3):
+      
+      t = set_parameter(ctl_num-2 + 64, v, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+
+    elif ctl_num == 4:
+      
+      t = set_parameter(66, v//8, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+
+
+    elif ctl_num == 9:
+      
+      t = set_parameter(43, v//16, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+
+
+  elif tb == 1:
+
+    if (ctl_num >= 11 and ctl_num <=17):
+
+
+      p_num = [97,98,103,104,105,107,112][ctl_num - 11]
+
+      
+      t = set_parameter(p_num, v, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+
+  elif tb == 2:
+
+    if (ctl_num >= 1 and ctl_num <=8):
+
+
+      p_num = 67 + (ctl_num - 1)
+
+      
+      t = set_parameter(p_num, v, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
 
 
 
@@ -291,6 +407,8 @@ def process(x):
   global last_download
   
   global TIME_BLOCK
+  global TIME_BLOCK_LAYER
+  global DO_TIMES
 
   if x[0] == 0x99 and x[2] > 0:
     # Probably a pad. Treat it as a binary control
@@ -350,7 +468,98 @@ def process(x):
     #print(binascii.hexlify(x, " ").decode('ascii').upper())
     
     
-    
+    if x[1] == 0x01:
+      # Modulation wheel event - pass on
+      
+      t = struct.pack('BBB', 0xB0 + CH, 0x01, x[2])
+      send(t)
+      
+      return
+
+
+
+    if x[1] == 0x78 or x[1] == 0x7B:
+      # "All sounds off" event - pass on
+      
+      t = struct.pack('BBB', 0xB0 + CH, x[1], x[2])
+      send(t)
+      
+      return
+
+
+
+    if x[1] == 0x50:
+      
+      TIME_BLOCK_LAYER = 1 if x[2]!=0 else 0
+      print("TIME_BLOCK_LAYER = {0}".format(TIME_BLOCK_LAYER))
+      return
+
+
+
+    if x[1] == 0x51:
+      # Button 2 switches between time controls and others (volumes?)
+      
+      DO_TIMES = 1 if x[2]!=0 else 0
+      print("DO_TIMES = {0}".format(DO_TIMES))
+      return
+
+
+    if x[1] == 0x52:  # Button 3 is Parameter 116
+
+
+      BLOCK = 0
+      PARAM_NUM = 116
+      BYTES = 1
+      t = b'\xF0\x44\x19\x01\x7F\x01\x03\x03' + struct.pack('B', 32 + CH) + b'\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
+      
+
+      DATA = 1 if x[2]!= 0 else 0
+
+      
+      t += struct.pack('B', DATA)
+      
+      for jjjj in range(BYTES-1):
+        t += b'\x00'
+
+      t += b'\xF7'
+      
+
+      send(t)
+      
+      print("\r    " + x.hex(' ').upper(), end="", flush=True)
+      
+      return
+
+
+
+    if x[1] == 0x53:  # Button 4 is "DSP ON/OFF"  (doesn't seem to work?)
+
+
+      BLOCK = 0
+      PARAM_NUM = 44
+      BYTES = 1
+      t = b'\xF0\x44\x19\x01\x7F\x01\x03\x03' + struct.pack('B', 32 + CH) + b'\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
+      
+
+      DATA = 1 if x[2]!= 0 else 0
+
+      
+      t += struct.pack('B', DATA)
+      
+      for jjjj in range(BYTES-1):
+        t += b'\x00'
+
+      t += b'\xF7'
+      
+
+      send(t)
+      
+      print("\r    " + x.hex(' ').upper(), end="", flush=True)
+      
+      return
+
+
+
     if x[1] >= 0x60 and x[1] <= 0x6E:
       
       # A filter control, or one of the parameters 200-202
@@ -360,7 +569,7 @@ def process(x):
       
       BLOCK = [0,0,0,0,1,1,1,1,0,0,1,1,0,0,0][x[1]-0x60]
     
-      t = b'\xF0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
+      t = b'\xF0\x44\x19\x01\x7F\x01\x03\x03' + struct.pack('B', 32 + CH) + b'\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
       
       
       
@@ -424,89 +633,48 @@ def process(x):
         break
     
     
-    if (control >0 and control <= 5) or (control == 9) or (control >= 11 and control <= 18):
+    if not DO_TIMES:
       
-      try:
-        do_time_block(TIME_BLOCK, control, x[2])
-      except IndexError:
-        print("TIME_BLOCK = {0}".format(TIME_BLOCK))
-        raise
-      return
+      do_non_time_block(TIME_BLOCK, control, x[2])
     
     
-    if control >= 31 and control <= 34:
-      # Button
-      
-      PARAM_NUM = [245,246,247,257][control-31]
-      BYTES = [5,5,5,1][control-31]
-      
-      BLOCK = [0,0,0,0][control-31]
-      t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
-      
-      
-      
-      DATA = 0
-      if x[2] >= 0x40:
-        DATA = 1
-      
-      t += struct.pack('B', DATA)
-      
-      for jjjj in range(BYTES-1):
-        t += b'\x00'
-
-      t += b'\xF7'
-      
-
-      send(t)
-      
-      print(x.hex(' ').upper())
-      
-      return
+    else:
     
-    
-
-    if control >= 1 and control <= 9:
-      
-      if True:
-        # Rotary
-        ###set_single_parameter(248 + (control-1) , x[2], memory=3, category=2)
-
-
-        PARAM_NUM = [233,234,235,236,237,242,243,244,243][control-1]
-        BITS = [7,7,7,7,7,7,7,7,7][control-1]
+      if (control > 0 and control <= 5) or (control == 9) or (control >= 11 and control <= 18):
         
-        #PARAM_NUM = [0,1,2,3][control-1]
-        #BITS = [10, 10, 7, 7][control-1]
-
+        try:
+          do_time_block(TIME_BLOCK, control, x[2])
+        except IndexError:
+          print("TIME_BLOCK = {0}".format(TIME_BLOCK))
+          raise
+        return
+      
+      
+      
+    
+    if CAT_2_TESTING:   # Usually false
+    
+      if control >= 31 and control <= 34:
+        # Button
         
-        BLOCK =  [0,0,0,0,0,0,0,0,1][control-1]
+        PARAM_NUM = [245,246,247,257][control-31]
+        BYTES = [5,5,5,1][control-31]
+        
+        BLOCK = [0,0,0,0][control-31]
         t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
         
         
-        DATA = x[2]
         
-        if PARAM_NUM == 242:
-          
-          if x[2] <= 0x20:
-            DATA = 0
-          elif x[2] <= 0x40:
-            DATA = 1
-          elif x[2] <= 0x60:
-            DATA = 2
-          else:
-            DATA = 3
-          
-          
+        DATA = 0
+        if x[2] >= 0x40:
+          DATA = 1
         
+        t += struct.pack('B', DATA)
         
-        if BITS >= 10:
-          
-          DATA = 8*x[2] + 3
-          t += struct.pack('BB', DATA%128, DATA//128) + b'\xF7'
-          
-        else:
-          
-          t += struct.pack('B', DATA) + b'\xF7'
+        for jjjj in range(BYTES-1):
+          t += b'\x00'
+
+        t += b'\xF7'
         
 
         send(t)
@@ -515,32 +683,84 @@ def process(x):
         
         return
       
-      else:
-        
-        
-        PARAM_NUM = [248,249,250,251,252,253,254,255,256][control-1]
-        BLOCK = [0,0,0,0,0,0,0,0,0][control-1]
-        LEN = [1,1,1,1,1,1,1,1,1][control-1]
-        
-        
-        t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00' + struct.pack('B', x[2])
+      
 
-        if LEN > 1:
+      if control >= 1 and control <= 9:
+        
+        if True:
+          # Rotary
+          ###set_single_parameter(248 + (control-1) , x[2], memory=3, category=2)
+
+
+          PARAM_NUM = [233,234,235,236,237,242,243,244,243][control-1]
+          BITS = [7,7,7,7,7,7,7,7,7][control-1]
           
-          t += b'\x00\xF7'
+          #PARAM_NUM = [0,1,2,3][control-1]
+          #BITS = [10, 10, 7, 7][control-1]
+
+          
+          BLOCK =  [0,0,0,0,0,0,0,0,1][control-1]
+          t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00'
+          
+          
+          DATA = x[2]
+          
+          if PARAM_NUM == 242:
+            
+            if x[2] <= 0x20:
+              DATA = 0
+            elif x[2] <= 0x40:
+              DATA = 1
+            elif x[2] <= 0x60:
+              DATA = 2
+            else:
+              DATA = 3
+            
+            
+          
+          
+          if BITS >= 10:
+            
+            DATA = 8*x[2] + 3
+            t += struct.pack('BB', DATA%128, DATA//128) + b'\xF7'
+            
+          else:
+            
+            t += struct.pack('B', DATA) + b'\xF7'
+          
+
+          send(t)
+          
+          print(x.hex(' ').upper())
+          
+          return
+        
         else:
-          t += b'\xF7'
-        
-        
-        #DATA = 8*x[2] + 3
-        
-        #t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00' + struct.pack('BB', DATA%128, DATA//128) + b'\xF7'
-        
-        send(t)
-        
-        print(x.hex(' ').upper())
-        
-        return
+          
+          
+          PARAM_NUM = [248,249,250,251,252,253,254,255,256][control-1]
+          BLOCK = [0,0,0,0,0,0,0,0,0][control-1]
+          LEN = [1,1,1,1,1,1,1,1,1][control-1]
+          
+          
+          t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('B', BLOCK) + b'\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00' + struct.pack('B', x[2])
+
+          if LEN > 1:
+            
+            t += b'\x00\xF7'
+          else:
+            t += b'\xF7'
+          
+          
+          #DATA = 8*x[2] + 3
+          
+          #t = b'\xF0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('BB', PARAM_NUM%128, PARAM_NUM//128) + b'\x00\x00\x00\x00' + struct.pack('BB', DATA%128, DATA//128) + b'\xF7'
+          
+          send(t)
+          
+          print(x.hex(' ').upper())
+          
+          return
         
         
       

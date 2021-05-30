@@ -186,7 +186,7 @@ continuing...
 113             19Ah (bits 0-3)     4               
 114             19Ah (bit 4)        1               =1 if monophonic
 115             19Ah (bit 5)        1               =1 if Sound B used for harmony notes
-116             19Ah (bit 6)        1               
+116             19Ah (bit 6)        1               =1 for portamento
 117 Block 0     19Ch (bits 0-3)     4               [Maximum value 8]        Filter type
     Block 1     1A0h (bits 0-3)     4               [Maximum value 8]
 118 Block 0     19Ch (bits 4-7) + 19Dh (bits 0-1) 6 [Maximum write value 22] Filter parameter 1

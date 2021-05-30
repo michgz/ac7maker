@@ -213,7 +213,7 @@ def MakePayload(msg=Messages.ControlChange,
                   btnMode=ButtonMode.Unlatch,
                   port=Port.One,
                   midiChn=MidiChannels.Chn1,
-                  noteNumber = 60,  # only used for "note" event
+                  note = 60,  # only used for "note" event
                   velocity=Velocity.Touch,
                   aft = AftMode.Off,
                   controller=0x01,   # used for "ControllerChange" and "EncoderSimulate" events
@@ -271,7 +271,7 @@ def MakePayload(msg=Messages.ControlChange,
   b += struct.pack('BB', midiChannelVal//16, midiChannelVal%16)
   
   if msg==Messages.Note:
-    b += struct.pack('BB', noteNumber//16, noteNumber%16)
+    b += struct.pack('BB', note//16, note%16)
     b += struct.pack('BB', velocity//16, velocity%16)
     aftVal = int(aft)
     b += struct.pack('BB', aftVal//16, aftVal%16)
@@ -335,14 +335,14 @@ if __name__=="__main__":
   SendPayload(MakePayload(CtrlMap=1, Ctrl=15, controller = 0x5E, Title="Slider 7"))
   SendPayload(MakePayload(CtrlMap=1, Ctrl=16, controller = 0x5F, Title="Slider 8"))
   SendPayload(MakePayload(CtrlMap=1, Ctrl=17, controller = 0x07, Title="Slider 9"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=18, controller = 0x24, Title="Pad 1"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=19, controller = 0x26, Title="Pad 2"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=20, controller = 0x2A, Title="Pad 3"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=21, controller = 0x2E, Title="Pad 4"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=22, controller = 0x2B, Title="Pad 5"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=23, controller = 0x2F, Title="Pad 6"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=24, controller = 0x32, Title="Pad 7"))
-  SendPayload(MakePayload(CtrlMap=1, Ctrl=25, controller = 0x31, Title="Pad 8"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=18, msg=Messages.Note, note = 0x24, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 1"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=19, msg=Messages.Note, note = 0x26, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 2"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=20, msg=Messages.Note, note = 0x2A, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 3"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=21, msg=Messages.Note, note = 0x2E, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 4"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=22, msg=Messages.Note, note = 0x2B, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 5"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=23, msg=Messages.Note, note = 0x2F, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 6"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=24, msg=Messages.Note, note = 0x32, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 7"))
+  SendPayload(MakePayload(CtrlMap=1, Ctrl=25, msg=Messages.Note, note = 0x31, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 8"))
   SendPayload(MakePayload(CtrlMap=1, Ctrl=26, controller = 0x50, Title="Button 1", btnMode=ButtonMode.Latch))
   SendPayload(MakePayload(CtrlMap=1, Ctrl=27, controller = 0x51, Title="Button 2", btnMode=ButtonMode.Latch))
   SendPayload(MakePayload(CtrlMap=1, Ctrl=28, controller = 0x52, Title="Button 3", btnMode=ButtonMode.Latch))
@@ -384,14 +384,14 @@ if __name__=="__main__":
   SendPayload(MakePayload(CtrlMap=2, Ctrl=15, controller = 0x6D, Title="Slider 7"))
   SendPayload(MakePayload(CtrlMap=2, Ctrl=16, controller = 0x6E, Title="Slider 8"))
   SendPayload(MakePayload(CtrlMap=2, Ctrl=17, controller = 0x07, Title="Slider 9"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=18, controller = 0x24, Title="Pad 1"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=19, controller = 0x26, Title="Pad 2"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=20, controller = 0x2A, Title="Pad 3"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=21, controller = 0x2E, Title="Pad 4"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=22, controller = 0x2B, Title="Pad 5"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=23, controller = 0x2F, Title="Pad 6"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=24, controller = 0x32, Title="Pad 7"))
-  SendPayload(MakePayload(CtrlMap=2, Ctrl=25, controller = 0x31, Title="Pad 8"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=18, msg=Messages.Note, note = 0x24, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 1"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=19, msg=Messages.Note, note = 0x26, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 2"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=20, msg=Messages.Note, note = 0x2A, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 3"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=21, msg=Messages.Note, note = 0x2E, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 4"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=22, msg=Messages.Note, note = 0x2B, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 5"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=23, msg=Messages.Note, note = 0x2F, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 6"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=24, msg=Messages.Note, note = 0x32, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 7"))
+  SendPayload(MakePayload(CtrlMap=2, Ctrl=25, msg=Messages.Note, note = 0x31, velocity=127, midiChn=MidiChannels.Chn10, Title="Pad 8"))
   SendPayload(MakePayload(CtrlMap=2, Ctrl=26, controller = 0x50, Title="Button 1", btnMode=ButtonMode.Latch))
   SendPayload(MakePayload(CtrlMap=2, Ctrl=27, controller = 0x51, Title="Button 2", btnMode=ButtonMode.Latch))
   SendPayload(MakePayload(CtrlMap=2, Ctrl=28, controller = 0x52, Title="Button 3", btnMode=ButtonMode.Latch))
