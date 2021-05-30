@@ -96,6 +96,7 @@ TONES = [(85, 16, "VOCAL CHOP SYNTH 1"),
          (29, 33, "WAH OD GUITAR"),
          (30, 32, "METAL AMBIENT GUITAR"),
          (81, 7, "X SYNTH LEAD 1"),
+         (16, 0, "GM ORGAN 1"),
                   
          ]     # List of Patch, Bank pairs of available instruments. Maximum of 128
 
@@ -223,8 +224,8 @@ def do_time_block(tb, ctl_num, v):
   # tb: 
   #   0 = just sliders
   #   1 = short block
-  #   2-6 = long blocks
-  #   7 = no meaning
+  #   2-5 = long blocks
+  #   6-7 = no meaning
   
   
   global TIME_BLOCK
@@ -274,7 +275,7 @@ def do_time_block(tb, ctl_num, v):
         p_num += 20
 
       
-      t = set_parameter(p_num, v, block0 = block0)
+      t = set_parameter(p_num, 2*v+1, block0 = block0)
       print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
       
@@ -283,7 +284,7 @@ def do_time_block(tb, ctl_num, v):
 
 
 
-  elif tb <= 6:
+  elif tb <= 5:
 
 
  
@@ -317,7 +318,7 @@ def do_time_block(tb, ctl_num, v):
 
 
       
-      t = set_parameter(p_num, v, block0 = block0)
+      t = set_parameter(p_num, 2*v+1, block0 = block0)
       print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
     
@@ -346,9 +347,14 @@ def do_non_time_block(tb, ctl_num, v):
     
     elif (ctl_num >= 11 and ctl_num <=18):
       
-      t = set_parameter(ctl_num-11 + 46, v, block0 = 0)
-      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
-      send(t)
+      p_num = (ctl_num -11) + 46
+     
+      if not ((p_num == 46 or p_num == 47 or p_num == 48) and v == 0x7F) :   # for some reason, this combination crashes the keyboard
+        
+     
+        t = set_parameter(ctl_num-11 + 46, v, block0 = 0)
+        print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+        send(t)
     
     elif ctl_num == 1:
       
@@ -367,6 +373,14 @@ def do_non_time_block(tb, ctl_num, v):
       t = set_parameter(66, v//8, block0 = 0)
       print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
+
+    elif ctl_num >= 6 and ctl_num <= 8:
+      
+      t = set_parameter([55, 41, 42][ctl_num - 6], 1 if v>=0x40 else 0, block0 = 0)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+
+
 
 
     elif ctl_num == 9:
