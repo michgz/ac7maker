@@ -91,12 +91,19 @@ TONES = [(85, 16, "VOCAL CHOP SYNTH 1"),
          (96, 12, "EDM BRASS HIT"),
          (49, 1, "MELLOW STRINGS"),
          (6, 1, "HARPSICHORD 1"),
+         (6, 32, "HARPSICHORD 2"),
          (17, 1, "PERC. ORGAN 1"),
          (17, 35, "PERC. ORGAN 2"),
          (29, 33, "WAH OD GUITAR"),
          (30, 32, "METAL AMBIENT GUITAR"),
          (81, 7, "X SYNTH LEAD 1"),
+         (3, 0, "GM HONKY-TONK"),
          (16, 0, "GM ORGAN 1"),
+         (20, 80, "EX JAZZ GUITAR"),
+         (54, 80, "EX PAN FLUTE"),
+         
+         
+         
                   
          ]     # List of Patch, Bank pairs of available instruments. Maximum of 128
 
@@ -144,11 +151,11 @@ def process_parameter(x, v):
     return struct.pack('BB', y%128, y//128)
     
   
-  if x in [6,10,12,17,19,26,30,32,37,39]:    # 8-bit parameter
+  if x in [6,8,9,10,12,14, 15, 17,19,26,30,32,37,39]:    # 8-bit parameter
     
     return struct.pack('BB', v%128, v//128)
     
-  if x in [3,4,5,8,9,14,15,16,23,24,25,28,29,34,35,36]:    # 7-bit parameters
+  if x in [3,4,5,16,23,24,25,28,29,34,35,36]:    # 7-bit parameters
     
     return struct.pack('B', v%128)
     
@@ -241,7 +248,10 @@ def do_time_block(tb, ctl_num, v):
       if TIME_BLOCK_LAYER != 0:
         p_num += 20
       
-      t = set_parameter(p_num, v, block0 = 0)
+      if p_num in [8,9,14,15]:
+        t = set_parameter(p_num, 2*v, block0 = 0)        
+      else:
+        t = set_parameter(p_num, v, block0 = 0)
       print("\r       " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
       send(t)
       
@@ -289,7 +299,7 @@ def do_time_block(tb, ctl_num, v):
 
  
     
-    if (ctl_num >= 1 and ctl_num <= 5) or ctl_num == 9:
+    if (ctl_num >= 1 and ctl_num <= 7) or ctl_num == 9:
       
       block0 = ctl_num-1
       if ctl_num == 9:
@@ -654,7 +664,7 @@ def process(x):
     
     else:
     
-      if (control > 0 and control <= 5) or (control == 9) or (control >= 11 and control <= 18):
+      if (control > 0 and control <= 7) or (control == 9) or (control >= 11 and control <= 18):
         
         try:
           do_time_block(TIME_BLOCK, control, x[2])
@@ -784,26 +794,33 @@ def process(x):
       
         print("Getting new mapping ...")
         
-        new_download = tone_read(32)
+        try:
+          new_download = tone_read(32)
         
-        print("Got, size {0}".format(len(new_download)))
+          print("Got, size {0}".format(len(new_download)))
+        except ValueError:
+          # sometimes the download reads a -1 value. Catch it here, so it doesn't
+          # crash the MIDI comms that are ongoing
+          print("Crashed out with an error! Try again..")
+          new_download = b''
         
-        if len(last_download) > 0:
-        
-          print("Found comparison")
-        
-          with open('/tmp/1', 'wb') as f1:
-            f1.write(last_download)
-          with open('/tmp/2', 'wb') as f2:
-            f2.write(new_download)
-          os.system('hexdump -Cv /tmp/1 > /tmp/3')
-          os.system('hexdump -Cv /tmp/2 > /tmp/4')
-          os.system('meld /tmp/3 /tmp/4')
+        if len(new_download) > 0:
+          if len(last_download) > 0:
           
+            print("Found comparison")
+          
+            with open('/tmp/1', 'wb') as f1:
+              f1.write(last_download)
+            with open('/tmp/2', 'wb') as f2:
+              f2.write(new_download)
+            os.system('hexdump -Cv /tmp/1 > /tmp/3')
+            os.system('hexdump -Cv /tmp/2 > /tmp/4')
+            os.system('meld /tmp/3 /tmp/4')
             
-      
-      
-        last_download = new_download
+              
+        
+        
+          last_download = new_download
 
 
 

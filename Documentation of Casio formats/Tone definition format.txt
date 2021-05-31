@@ -26,15 +26,15 @@ relative to 00h or 88h).
 +3              +84h                7               
 +4              +85h                7               
 +5              +86h                7               Velocity sense
-+6 Block 0      +02h                8               
-   Block 1      +06h                8               
-   Block 2      +0Ah                8               
-+7 Block 0      +00h-+01h           10              
-   Block 1      +04h-+05h           10              
-   Block 2      +08h-+09h           10              
-+8              +7Ch                8               
-+9              +7Dh                8               
-+10 Block 0     +0Eh                8               
++6 Block 0      +02h                8               Pitch envelope Attack pitch (0=-16 semitones, 128=on pitch, 255=+16 semitones)
+   Block 1      +06h                8               Pitch envelope Hold pitch
+   Block 2      +0Ah                8               Pitch envelope Release pitch
++7 Block 0      +00h-+01h           10              Pitch envelope unused time (0x000=slowest, 0x3FF=quickest)
+   Block 1      +04h-+05h           10              Pitch envelope Attack time
+   Block 2      +08h-+09h           10              Pitch envelope Release time
++8              +7Ch                8               Timbre control
++9              +7Dh                8               Detune control
++10 Block 0     +0Eh                8               Detune envelope ("honky-tonk") ...
     Block 1     +12h                8               
     Block 2     +16h                8               
     Block 3     +1Ah                8               
@@ -48,7 +48,7 @@ relative to 00h or 88h).
     Block 4     +1Ch-+1Dh           10              
     Block 5     +20h-+21h           10              
     Block 6     +24h-+25h           10              
-+12 Block 0     +2Ah                8               
++12 Block 0     +2Ah                8               unused envelope ...
     Block 1     +2Eh                8               
     Block 2     +32h                8               
     Block 3     +36h                8               
@@ -62,10 +62,10 @@ relative to 00h or 88h).
     Block 4     +38h-+39h           10              
     Block 5     +3Ch-+3Dh           10              
     Block 6     +40h-+41h           10              
-+14             +7Eh                7               Cutoff frequency
-+15             +7Fh                7               Cutoff resonance
-+16             +80h                7               
-+17 Block 0     +46h                8               
++14             +7Eh                8               Cutoff frequency
++15             +7Fh                8               Cutoff resonance
++16             +80h                7               Cutoff frequency fine control or no effect
++17 Block 0     +46h                8               Filter envelope...
     Block 1     +4Ah                8               
     Block 2     +4Eh                8               
     Block 3     +52h                8               
@@ -79,13 +79,13 @@ relative to 00h or 88h).
     Block 4     +54h-+55h           10              
     Block 5     +58h-+59h           10              
     Block 6     +5Ch-+5Dh           10              
-+19 Block 0     +62h                8               
-    Block 1     +66h                8               
-    Block 2     +6Ah                8               
-    Block 3     +6Eh                8               
-    Block 4     +72h                8               
-    Block 5     +76h                8               
-    Block 6     +7Ah                8               
++19 Block 0     +62h                8               Attack amplitude 1  Amplitude envelope
+    Block 1     +66h                8               Attack amplitude 2
+    Block 2     +6Ah                8               Attack amplitude 3
+    Block 3     +6Eh                8               Attack amplitude 4
+    Block 4     +72h                8               Hold amplitude
+    Block 5     +76h                8               Release amplitude 1
+    Block 6     +7Ah                8               Release amplitude 2
 +20 Block 0     +60h-+61h           10              
     Block 1     +64h-+65h           10              Attack time
     Block 2     +68h-+69h           10              
