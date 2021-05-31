@@ -15,3 +15,11 @@ override the two specified in the tone definition (parameters 117-120). The setu
 same as above, the tone 375 "EDM SE WHITE" must be copied to user tone 801 so that it can
 be programmatically edited, and the "ac7maker" program must have special handling added
 to cope with a special "var_35_1" variable.
+
+## roland_apro.py
+Flash a couple of custom control maps to a Roland A-PRO controller for use with realtime.py.
+
+## realtime.py
+Control the tone in the MIDI IN 1 slot dynamically using a Roland A-PRO. Use the pads "A1"-"A8"
+to select which block of parameters to control, and rotaries and sliders control the values of
+the parameters. Used to edit tones with more flexibility than the CT-X's built-in tone editor.
