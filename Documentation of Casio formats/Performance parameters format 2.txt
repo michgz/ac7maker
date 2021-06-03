@@ -7,8 +7,8 @@ number          HBR                                 OBR/OBS
 --------        ---------           -----           ----------      -------
 
 
-0               DFCh-DFDh           10                              
-1               DFEh-DFFh           10                              Master fine tune
+0               DFCh-DFDh           10              2               
+1               DFEh-DFFh           10              2               Master fine tune
 2               E00h                7               1               Master coarse tune
 3               E01h                7               1               Master volume
 4               E02h                7               1               Master pan
@@ -16,12 +16,12 @@ number          HBR                                 OBR/OBS
 
 ======= The following indexed by Block0 taking values 0..1 =======
 =======    (period 0x10)
-80              004h                4                               Chorus Type (affects 004h-00Ah)
+80              004h                4               1               Chorus Type (affects 004h-00Ah)
 81              005h                7               1               Chorus modulation rate
 82              006h                7               1               Chorus modulation depth
 83              007h                7               1               
 84              008h                7               1               
-85              000h               10                                
+85              000h               10               3                
 86              009h                7               1               
 87              00Ah                7               1               
 88              00Bh                7               1               Chorus send to Reverb
@@ -31,8 +31,8 @@ number          HBR                                 OBR/OBS
 
 ======= The following indexed by Block0 taking values 0..1 =======
 =======    (period 0x10)
-96              020h                4                               Delay type (affects 020h - 02Ah)
-97              022h                7                                
+96              020h                4               1               Delay type (affects 020h - 02Ah)
+97              022h-023h          14               2               Delay time (max. value 0x321B)
 98              024h                7               1               
 99              025h                7               1               
 100             026h                7               1               
@@ -49,12 +49,12 @@ number          HBR                                 OBR/OBS
 
 ======= The following indexed by Block0 taking values 0..1 =======
 =======    (period 0x0C)
-128             044h                5                               Reverb type (affects 044h - 048h)
+128             044h                5               1               Reverb type (affects 044h - 048h)
 129             045h                7               1               Reverb time
 130             046h                7               1               
 131             047h                7               1               
 132             048h                7               1               
-133             040h               32                                
+133             040h               19               3                
 134             049h                7               1               
 ==================================================================
 
@@ -62,10 +62,10 @@ number          HBR                                 OBR/OBS
 135             E03h (bits 0-4)     5               2               
 160             058h (bits 0-2)     3               1               System equaliser settings
 161             059h (bits 0-4)     5               1                
-162             05Ah                5
+162             05Ah                5               1               
 163             05Bh (bits 0-3)     4               1                
 164             05Ch (bits 0-3)     4               1                
-165             05Dh                5                                
+165             05Dh                5               1               
 166             05Eh (bits 0-2)     3               1                
 167             05Fh (bits 0-4)     5               1                
 168             060h                7               1               
@@ -87,14 +87,14 @@ number          HBR                                 OBR/OBS
 225             07Ah (bit 1)        1               1                
 226             089h (bit 3)        1               1                
 227             089h (bit 2)        1               1                
-228             07Ah-07Bh (bits 2-10) 10                            Part tone
+228             07Ah-07Bh (bits 2-10) 10            2               Part tone
                                                                        0-799    Preset tones 001-800
                                                                        800-809  For calibration purposes
                                                                        810-819  unused
                                                                        820-919  User tones 801-900
-229             078                10                               Part fine tune
-230                                 7               1               Part coarse tune
-231             089h (bit 1)        1               1                
+229             078h-079h          10               2               Part fine tune
+230             07Ch                7               1               Part coarse tune (0x28=-24 octaves ... 0x58=+24 octaves)
+231             089h (bit 1)        1               1               Part use selected scale
 232             089h (bit 0)        1               1                
 233             07Dh                7               1                
 234             07Eh                7               1               Part volume  -- (post-DSP)
@@ -104,7 +104,7 @@ number          HBR                                 OBR/OBS
 238             082h                7               1               Part chorus send
 239             083h                7               1               Part reverb send
 240             084h                7               1               Part delay send
-241             085h                5                               Part pitch bend sensitivity
+241             085h                5               1               Part pitch bend sensitivity
 242             086h (bits 0-2)     3               1               DSP select
                                                                      Write:  0 = no DSP ("dry")
                                                                              1 = DSP param set 1 ("User" DSP)

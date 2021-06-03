@@ -80,7 +80,7 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
                             Mem=0       Mem=1       Mem=2       Mem=3       Mem=4        (bytes)
 
 
-   42         0-81                                    0           0                         0x54
+   42         0-81                                    0           0                         0x54          [offset 0x1B-0x1C = selected scale type & root]
 
    45         0-2                       0-127                                              0x1C2          Registrations
 
