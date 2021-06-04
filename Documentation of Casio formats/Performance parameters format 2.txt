@@ -19,31 +19,31 @@ number          HBR                                 OBR/OBS
 80              004h                4               1               Chorus Type (affects 004h-00Ah)
 81              005h                7               1               Chorus modulation rate
 82              006h                7               1               Chorus modulation depth
-83              007h                7               1               
+83              007h                7               1               Chorus ring modulation
 84              008h                7               1               
 85              000h               10               3                
 86              009h                7               1               
-87              00Ah                7               1               
+87              00Ah                7               1               Chorus send return
 88              00Bh                7               1               Chorus send to Reverb
-89              00Ch                7               1               
+89              00Ch                7               1               Chorus send to Delay
 ==================================================================
 
 
 ======= The following indexed by Block0 taking values 0..1 =======
 =======    (period 0x10)
 96              020h                4               1               Delay type (affects 020h - 02Ah)
-97              022h-023h          14               2               Delay time (max. value 0x321B)
-98              024h                7               1               
-99              025h                7               1               
-100             026h                7               1               
-101             027h                7               1               
-102             028h                7               1                
-103             029h                7               1                
-104             02Ah                7               1               
-105             02Bh                7               1               
-106             02Ch (bits 0-2)     3               1                
-107             02Dh                7               1               
-108             02Eh                7               1                
+97              022h-023h          14               2               Delay time (max. value 0x321B. Units approx 0.30 ms)
+98              024h                7               1               Delay feedback
+99              025h                7               1               Delay L time ratio
+100             026h                7               1               Delay R time ratio
+101             027h                7               1               Delay stereo center amplitude
+102             028h                7               1               Delay L channel amplitude
+103             029h                7               1               Delay R channel amplitude
+104             02Ah                7               1               Delay decay rate
+105             02Bh                7               1               Delay high damp
+106             02Ch (bits 0-2)     3               1               Delay tempo sync (0=none, use "Delay time" parameter)
+107             02Dh                7               1               Delay send return
+108             02Eh                7               1               Delay send to Reverb
 ==================================================================
 
 
@@ -55,7 +55,7 @@ number          HBR                                 OBR/OBS
 131             047h                7               1               
 132             048h                7               1               
 133             040h               19               3                
-134             049h                7               1               
+134             049h                7               1               Reverb send return
 ==================================================================
 
 
@@ -67,12 +67,12 @@ number          HBR                                 OBR/OBS
 164             05Ch (bits 0-3)     4               1                
 165             05Dh                5               1               
 166             05Eh (bits 0-2)     3               1                
-167             05Fh (bits 0-4)     5               1                
+167             05Fh (bits 0-4)     5               1               Tone control
 168             060h                7               1               
 169             061h                7               1               
 192             062h                7               1                
 193             063h                7               1                
-194             064h                7               1               
+194             064h                7               1               Overall gain
 195             065h                7               1                
 196             066h                7               1               
 197             E04h                7               2                
