@@ -100,7 +100,21 @@ TONES = [(85, 16, "VOCAL CHOP SYNTH 1"),
          (3, 0, "GM HONKY-TONK"),
          (16, 0, "GM ORGAN 1"),
          (20, 80, "EX JAZZ GUITAR"),
+         (40, 33, "VIOLIN"),
          (54, 80, "EX PAN FLUTE"),
+         
+         
+         
+         (0, -1, "CAL 1"),  # Sine
+         (1, -1, "CAL 2"),  # Silence
+         (2, -1, "CAL 3"),  # Monotone beep
+         (3, -1, "WHITE NOISE"),
+         (4, -1, "PINK NOISE"),
+         (5, -1, "CAL 6"),   # Sustain piano
+         (6, -1, "CAL 7"),   # Multi-octave sweep (log?)
+         (7, -1, "CAL 8"),   # Single octave sweep (linear?)
+         (8, -1, "CAL 9"),  # Monotone beep
+         (9, -1, "CAL 10"),  # Silence
          
          
          
@@ -425,6 +439,33 @@ def do_non_time_block(tb, ctl_num, v):
       send(t)
 
 
+  elif tb == 3:
+    
+    # Vib/Tremolo
+    
+    if ctl_num == 1 or ctl_num==2:
+      
+      t = set_parameter([59, 66][ctl_num-1], v//8)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+      
+    
+    elif ctl_num >= 3 and ctl_num <= 9:
+      
+      t = set_parameter([60,61,62,63,64,65,76][ctl_num-3], v)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+    
+    elif ctl_num >= 11 and ctl_num <= 19:
+      
+      t = set_parameter([67,68,69,70,71,72,73,74,75][ctl_num-11], v)
+      print("\r    " + binascii.hexlify(t, " ").decode('ascii').upper(), end="", flush=True)
+      send(t)
+    
+
+
+
+
 
 def process(x):
   
@@ -462,13 +503,26 @@ def process(x):
     c = x[1]
     if c < len(TONES):
       
-      t = struct.pack('BBBBBBBB', 0xB0 + CH, 0, TONES[c][1], 0xB0 + CH, 0x20, 0, 0xC0 + CH, TONES[c][0])
+      if TONES[c][1] >= 0:
+        # Normal bank/patch selection
       
-      send(t)
-      
-      print("Patch set to " + TONES[c][2])
-      
-      return
+        t = struct.pack('BBBBBBBB', 0xB0 + CH, 0, TONES[c][1], 0xB0 + CH, 0x20, 0, 0xC0 + CH, TONES[c][0])
+        
+        send(t)
+        
+        print("Patch set to " + TONES[c][2])
+        
+        return
+        
+      else:
+        
+        # "Calibration" tone
+        
+        
+        set_single_parameter(228, 800 + TONES[c][0], memory=3, category=2, block0=32+CH)
+        print("Calibration patch " + TONES[c][2])
+        
+        return
 
   # If we get to this point, it must be a control
   

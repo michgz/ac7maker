@@ -10,8 +10,8 @@ number          HBR                                 OBR/OBS
 0               DFCh-DFDh           10              2               
 1               DFEh-DFFh           10              2               Master fine tune
 2               E00h                7               1               Master coarse tune
-3               E01h                7               1               Master volume
-4               E02h                7               1               Master pan
+3               E01h                7               1               Master volume    +
+4               E02h                7               1               Master pan       + --- writing "Master volume" followed by "Master pan" overrides volume knob
 5               E05h (bit 0)        1               1               
 
 ======= The following indexed by Block0 taking values 0..1 =======
@@ -93,8 +93,8 @@ number          HBR                                 OBR/OBS
                                                                        810-819  unused
                                                                        820-919  User tones 801-900
 229             078h-079h          10               2               Part fine tune
-230             07Ch                7               1               Part coarse tune (0x28=-24 octaves ... 0x58=+24 octaves)
-231             089h (bit 1)        1               1               Part use selected scale
+230             07Ch                7               1               Part coarse tune (0x28=-24 semitones ... 0x58=+24 semitones)
+231             089h (bit 1)        1               1               Part scale (1=as selected in category 42, 0=equally tempered)
 232             089h (bit 0)        1               1                
 233             07Dh                7               1                
 234             07Eh                7               1               Part volume  -- (post-DSP)
@@ -271,7 +271,7 @@ number          HBR                                 OBR/OBS
 =======   and Block 1 taking values 0..1                    ======
 =======  Block0 period: 0x08,  Block1 period: 0x04          ======
 623             C70h (bits 0-2)     3               1               EQ filter type
-624             C70h (bits 4-7)     4               1               EQ filter parameter 1
+624             C70h (bits 4-7)+C71h (bits 0-1) 6   1               EQ filter parameter 1
 625             C71h (bits 2-6)     5               1               EQ filter parameter 2
 626             C72h (bits 4-7)     4               1               EQ filter parameter 3
 627             C72h (bit 3)        1               1                

@@ -86,13 +86,13 @@ relative to 00h or 88h).
     Block 4     +72h                8               Hold amplitude
     Block 5     +76h                8               Release amplitude 1
     Block 6     +7Ah                8               Release amplitude 2
-+20 Block 0     +60h-+61h           10              
-    Block 1     +64h-+65h           10              Attack time
-    Block 2     +68h-+69h           10              
-    Block 3     +6Ch-+6DH           10              
-    Block 4     +70h-+71h           10              
-    Block 5     +74h-+75h           10              Release time
-    Block 6     +78h-+79h           10              
++20 Block 0     +60h-+61h           10              unused
+    Block 1     +64h-+65h           10              Attack time 1 ("Attack time" in keyboard UI)
+    Block 2     +68h-+69h           10              Attack time 2
+    Block 3     +6Ch-+6DH           10              Attack time 3
+    Block 4     +70h-+71h           10              Attack time 4
+    Block 5     +74h-+75h           10              Release time 1 ("Release time" in keyboard UI)
+    Block 6     +78h-+79h           10              Release time 2
 ================================================================================
 
 continuing...
@@ -115,28 +115,23 @@ continuing...
 56              110h                7               Chorus send
 57              111h                7               Reverb send
 58              112h                7               Delay send
-59              124h (bits 4-7)     4               Vibrato type
+59              124h (bits 4-7)     4               Vibrato type (values 0-6)
 60              113h                7               Vibrato rate
 61              114h                7               Vibrato delay
-62              115h                7               
+62              115h                7               Vibrato rise time
 63              116h                7               Vibrato depth
-64              117h                7               
-65              118h                7               
-66              124h (bits 0-3)     4               
-
-================================================================================
-Parameters 67-70 (offsets 119h-11Ch)
-Parameters 71-74 (offsets 11Dh-120h)
-
-+0              +0                  7               
-+1              +1                  7               
-+2              +2                  7               
-+3              +3                  7               
-================================================================================
-
-continuing...
-
-75              121h                7               
+64              117h                7               Vibrato depth for CC 01 (modulation)
+65              118h                7               Vibrato depth for channel pressure (after-touch)
+66              124h (bits 0-3)     4               Tremolo type (values 0-6)
+67              119h                7               Tremolo rate
+68              11Ah                7               
+69              11Bh                7               
+70              11Ch                7               
+71              11Dh                7               Tremolo depth for CC 01 (modulation) - (0=max. -ve, 8=none, 16=max. +ve, 64=none)
+72              11Eh                7               Tremolo depth for channel pressure (after-touch) - (0=max. -ve, 8=none, 16=max. +ve, 64=none)
+73              11Fh                7               Tremolo delay
+74              120h                7               Tremolo rise time
+75              121h                7               Tremolo depth (64=none, 90=6dB peak-to-trough, 100=12dB peak-to-trough, 127=max.)
 76              122h                7               
 77              123h                7               
 78              1C0h                7               
@@ -146,14 +141,14 @@ continuing...
 82              1A4h (bit 1)        1               
 83              1A4h (bit 0)        1               
 84              126h-135h           16 characters   DSP chain name
-85 Block 0      136h                8               DSP effect 1
-   Block 1      148h                8               DSP effect 2
-   Block 2      15Ah                8               DSP effect 3
-   Block 3      16Ch                8               DSP effect 4
-86 Block 0      137h                7               
-   Block 1      149h                7               
-   Block 2      15Bh                7               
-   Block 3      16Dh                7               
+85 Block 0      136h-137h           8               DSP effect 1
+   Block 1      148h-149h           8               DSP effect 2
+   Block 2      15Ah-15Bh           8               DSP effect 3
+   Block 3      16Ch-16Dh           8               DSP effect 4
+86 Block 0      136h (bit 6)        1               DSP bypass 1
+   Block 1      148h (bit 6)        1               DSP bypass 2
+   Block 2      15Ah (bit 6)        1               DSP bypass 3
+   Block 3      16Ch (bit 6)        1               DSP bypass 4
 87 Block 0      138h-147h           16 bytes        DSP parameters 1
    Block 1      14Ah-159h           16 bytes        DSP parameters 2
    Block 2      15Ch-16Bh           16 bytes        DSP parameters 3

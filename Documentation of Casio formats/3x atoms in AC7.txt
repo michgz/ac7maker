@@ -142,12 +142,14 @@ Atom structure:     35h     Atom type
                     <byte>  Possibly an index. Usually 0.
                     <byte>  Specifies the EQ type. Possible values 0 - 7. Some
                             of the available types are:
-                                0   Bass boost
+                                0   Low pass
                                 1   Bass shelf filter
-                                2   Band pass filter
+                                2   High pass filter
+                                3   Treble shelf filter
+                                4   Band pass filter
                                 5   Notch filter
                                 6   Notch filter
-                                7   Treble shelf filter
+                                7   no filter
                     <byte>  Parameter 1. Possible values 0 -127. Often frequency
                     <byte>  Parameter 2. Possible values 0 - 127. Often cut/boost
                     <byte>  Parameter 3. Possible values 0 - 15.

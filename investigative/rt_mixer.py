@@ -27,6 +27,12 @@ import sys
 import binascii
 
 
+set_single_parameter(228, 812, category=2, block0=32)
+sys.exit(0)
+
+
+
+
 DEVICE_OUTPUT = '/dev/midi1'   # The CT-X3000
 DEVICE_NAME = "hw:2,0,1"   # The Roland A-x00
 
