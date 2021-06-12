@@ -98,7 +98,7 @@ relative to 00h or 88h).
 continuing...
 
 41              1A5h (bit 7)        1               =1 if Sound B used for note-off
-42              1A5h (bit 6)        1               
+42              1A5h (bits 5-6)     2               
 43              1A5h (bits 1-3)     3               Octave shift
 44              1A5h (bit 0)        1               Enable DSP
 45              1B6h                7               Volume
@@ -175,13 +175,13 @@ continuing...
 107             194h                7               Portamento time
 108             195h                7               [Maximum value 6]
 109             196h (bit 0)        1               
-110             197h (bit 0)        1               
-111             198h (bit 0)        1               
+110             197h                7               
+111             198h                7               
 112             199h                7               
 113             19Ah (bits 0-3)     4               
 114             19Ah (bit 4)        1               =1 if monophonic
 115             19Ah (bit 5)        1               =1 if Sound B used for harmony notes
-116             19Ah (bit 6)        1               =1 for portamento
+116             19Ah (bits 6-7)     2               =1 for portamento
 117 Block 0     19Ch (bits 0-3)     4               [Maximum value 8]        Filter type
     Block 1     1A0h (bits 0-3)     4               [Maximum value 8]
 118 Block 0     19Ch (bits 4-7) + 19Dh (bits 0-1) 6 [Maximum write value 22] Filter parameter 1

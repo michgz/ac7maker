@@ -606,13 +606,11 @@ def tone_read(parameter_set, memory=3, _debug=False):
   
   
   check_less(y[109][0], 2)
-  check_less(y[111][0], 2)
   
   if y[109][0]:
     x[0x196] = 1
   x[0x197] = y[110][0]
-  if y[111][0]:
-    x[0x198] = 1
+  x[0x198] = y[111][0]
   x[0x199] = y[112][0]
 
   v = 0
@@ -679,14 +677,13 @@ def tone_read(parameter_set, memory=3, _debug=False):
 
   v = 0
   check_less(y[41][0], 2)
-  check_less(y[42][0], 2)
+  check_less(y[42][0], 4)
   check_less(y[43][0], 8)
   check_less(y[44][0], 2)
   if y[44][0]:
     v += 0x01
   v += 2*(y[43][0] % 8)
-  if y[42][0]:
-    v += 0x40
+  v += 0x20*(y[42][0] % 4)
   if y[41][0]:
     v += 0x80
   x[0x1A5] = v
