@@ -585,9 +585,7 @@ def tone_read(parameter_set, memory=3, _debug=False):
   
 
   x[0x1C2] = y[123][0]   # parameter 200
-  check_less(y[124][0], 4)
   x[0x1C3] = y[124][0]   # parameter 201
-  check_less(y[125][0], 4)
   x[0x1C4] = y[125][0]   # parameter 202
   x[0x1C5:0x1C8] = b'\x00\x00\x00'
   
@@ -595,10 +593,11 @@ def tone_read(parameter_set, memory=3, _debug=False):
   
   x[0x126:0x136] = b'                ' # Name
   for j in range(4):
-    x[0x136+j*0x12:0x138+j*0x12] = struct.pack('<H', y[85][j])
+    dsp = y[85][j]
+    check_less(y[86][j], 2)
     if y[86][j] != 0:
-      raise Exception
-    # where is parameter 86?
+      dsp += 0x4000
+    x[0x136+j*0x12:0x138+j*0x12] = struct.pack('<H', dsp)
     if len(y[87][j]) > 0 and len(y[87][j]) < 16:
       x[0x138+j*0x12:0x138+len(y[87][j])+j*0x12] = y[87][j]
 
@@ -659,7 +658,7 @@ def tone_read(parameter_set, memory=3, _debug=False):
 
   v = 0
   check_less(y[55][0], 2)
-  check_less(y[80][0], 2)
+  check_less(y[80][0], 16)
   check_less(y[81][0], 2)
   check_less(y[82][0], 2)
   check_less(y[83][0], 2)
@@ -669,8 +668,7 @@ def tone_read(parameter_set, memory=3, _debug=False):
     v += 0x02
   if y[81][0]:
     v += 0x04
-  if y[80][0]:
-    v += 0x08
+  v += 0x08*(y[80][0] % 16)
   if y[55][0]:
     v += 0x80
   x[0x1A4] = v

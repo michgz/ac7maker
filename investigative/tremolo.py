@@ -9,7 +9,7 @@ import os
 import struct
 import time
 
-from scipy.signal import decimate, hilbert, stft, chirp
+from scipy.signal import decimate, hilbert, stft, chirp, welch
 import numpy
 import matplotlib.pyplot as plt
 import textwrap
@@ -44,14 +44,15 @@ else:
 
 
 
-# Exactly one of these should be selected. Chooses analysis of Tremolo or Vibrato.
+# Exactly one of these should be selected. Chooses analysis of Tremolo, Vibrato, or Filter.
 TREM = 0
-VIB = 1
+VIB = 0
+FILT = 1
 
 
 TREM_MOD = 0
 
-MOD_FORM = 2  # 0=CC 01, 1 = Polyphonic pressure, 2 = Channel pressure,3 = all
+MOD_FORM = 0  # 0=CC 01, 1 = Polyphonic pressure, 2 = Channel pressure,3 = all
 
 
 def do_mod(f, nn, v):
@@ -82,24 +83,27 @@ time.sleep(0.2)
 
 
 
-# Set the tone
-BANK_MSB = 35
-PATCH = 17
+# Set the tone. 83/63 = WHITE NOISE
+BANK_MSB = 63
+PATCH = 83
 
 os.write(f, struct.pack('BBBBBBBB', 0xB0, 0, BANK_MSB, 0xB0, 0x20, 0, 0xC0, PATCH))
 time.sleep(0.2)
 
-# Now overwrite parameter 228. This overwrites most aspects of the tone with another one.
-#  We are using "calibration" tones (numbers 800-810) which don't have a way of selecting
-#  with patch/bank. They need to be selected with parameter 228.
-#     800 = plain sine
-#     809 = silence
-PARAM_228 = 800
-BLOCK_0 = 32
+if False:
+  # - Now don't do this.
+  #
+  # Now overwrite parameter 228. This overwrites most aspects of the tone with another one.
+  #  We are using "calibration" tones (numbers 800-810) which don't have a way of selecting
+  #  with patch/bank. They need to be selected with parameter 228.
+  #     800 = plain sine
+  #     809 = silence
+  PARAM_228 = 800
+  BLOCK_0 = 32
 
 
-pkt = b'\xf0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('BB', BLOCK_0%128, BLOCK_0//128) + b'\x64\x01\x00\x00\x00\x00' + struct.pack('BB', PARAM_228%128, PARAM_228//128) + b'\xf7'
-os.write(f, pkt)
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x02\x03\x00\x00\x00\x00\x00\x00\x00\x00' + struct.pack('BB', BLOCK_0%128, BLOCK_0//128) + b'\x64\x01\x00\x00\x00\x00' + struct.pack('BB', PARAM_228%128, PARAM_228//128) + b'\xf7'
+  os.write(f, pkt)
 
 
 
@@ -108,11 +112,11 @@ if TREM:
   # Now write a couple of parameters to get tremolo working
 
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x42\x00\x00\x00\x00\x00' + struct.pack('B', 5) + b'\xf7'
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x42\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'
   os.write(f, pkt)
 
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x43\x00\x00\x00\x00\x00' + struct.pack('B', 50) + b'\xf7'  # Rate
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x43\x00\x00\x00\x00\x00' + struct.pack('B', 8) + b'\xf7'  # Rate
   os.write(f, pkt)
 
 
@@ -129,38 +133,38 @@ if TREM:
   os.write(f, pkt)
 
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x48\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # Depth in response to channel pressure (after-touch -- D0).
-  os.write(f, pkt)
+  #pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x48\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # Depth in response to channel pressure (after-touch -- D0).
+  #os.write(f, pkt)
 
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x47\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # Depth when modulated. 0=-ve .. 8=none .. 16=+ve.    32..96=none. 97=+ve .. 119=none .. 127=-ve.
-  os.write(f, pkt)
+  #pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x47\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # Depth when modulated. 0=-ve .. 8=none .. 16=+ve.    32..96=none. 97=+ve .. 119=none .. 127=-ve.
+  #os.write(f, pkt)
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x46\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # Depth when **not** modulated???
-  os.write(f, pkt)
+  #pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x46\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # Depth when **not** modulated???
+  #os.write(f, pkt)
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x45\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # ??
-  os.write(f, pkt)
-
-
-
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x44\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # ??
-  os.write(f, pkt)
+  #pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x45\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # ??
+  #os.write(f, pkt)
 
 
 
+  #pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x44\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'    # ??
+  #os.write(f, pkt)
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4c\x00\x00\x00\x00\x00' + struct.pack('B', 127) + b'\xf7'
-  os.write(f, pkt)
-  time.sleep(0.05)
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4d\x00\x00\x00\x00\x00' + struct.pack('B', 127) + b'\xf7'
+
+
+
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4c\x00\x00\x00\x00\x00' + struct.pack('B', 64) + b'\xf7'
   os.write(f, pkt)
   time.sleep(0.05)
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4e\x00\x00\x00\x00\x00' + struct.pack('B', 127) + b'\xf7'
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4d\x00\x00\x00\x00\x00' + struct.pack('B', 64) + b'\xf7'
+  os.write(f, pkt)
+  time.sleep(0.05)
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4e\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'
   os.write(f, pkt)
   time.sleep(0.05)
 
-  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4f\x00\x00\x00\x00\x00' + struct.pack('B', 1) + b'\xf7'
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x4f\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'
   os.write(f, pkt)
   time.sleep(0.05)
 
@@ -206,6 +210,37 @@ if VIB:
   time.sleep(0.1)
   
 
+
+
+if FILT:
+  
+
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x42\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'
+  os.write(f, pkt)
+
+
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x43\x00\x00\x00\x00\x00' + struct.pack('B', 8) + b'\xf7'  # Rate
+  os.write(f, pkt)
+  
+  
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x44\x00\x00\x00\x00\x00' + struct.pack('B', 5) + b'\xf7'
+  os.write(f, pkt)
+  
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x45\x00\x00\x00\x00\x00' + struct.pack('B', 5) + b'\xf7' 
+  os.write(f, pkt)
+  
+  
+  
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x46\x00\x00\x00\x00\x00' + struct.pack('B', 0) + b'\xf7'  # Depth
+  os.write(f, pkt)
+  
+
+
+  pkt = b'\xf0\x44\x19\x01\x7F\x01\x03\x03\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b'\x48\x00\x00\x00\x00\x00' + struct.pack('B', 64) + b'\xf7'
+  os.write(f, pkt)
+
+
+  
 
 MOD = 127
 
@@ -293,23 +328,34 @@ for ii in it:
 
   # MIDI note on
   os.write(f, b'\x90' + struct.pack('B', nn) + b'\x6e')
-  time.sleep(1.3)
 
 
-  do_mod(f, nn, MOD//4)
-  time.sleep(1.3)
+  if True:
+    time.sleep(2.6)
 
 
-  do_mod(f, nn, MOD//2)
-  time.sleep(1.3)
-  
-  
-  do_mod(f, nn, 3*MOD//4)
-  time.sleep(1.3)
+    do_mod(f, nn, MOD)
+    time.sleep(3.9)
+    
+    
+  else:
+    time.sleep(1.3)
 
 
-  do_mod(f, nn, MOD)
-  time.sleep(1.3)
+    do_mod(f, nn, MOD//4)
+    time.sleep(1.3)
+
+
+    do_mod(f, nn, MOD//2)
+    time.sleep(1.3)
+    
+    
+    do_mod(f, nn, 3*MOD//4)
+    time.sleep(1.3)
+
+
+    do_mod(f, nn, MOD)
+    time.sleep(1.3)
 
 
   # MIDI note off
@@ -360,10 +406,35 @@ for ii in it:
 
 
 
-
-
-
-
+  if FILT:
+    
+    i = 0
+    bx = []
+    while i+2048 <= len(lx):
+    
+      mx = lx[i:i+2048]
+    
+      fr, pw = welch(mx, RATE, nperseg=32)
+      
+      if max(pw) < 20.:
+        # Not enough signal to find the cutoff frequency
+        bx.append(0)
+      
+      else:
+        # Crude approximation of the 3dB bandwidth
+        
+        j = numpy.argmax(pw)
+        targ = max(pw) * 0.6  # 3dB is .707. Make it a bit lower to account for spikiness
+        
+        while (pw[j] > targ):
+          j += 1
+          
+        if j < len(fr):
+          bx.append(fr[j])
+        else:
+          bx.append(20000)
+      
+      i += 2048
 
 
 
@@ -389,6 +460,10 @@ if VIB:
 
 if TREM:
   plt.plot(ex)
+  plt.show()
+
+if FILT:
+  plt.plot(bx)
   plt.show()
 
 # plt.plot(gx)

@@ -64,7 +64,7 @@ relative to 00h or 88h).
     Block 6     +40h-+41h           10              
 +14             +7Eh                8               Cutoff frequency
 +15             +7Fh                8               Cutoff resonance
-+16             +80h                7               Cutoff frequency fine control or no effect
++16             +80h                7               Multiplier for filter envelope
 +17 Block 0     +46h                8               Filter envelope...
     Block 1     +4Ah                8               
     Block 2     +4Eh                8               
@@ -122,18 +122,18 @@ continuing...
 63              116h                7               Vibrato depth
 64              117h                7               Vibrato depth for CC 01 (modulation)
 65              118h                7               Vibrato depth for channel pressure (after-touch)
-66              124h (bits 0-3)     4               Tremolo type (values 0-6)
-67              119h                7               Tremolo rate
-68              11Ah                7               
-69              11Bh                7               
-70              11Ch                7               
-71              11Dh                7               Tremolo depth for CC 01 (modulation) - (0=max. -ve, 8=none, 16=max. +ve, 64=none)
-72              11Eh                7               Tremolo depth for channel pressure (after-touch) - (0=max. -ve, 8=none, 16=max. +ve, 64=none)
+66              124h (bits 0-3)     4               Tremolo/filter LFO type (values 0-6)
+67              119h                7               Tremolo/filter LFO rate
+68              11Ah                7               Filter LFO delay
+69              11Bh                7               Filter LFO rise time
+70              11Ch                7               Filter LFO depth (64..127)
+71              11Dh                7               Filter LFO depth for CC 01 (modulation) - (0=-ve, 64=none, 127=+ve.)
+72              11Eh                7               Filter LFO depth for channel pressure (after-touch) - (0=-ve, 64=none, 127=+ve.)
 73              11Fh                7               Tremolo delay
 74              120h                7               Tremolo rise time
 75              121h                7               Tremolo depth (64=none, 90=6dB peak-to-trough, 100=12dB peak-to-trough, 127=max.)
-76              122h                7               
-77              123h                7               
+76              122h                7               Tremolo depth for CC 01 (modulation) - (0=-ve, 64=none, 127=+ve.)
+77              123h                7               Tremolo depth for channel pressure (after-touch) - (0=-ve, 64=none, 127=+ve.)
 78              1C0h                7               
 79              1C1h                4               
 80              1A4h (bits 3-5)     3               Stretch tuning
