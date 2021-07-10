@@ -102,9 +102,9 @@ continuing...
 43              1A5h (bits 1-3)     3               Octave shift
 44              1A5h (bit 0)        1               Enable DSP
 45              1B6h                7               Volume
-46              1B7h                7               
-47              1B8h                7               
-48              1B9h                7               
+46              1B7h                7               volume 2
+47              1B8h                7               key follow 1
+48              1B9h                7               key follow 2
 49              1BAh                7               
 50              1BBh                7               
 51              1BCh                7               
@@ -115,14 +115,14 @@ continuing...
 56              110h                7               Chorus send
 57              111h                7               Reverb send
 58              112h                7               Delay send
-59              124h (bits 4-7)     4               Vibrato type (values 0-6)
+59              124h (bits 4-7)     4               Vibrato type (values 0-6) *
 60              113h                7               Vibrato rate
 61              114h                7               Vibrato delay
 62              115h                7               Vibrato rise time
 63              116h                7               Vibrato depth
 64              117h                7               Vibrato depth for CC 01 (modulation)
 65              118h                7               Vibrato depth for channel pressure (after-touch)
-66              124h (bits 0-3)     4               Tremolo/filter LFO type (values 0-6)
+66              124h (bits 0-3)     4               Tremolo/filter LFO type (values 0-6) *
 67              119h                7               Tremolo/filter LFO rate
 68              11Ah                7               Filter LFO delay
 69              11Bh                7               Filter LFO rise time
@@ -197,4 +197,6 @@ continuing...
 200             1C2h                7               
 201             1C3h                2               
 202             1C4h                2               
+
+* LFO types: 0=sine, 1=triangle, 2=saw up, 3=saw down, 4=3:1 rectangle, 5=square, 6=1:3 rectangle.
 
