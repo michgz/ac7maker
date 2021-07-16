@@ -98,7 +98,7 @@ relative to 00h or 88h).
 continuing...
 
 41              1A5h (bit 7)        1               =1 if Sound B used for note-off
-42              1A5h (bits 5-6)     2               Note off velocity (0=Note-off, 1=Saved note-on, 2=Minimum)
+42              1A5h (bits 5-6)     2               Note off velocity (0=Note-off, 1=Saved note-on, 2=Minimum of note-off and saved note-on)
 43              1A5h (bits 1-3)     3               Octave shift
 44              1A5h (bit 0)        1               Enable DSP
 45              1B6h                7               Volume
@@ -173,7 +173,7 @@ continuing...
 105             18Fh                7               
 106             190h-193h           32              
 107             194h                7               Portamento time
-108             195h                7               [Maximum value 6]
+108             195h                7               Keyboard octave shift
 109             196h (bit 0)        1               
 110             197h                7               
 111             198h                7               
@@ -194,9 +194,9 @@ continuing...
     Block 1     1A3h (bit 3)        1               
 122 Block 0     19Eh (bits 0-2)     3               
     Block 1     1A3h (bits 0-2)     3               
-200             1C2h                7               
-201             1C3h                2               
-202             1C4h                2               
+200             1C2h                7               volume 3 (affects keyboard tones only)
+201             1C3h                2               key follow 3 (affects keyboard tones only)
+202             1C4h                2               key follow 4 (affects keyboard tones only)
 
 * LFO types: 0=sine, 1=triangle, 2=saw up, 3=saw down, 4=3:1 rectangle, 5=square, 6=1:3 rectangle.
 
