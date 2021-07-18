@@ -16,10 +16,10 @@ Parameter  Offset in Bulk    Meaning
 13         0x283             
 14         0x284             
 15         0x285             
-16                           
-17                           
-18         0x286             Filter offset base
-19         0x287             Filter offset velocity dependence
+16         0x27A             Filter type (0/8=low, 1=high, 2=band)
+17         0x278             
+18         0x286             Filter cutoff base value
+19         0x287             Filter cutoff velocity dependence
 20         0x288             
 21         0x289             
 22         0x28A             
