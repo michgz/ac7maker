@@ -327,7 +327,8 @@ def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0,
     time.sleep(0.01)
     
     if len(type_1_rxed)<1 or len(type_1_rxed)>5:
-      raise Exception("Not able to read out value to write")
+      os.close(f)
+      raise SysexTimeoutError("Not able to read out value to write")
     
     
     # Now do the bit-stuffing

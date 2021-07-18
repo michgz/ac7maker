@@ -9,6 +9,7 @@ import os.path
 import struct
 import time
 import textwrap
+import itertools
 
 
 
@@ -19,7 +20,7 @@ sys.path.append('..')
 sys.path.append('../internal')
 
 
-from internal.sysex_comms_internal import upload_ac7_internal, download_ac7_internal
+from internal.sysex_comms_internal import upload_ac7_internal, download_ac7_internal, set_single_parameter, SysexTimeoutError
 
 
 def Initial_Setup():
@@ -85,8 +86,8 @@ def Set_Wavetable(CAT12_NUM):
   j = -1
   MIDDLE_C = 60
   for i in range(16):
-    cc = struct.unpack_from("BB", x, 0x10+4+10*i)
-    if MIDDLE_C >= cc[0] and MIDDLE_C <= cc[1]:
+    cc = struct.unpack_from("<HHBB", x, 0x10+10*i)
+    if MIDDLE_C >= cc[2] and MIDDLE_C <= cc[3] and cc[0] != 0:
       j = i
       break
   if j < 0:
@@ -103,12 +104,30 @@ def Set_Wavetable(CAT12_NUM):
 
 
   
+  FILTER_BASE = 127
+  X_BASE = 127  # Parameter 20
+  Y_BASE = 127  # Parameter 24
+  
   y += x[0xB0:0x27C]
-  y += struct.pack("24B", 127, 2, 128, 2, 2, 127, 2, 2, 127, 2, 127, 2, 127, 2, 2, 2, 127, 2, 2, 127, 64, 0, 127, 2)
+  y += struct.pack("24B", 127, 2, 128, 2, 2, 127, 2, 2, 127, 2, FILTER_BASE, 2, X_BASE, 2, 2, 2, Y_BASE, 2, 2, 127, 64, 0, 127, 2)
 
 
   upload_ac7_internal(0, y, memory=1, category=12)
 
+
+
+def Cycle_Parameter(PARAM):
+  
+  # Cycle until the user hits Ctrl+C
+  
+  for v in itertools.cycle([127, 60, 30, 160]):
+    
+    print("Setting parameter {0} to: {1}".format(PARAM, v))
+    try:
+      set_single_parameter(PARAM, v, category=12, memory=1)
+    except SysexTimeoutError:
+      print("   -- failed write")
+    time.sleep(4.0)
 
 
 
@@ -124,5 +143,7 @@ if __name__ == "__main__":
     with open("melody_wavetable.py.lock.txt", "w") as f4:
       f4.write("INITIALISED\n")
   
-  Set_Wavetable(1419)
+  Set_Wavetable(1220)
+  
+  Cycle_Parameter(18)
 
