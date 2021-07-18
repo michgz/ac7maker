@@ -1,11 +1,12 @@
 Parameter  Offset in Bulk    Meaning
 ---------  --------------    ------- 
 
-1                            
-2                            
+0
+1          0x000-0x001       16 bits signed: fine tune (0x200 per semitone)
+2          0x27A (bits 5-7)  Pitch slope (0="normal" 1 semitone per note, 7="flat" 0 semitone per note)                 
 3                            
 4                            
-5                            
+5          0x27A (bits 3-4)                  
 6          0x27C             
 7          0x27D             
 8          0x27E             
@@ -16,7 +17,7 @@ Parameter  Offset in Bulk    Meaning
 13         0x283             
 14         0x284             
 15         0x285             
-16         0x27A             Filter type (0/8=low, 1=high, 2=band)
+16         0x27A (bits 0-2)  Filter type (0=low, 1=high, 2=band)
 17         0x278             
 18         0x286             Filter cutoff base value
 19         0x287             Filter cutoff velocity dependence
