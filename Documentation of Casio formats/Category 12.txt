@@ -4,12 +4,12 @@ Parameter  Offset in Bulk    Meaning
 0
 1          0x000-0x001       16 bits signed: fine tune (0x200 per semitone)
 2          0x27A (bits 5-7)  Pitch slope (0="normal" 1 semitone per note, 7="flat" 0 semitone per note)                 
-3                            
-4                            
-5          0x27A (bits 3-4)                  
+3          0x004-0x005       (14 bits)             
+4          0x006-0x007       
+5          0x27A (bits 3-4)  Treble roll-off type (0=slow, 1=fast)
 6          0x27C             
 7          0x27D             
-8          0x27E             
+8          0x27E             Treble roll-off
 9          0x27F             
 10         0x280             
 11         0x281             
@@ -17,7 +17,7 @@ Parameter  Offset in Bulk    Meaning
 13         0x283             
 14         0x284             
 15         0x285             
-16         0x27A (bits 0-2)  Filter type (0=low, 1=high, 2=band)
+16         0x27A (bits 0-2)  Filter type (0=low, 1=high, 2=band, 3=low no resonance, 4=treble roll-off)
 17         0x278             
 18         0x286             Filter cutoff base value
 19         0x287             Filter cutoff velocity dependence
@@ -29,7 +29,7 @@ Parameter  Offset in Bulk    Meaning
 25         0x28D             
 26         0x28E             
 27         0x28F             Overall volume
-28         0x290             
+28         0x290             Overall pan
 29         0x291             
 30         0x292             
 31         0x293             
@@ -45,12 +45,30 @@ Parameter  Offset in Bulk    Meaning
 37         0x018             Layer filter cutoff
 38         0x019             Layer volume
 ==========================================
+39         0x012-0x013 (bits 9-10)
+40         0x012-0x013 (bits 7-8)
+41         0x012-0x013 (bits 5-4)
+42         0x012-0x013 (bits 3-4)
+43         0x012-0x013 (bits 1-2)
+44         0x012-0x013 (bit 0) 
+
+==== Indexed by Block0=0..3.    ==========
+===    offset = 0x02                  ====
+45         0x0B0-0x0B1 (bits 12-15)
+46         0x0B0-0x0B1 (bits 8-11)
+47         0x0B0-0x0B1 (bits 4-7)
+48         0x0B0-0x0B1 (bits 0-3)
+
+==== Indexed by Block0=0..3.    ==========
+===    offset = 0x1C                  ====
+==== Indexed by Block1=0..6.    ==========
+===    offset = 0x04                  ====
 49         0x0B8             
 50         0x0BA             
 51         0x128             
 52         0x12A             
 53         0x198             
 54         0x19A             
-55         0x208             
-56         0x20A             
+55         0x208             (max val 0x3FFF)
+56         0x20A             (max val 0x03FF)
 
