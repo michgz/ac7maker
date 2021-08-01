@@ -44,11 +44,10 @@ Parameter  Offset in Bulk    Meaning
 36         0x017             
 37         0x018             Layer filter cutoff
 38         0x019             Layer volume
-==========================================
 39         0x012-0x013 (bits 9-10)
 40         0x012-0x013 (bits 7-8)
 41         0x012-0x013 (bits 5-4)
-42         0x012-0x013 (bits 3-4)
+42         0x012-0x013 (bits 3-4)   Amplitude envelope selector (Block0 value for parameters 45-56)
 43         0x012-0x013 (bits 1-2)
 44         0x012-0x013 (bit 0) 
 
@@ -63,12 +62,12 @@ Parameter  Offset in Bulk    Meaning
 ===    offset = 0x1C                  ====
 ==== Indexed by Block1=0..6.    ==========
 ===    offset = 0x04                  ====
-49         0x0B8             
-50         0x0BA             
-51         0x128             
-52         0x12A             
-53         0x198             
-54         0x19A             
-55         0x208             (max val 0x3FFF)
-56         0x20A             (max val 0x03FF)
+49         0x0B8             (max val 0x3FFF)
+50         0x0BA             (max val 0x03FF)
+51         0x128             (max val 0x2FFF)
+52         0x12A             (max val 0x3FFF)
+53         0x198             (max val 0x3FFF)
+54         0x19A             (max val 0x03FF)
+55         0x208             (max val 0x3FFF)   Envelope magnitude scaling factor
+56         0x20A             (max val 0x03FF)   Envelope timing scaling factor
 
