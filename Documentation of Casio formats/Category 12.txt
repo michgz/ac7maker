@@ -1,7 +1,7 @@
 Parameter  Offset in Bulk    Meaning
 ---------  --------------    ------- 
 
-0
+0          0x002             Coarse tune
 1          0x000-0x001       16 bits signed: fine tune (0x200 per semitone)
 2          0x27A (bits 5-7)  Pitch slope (0="normal" 1 semitone per note, 7="flat" 0 semitone per note)                 
 3          0x004-0x005       (14 bits)             
