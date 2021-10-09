@@ -1,0 +1,48 @@
+CATEGORY 14
+===========
+
+Parameter       Bulk Offset         Bits            Bytes            Description
+---------       -----------         ----            -----            -----------
+0               0xAC                16              3                
+1               0x00                16              3                Fine tune (semitone = 0x200)
+
+====== Block0 = 0..1 =======
+=======  (offset 0x04)  ====
+2               0x02                14              2                Pitch control
+3               0x04                10              2                Pitch control
+============================
+
+4               0xAE (bit 7)        1               1                
+5               0xB0                8               2                Amplitude scaling (0-255)
+6               0xAE (bits 0-6)     6               1                Coarse tune (units semitones)
+
+======== Block0 = 0..3 =====
+=======  (offset 0x18)  ====
+7               0x20                1               4                
+8               0x10                24              4                
+9               0x14                24              4                
+10              0x18                24              4                
+11              0x1C                24              4                
+12              0x24                18              4                
+============================
+
+====== Block0 = 0..1 =======
+=======  (offset 0x20)  ====
+13              0x80                24              5                Controls repetition
+14              0x84                20              3                
+15              0x88                24              5                
+16              0x70                24              5                
+17              0x74                24              5                
+18              0x78                24              5                
+19              0x7C                24              5                
+20              0x6C                24              5                
+============================
+
+
+CATEGORY 15
+===========
+
+Parameter       Bulk Offset         Bits            Bytes            Description
+---------       -----------         ----            -----            -----------
+0               0x00                24                               Memory offset
+1               0x04                24                               Memory length

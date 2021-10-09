@@ -1,11 +1,24 @@
 Parameter  Offset in Bulk    Meaning
 ---------  --------------    ------- 
 
-0          0x002             Coarse tune
+0          0x002             Coarse tune (units: semitones)
 1          0x000-0x001       16 bits signed: fine tune (0x200 per semitone)
-2          0x27A (bits 5-7)  Pitch slope (0="normal" 1 semitone per note, 7="flat" 0 semitone per note)                 
+2          0x27A (bits 5-7)  Pitch slope; semitones per MIDI note step:
+                                0 = 1.0  ("normal")
+                                1 = 0.5
+                                2 = 0.25
+                                3 = 0.125
+                                4 = 0.0625
+                                5 = 0.03125
+                                6 = 0.015625
+                                7 = 0.0 ("flat")
+
+==== Indexed by Block0=0..3.    ==========
+===    offset = 0x04                  ====
 3          0x004-0x005       (14 bits)             
-4          0x006-0x007       
+4          0x006-0x007       (10 bits)
+==========================================
+
 5          0x27A (bits 3-4)  Treble roll-off type (0=slow, 1=fast)
 6          0x27C             
 7          0x27D             
@@ -23,7 +36,7 @@ Parameter  Offset in Bulk    Meaning
 19         0x287             Filter cutoff velocity dependence
 20         0x288             
 21         0x289             
-22         0x28A             
+22         0x28A             Treble roll-off cutoff velocity dependence
 23         0x28B             
 24         0x28C             
 25         0x28D             
