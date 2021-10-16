@@ -352,7 +352,7 @@ def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0,
     
     
     KEY= f"{category:d},{parameter:d}"
-    SHELVE_DB = os.path.join(os.path.dirname(__file__), "ctx_parameter_lengths")
+    SHELVE_DB = os.path.join(os.path.dirname(__file__), "ctx_parameter_lengths.shelve")
     key_len = None
     
     with shelve.open(SHELVE_DB) as db:
