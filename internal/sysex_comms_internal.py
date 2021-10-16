@@ -100,14 +100,43 @@
 #    #   ^-- Prints the internally stored version of tone 801's "Attack time" parameter
 #
 #
+#
+#   Common Parameters
+#   =================
+#
+# All functions take these optional parameters:
+#
+#    fd      - device name to use. Default is '/dev/midi1'. To see what devices
+#              are currently available on your (Linux) system, call:
+#
+#                ls /dev/midi*
+#
+#
+#    fs      - device (file) stream to use. Default is None. If None, then parameter
+#              fd will be the name of the device opened for the communications.
+#              If non-None, it is expected that it is a stream which is already
+#              open in Raw read/write mode.
+#              This is useful for calling these functions in the middle of doing
+#              other MIDI communications, without needing to close and re-open the
+#              stream.
+#
+#              The general pattern for use is:
+#
+#                 import os
+#                 _fs = os.open('/dev/midi1', os.O_RDWR)
+#                 function_to_call(.... , fs=_fs)
+#                 os.close(_fs)
+#
 
 
 
 import time
 import os
+import os.path
 import struct
 import sys
 import binascii
+import shelve
 
 
 
@@ -184,7 +213,7 @@ def handle_pkt(p):
     type_1_rxed = v
 
 
-def parse_response(b):
+def parse_response(b, *, _debug=False):
   global so_far
   
   in_pkt = True
@@ -197,6 +226,8 @@ def parse_response(b):
       if x == 0xF7:
         so_far += b'\xf7'
         # Have completed. Do something!
+        if _debug:
+          print(so_far.hex(" ").upper())
         handle_pkt(so_far)
         in_pkt = False
         so_far = b''
@@ -283,7 +314,7 @@ def make_packet(tx=False,
       print("Length of block should be 4, was {0}; setting to all zeros".format(len(block)))
       block = [0,0,0,0]
     for blk_x in block:
-      w += struct.pack('<H', 0x7F7F & blk_x)
+      w += struct.pack('<BB', blk_x%128, blk_x//128)
     w += struct.pack('<BBHH', parameter%128, parameter//128, index, length-1)
   if (tx):
     w += data
@@ -292,12 +323,15 @@ def make_packet(tx=False,
 
 
 
-def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0, block0=0, block1=0):
+def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0, block0=0, block1=0, *, fd=DEVICE_NAME, fs=None, _debug=False):
 
   global type_1_rxed
 
-  # Open the device
-  f = os.open(DEVICE_NAME, os.O_RDWR)
+  # Open the device (if needed)
+  if fs is None:
+    f = os.open(fd, os.O_RDWR)
+  else:
+    f = fs
 
 
   # Flush the input queue
@@ -312,27 +346,44 @@ def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0,
     # The input is an integer. The "length" parameter passed to make_packet must be
     # 1, but we don't know how many bytes of bit-stuffed data the keyboard is actually
     # expecting. Read the current value to find that out.
+    #
+    # The values are cached in a shelving database to speed things up. Reading out
+    # is quite a slow operation, so we want to do it as little as possible.
     
     
-    type_1_rxed = b''
+    KEY= f"{category:d},{parameter:d}"
+    SHELVE_DB = os.path.join(os.path.dirname(__file__), "ctx_parameter_lengths")
+    key_len = None
+    
+    with shelve.open(SHELVE_DB) as db:
+      if KEY in db.keys():
+        key_len = db[KEY]
+    
+    if key_len is None:
+      type_1_rxed = b''
 
-    # Read the current parameter value
-    os.write(f, make_packet(parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=1))
-    time.sleep(0.1)
-    
-    # Handle any response
-    parse_response(os.read(f, 20))
-    time.sleep(0.2)
-    parse_response(os.read(f, 20))
-    time.sleep(0.01)
-    
-    if len(type_1_rxed)<1 or len(type_1_rxed)>5:
-      os.close(f)
-      raise SysexTimeoutError("Not able to read out value to write")
+      # Read the current parameter value
+      os.write(f, make_packet(parameter_set=parameter_set, category=category, memory=memory, parameter=parameter, block=[0,0,block1,block0], length=1))
+      time.sleep(0.1)
+      
+      # Handle any response
+      parse_response(os.read(f, 20))
+      time.sleep(0.2)
+      parse_response(os.read(f, 20))
+      time.sleep(0.01)
+      
+      if len(type_1_rxed)<1 or len(type_1_rxed)>5:
+        os.close(f)
+        raise SysexTimeoutError("Not able to read out value to write")
+      else:
+        key_len = len(type_1_rxed)
+        
+        with shelve.open(SHELVE_DB) as db:
+          db[KEY] = key_len
     
     
     # Now do the bit-stuffing
-    for i in range(len(type_1_rxed)):
+    for i in range(key_len):
       d = d + struct.pack('B', data&0x7F)
       data = data//0x80
     l = 1   # length is always 1 for numeric inputs
@@ -352,18 +403,22 @@ def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0,
   time.sleep(0.01)
 
   # Close the device
-  os.close(f)
+  if fs is None:
+    os.close(f)
 
 
 
 
 
-def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block0=0, block1=0, length=0):
+def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block0=0, block1=0, length=0, *, fd=DEVICE_NAME, fs=None, _debug=False):
 
   global type_1_rxed
 
-  # Open the device
-  f = os.open(DEVICE_NAME, os.O_RDWR)
+  # Open the device (if needed)
+  if fs is None:
+    f = os.open(fd, os.O_RDWR)
+  else:
+    f = fs
 
 
   # Flush the input queue
@@ -383,13 +438,14 @@ def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block
   time.sleep(0.1)
   
   # Handle any response
-  parse_response(os.read(f, 20))
+  parse_response(os.read(f, 20), _debug=_debug)
   time.sleep(0.2)
-  parse_response(os.read(f, 20))
+  parse_response(os.read(f, 20), _debug=_debug)
   time.sleep(0.01)
 
   # Close the device
-  os.close(f)
+  if fs is None:
+    os.close(f)
   
   
   # Now decode the response. Value of "length" determines whether to regard it as
@@ -437,10 +493,13 @@ def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block
 
 
 
-def upload_ac7_internal(param_set, data, memory=1, category=30):
+def upload_ac7_internal(param_set, data, memory=1, category=30, *, fd=DEVICE_NAME, fs=None, _debug=False):
 
-  # Open the device
-  f = os.open(DEVICE_NAME, os.O_RDWR)
+  # Open the device (if needed)
+  if fs is None:
+    f = os.open(fd, os.O_RDWR)
+  else:
+    f = fs
 
 
   # Flush the input queue
@@ -485,7 +544,8 @@ def upload_ac7_internal(param_set, data, memory=1, category=30):
   os.write(f, make_packet(parameter_set=param_set, category=category, memory=memory, command=0xe))
   time.sleep(0.3)
 
-  os.close(f)
+  if fs is None:
+    os.close(f)
 
 
 
@@ -493,13 +553,16 @@ def upload_ac7_internal(param_set, data, memory=1, category=30):
 
 
 
-def download_ac7_internal(param_set, memory=1, category=30):
+def download_ac7_internal(param_set, memory=1, category=30, *, fd=DEVICE_NAME, fs=None, _debug=False):
 
   global have_got_ess
   global total_rxed
 
-  # Open the device
-  f = os.open(DEVICE_NAME, os.O_RDWR)
+  # Open the device (if needed)
+  if fs is None:
+    f = os.open(fd, os.O_RDWR)
+  else:
+    f = fs
 
 
   # Flush the input queue
@@ -544,7 +607,8 @@ def download_ac7_internal(param_set, memory=1, category=30):
   os.write(f, make_packet(parameter_set=param_set, category=category, memory=memory, command=0xe))
   time.sleep(0.3)
 
-  os.close(f)
+  if fs in None:
+    os.close(f)
   
   return total_rxed
 
