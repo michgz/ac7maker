@@ -312,18 +312,18 @@ class Experiment:
           os.write(f_midi, struct.pack("3B", 0x80, NOTE, 0x7F))
           time.sleep(0.6)
       
-          RESULTS[i][j] = self.measure_amplitude(result, RATE)
+          RESULTS[i][j][k] = self.measure_amplitude(result, RATE)
 
     
     os.close(f_midi)
     p.terminate()
     
-    self._results = RESULTS
-  
-  
-  
-  
+    self._results = {'inputs': [{'name': 'notes', 'parameter': None, 'values': NOTES},
+                                {'name': 'velocity_sense', 'parameter': {'parameter': 5, 'category': 3, 'min':0, 'max': 127}, 'values': PARAMS},
+                                {'name': 'velocity', 'parameter': None, 'values': VARS}],
+                     'output': {'name': 'amplitude', 'values': RESULTS} }
     
+  
   
   def save_results(self, output_dir=None):
     if self._is_complete:
@@ -339,13 +339,21 @@ class Experiment:
       with open(os.path.join(output_dir, "Results.csv"), "w") as f1:
         
 
-        for i in range(self._results.shape[0]):
+        for i, NOTE in enumerate(self._results['inputs'][0]['values']):
           f1.write("\n\nNOTE:\n")
 
-        
-          for j in range(self._results.shape[1]):
-            for k in range(self._results.shape[2]):
-              f1.write("{0},".format(self._results[i][j][k]))
+
+          f1.write(",")
+          for k, VEL in enumerate(self._results['inputs'][2]['values']):
+            f1.write("{0},".format(VEL))
+          f1.write("\n")
+          
+          
+          
+          for j, PARAM in enumerate(self._results['inputs'][1]['values']):
+            f1.write("{0},".format(PARAM))
+            for k, VEL in enumerate(self._results['inputs'][2]['values']):
+              f1.write("{0},".format(self._results['output']['values'][i][j][k]))
             f1.write("\n")
   
 
