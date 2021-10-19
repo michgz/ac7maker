@@ -607,7 +607,7 @@ def download_ac7_internal(param_set, memory=1, category=30, *, fd=DEVICE_NAME, f
   os.write(f, make_packet(parameter_set=param_set, category=category, memory=memory, command=0xe))
   time.sleep(0.3)
 
-  if fs in None:
+  if fs is None:
     os.close(f)
   
   return total_rxed
