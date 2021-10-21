@@ -114,19 +114,33 @@ class ParameterSequence:
     self._type = -1
     
   @classmethod
-  def SingleParameter(cls, parameter: int, category: int, values: list):
+  def SingleParameter(cls, parameter: int, category: int, values: list, *, block0=0):
     self = ParameterSequence()
     self._type = 1
     self._parameter = {'parameter': parameter, 'category': category, 'default': 0}
     self._values = values
+    self._block0 = block0
+    if category == 3:
+      self._parameter_set = 32
+      self._memory=3
+    else:
+      self._parameter_set = 0
+      self._memory=1
     return self
     
   @classmethod
-  def SingleValue(cls, parameters: list, category:int, value: int, default=0):
+  def SingleValue(cls, parameters: list, category:int, value: int, default=0, *, block0=0):
     self = ParameterSequence()
     self._type = 2
     self._parameters = [{'parameter': x, 'category': category, 'default': default} for x in parameters]
     self._value = value
+    self._block0 = block0
+    if category == 3:
+      self._parameter_set = 32
+      self._memory=3
+    else:
+      self._parameter_set = 0
+      self._memory=1
     return self
   
   @classmethod
@@ -134,6 +148,7 @@ class ParameterSequence:
     self = ParameterSequence()
     self._type = 3
     self._velocities = velocities
+    self._block0 = 0
     return self
   
   class ParameterSequenceValue:
@@ -174,7 +189,7 @@ class ParameterSequence:
       return iter(
         [
           ParameterSequence.ParameterSequenceValue(
-            {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': 1, 'parameter_set': 0, 'block0': 0, 'block1': 0},
+            {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
             None
           )
           for x in self._values
@@ -183,8 +198,8 @@ class ParameterSequence:
       return iter(
         [
           ParameterSequence.ParameterSequenceValue(
-            {'parameter': x['parameter'], 'data': self._value, 'category': x['category'], 'memory': 1, 'parameter_set': 0, 'block0': 0, 'block1': 0},
-            {'parameter': x['parameter'], 'data': x['default'], 'category': x['category'], 'memory': 1, 'parameter_set': 0, 'block0': 0, 'block1': 0}
+            {'parameter': x['parameter'], 'data': self._value, 'category': x['category'], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
+            {'parameter': x['parameter'], 'data': x['default'], 'category': x['category'], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0}
           )
           for x in self._parameters
         ])
@@ -263,7 +278,7 @@ class Experiment:
                  'ampl_env': amplitude envelope
                  'pitch_env': pitch envelope
     """
-    self.output = 'pitch_env'
+    self.output = 'ampl_env'
     
     
     self.parameter = {'parameter': 5, 'category': 3, 'min':0, 'max': 127}
@@ -275,6 +290,7 @@ class Experiment:
     self._is_complete = False
     self._info = ""
     self._results = None
+    self._waveforms_out = None
 
 
 
@@ -373,6 +389,7 @@ class Experiment:
     self._datetime = datetime.datetime.now()
     self._is_complete = True
     self._info += "Test run at: {0}\n\n".format(self._datetime.isoformat())
+    self._waveforms_out = None
     
     DEST = 801
 
@@ -453,10 +470,10 @@ class Experiment:
                           b'\x80\x02\xA0\x00' \
                           b'\x80\x02\x60\x00'
       else:
-        
-        cat3[0x60:0x7C] = b'\x00\x02\xA0\x00' \
-                          b'\x80\x02\xFF\x00' \
-                          b'\x40\x02\x20\x00' \
+        # Amplitude envelope with an obvious shape.
+        cat3[0x60:0x7C] = b'\x80\x02\xA0\x00' \
+                          b'\x80\x01\xFF\x00' \
+                          b'\x80\x01\x20\x00' \
                           b'\xFF\x03\x80\x00' \
                           b'\x00\x02\x60\x00' \
                           b'\x00\x02\x80\x00' \
@@ -512,13 +529,38 @@ class Experiment:
     #PARAMS = [0,1,2]
     
     
-    PARAMS = ParameterSequence.SingleParameter(29, 12, [0])
+    PARAMS = ParameterSequence.SingleParameter(20, 3, [0x180,0x1C0,0x200,0x240], block0 = 2)
     
     
     os.write(f_midi, struct.pack("8B", 0xB0, 0x00, 65, 0xB0, 0x20, 0, 0xC0, DEST-801))
 
 
+    v = bytes()
+    tot_frames = 0
+
+    def audio_callback(in_data, frame_count, time_info, status):
+        nonlocal tot_frames
+        nonlocal v
+        v +=(in_data)
+        tot_frames += frame_count
+        return (None, pyaudio.paContinue)
+
+
+    
+    x = p.open(format=pyaudio.paFloat32,
+                channels=2,
+                rate=RATE,
+                input=True,
+                input_device_index=pulse_device_index,
+                start=True,
+                frames_per_buffer=FRAMES,
+                stream_callback=audio_callback)
+
+
+
+
     RESULTS = numpy.zeros((len(NOTES), len(PARAMS), len(VARS)))
+    WAVEFORMS = []
 
     for i, NOTE in enumerate(NOTES):   # Try at various different pitches
       for j, PARAM in enumerate(PARAMS.Writes):
@@ -533,9 +575,8 @@ class Experiment:
           
           #internal.sysex_comms_internal.set_single_parameter(5, 127, category=3, memory=3, parameter_set=32, fs=f_midi)
           
-          
           try:
-            #internal.sysex_comms_internal.set_single_parameter(**PARAM.set_write, fs=f_midi)
+            internal.sysex_comms_internal.set_single_parameter(**PARAM.set_write, fs=f_midi)
             pass
           except internal.sysex_comms_internal.SysexTimeoutError:
             print("Problem writing parameter {0}".format(PARAM))
@@ -545,42 +586,59 @@ class Experiment:
           is_env = self.output.endswith("_env")
           
 
-          time.sleep(0.1)
-          os.write(f_midi, struct.pack("3B", 0x90, NOTE, VEL))
-          if not is_env:
-            time.sleep(0.1)
-
-          x = p.open(format=pyaudio.paFloat32,
-                      channels=2,
-                      rate=RATE,
-                      input=True,
-                      input_device_index=pulse_device_index,
-                      start=True,
-                      frames_per_buffer=FRAMES)
-          frame_count = 32*1024
+          frame_count = 64*1024
           if self.output == 'ampl':
             frame_count = 2*1024
-          v = x.read(frame_count)
+
+
+          v = bytes()
+          tot_frames = 0
+
+
+          time.sleep(0.3)
+          os.write(f_midi, struct.pack("3B", 0x90, NOTE, VEL))
+            
+            
+          while tot_frames < frame_count:
+            time.sleep(0.1)
 
           os.write(f_midi, struct.pack("3B", 0x80, NOTE, 0x7F))
           time.sleep(0.6)
 
-          x.close()
 
           result = numpy.frombuffer(v, dtype=numpy.float32)
-          result = numpy.reshape(result, (frame_count, 2))
+          result = numpy.reshape(result[:65536], (32*1024, 2))
           result = result[:, 0]
 
 
       
           RESULTS[i][j][k] = self.measure_amplitude(result, RATE)
-          
-          self._waveform=result
-          
+
+
+              
+          if self.output.endswith("_env"):
+                
+                
+            bb = scipy.signal.butter(100., 4, btype='high', output='sos', fs=48000.)
+            
+            if self.output == "pitch_env":
+              fs = 48000.
+              dx = numpy.diff(numpy.unwrap(numpy.angle(scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))))) / (2.0*numpy.pi) * fs
+              ex = scipy.signal.savgol_filter(dx, 481, 1)  # Smooth the signal
+            else:
+              dx = scipy.signal.decimate(numpy.abs(scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))), 480, ftype='fir')
+              i_1 = min([x for x in range(0, len(dx)) if dx[x] > 0.02])
+              i_2 = max([x for x in range(0, len(dx)) if dx[x] > 0.02])
+              ex = dx[i_1:i_2]
+              
+              
+            WAVEFORMS.append(ex)
+
 
           #internal.sysex_comms_internal.set_single_parameter(PARAM, 0, category=12, memory=3, parameter_set=0, fs=f_midi)
 
-
+    x.stop_stream()
+    x.close()
     
     os.close(f_midi)
     p.terminate()
@@ -593,6 +651,8 @@ class Experiment:
     self._results = RESULTS
     self._var1 = PARAMS
     self._var2 = VARS
+    if len(WAVEFORMS) > 0:
+      self._waveforms_out = WAVEFORMS
     
   
   def save_results(self, output_dir=None):
@@ -626,28 +686,22 @@ class Experiment:
             f1.write("{0},".format(Y))
             for k, X in enumerate(self._var2.Values):
               f1.write("{0},".format(self._results[i][j][k]))
-              
-              if self.output.endswith("_env"):
-                
-                
-                bb = scipy.signal.butter(100., 4, btype='high', output='sos', fs=48000.)
-                
-                if self.output == "pitch_env":
-                  fs = 48000.
-                  dx = numpy.diff(numpy.unwrap(numpy.angle(scipy.signal.hilbert(scipy.signal.sosfilt(bb, self._waveform))))) / (2.0*numpy.pi) * fs
-                  ex = scipy.signal.savgol_filter(dx, 25, 2)  # Smooth the signal
-                  
-                else:
-                  ex = scipy.signal.decimate(numpy.abs(scipy.signal.hilbert(scipy.signal.sosfilt(bb, self._waveform))), 480, ftype='fir')
 
-                plt.clf()
-                plt.plot(ex)
-                if self.output == "pitch_env":
-                  plt.ylim([0,600])
-                plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
-                
-              
             f1.write("\n")
+
+
+              
+      if self._waveforms_out is not None:
+
+        plt.clf()
+        for w in self._waveforms_out:
+          t = numpy.array(range(0,len(w)))/(48000./480.)
+          plt.plot(t,w)
+        if self.output == "pitch_env":
+          plt.ylim([0,600])
+        plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
+            
+              
   
 
 
