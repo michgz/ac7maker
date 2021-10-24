@@ -236,7 +236,10 @@ class ParameterSequence:
   @property
   def Values(self):
     if self._type == 1:
-      return iter(self._values)
+      if self._compare:
+        return iter([None] + list(self._values))
+      else:
+        return iter(self._values)
     elif self._type == 2:
       return iter([x['parameter'] for x in self._parameters])
     elif self._type == 3:
@@ -264,7 +267,7 @@ class Experiment:
                    12 (Split):  only parameters in categories 12, 5 & 3 can be changed.
                    15 (Waveform):only parameters in categories 15, 12, 5 & 3 can be changed.
     """
-    self.end_category = 3
+    self.end_category = 12
 
 
     """
@@ -272,7 +275,7 @@ class Experiment:
                  measuring frequency response/filter response. 'sine' is better
                  for measuring frequency and amplitude.
     """
-    self.waveform = 'white'
+    self.waveform = 'sine'
     
     
     
@@ -287,7 +290,7 @@ class Experiment:
     """
     input:       the value to vary. Can be 'velocity' or 'note'.
     """
-    self.input = 'note'
+    self.input = 'velocity'
     
     
     
@@ -298,7 +301,7 @@ class Experiment:
                  'pitch_env': pitch envelope
                  'spectrum':   frequency spectrum (only with 'white' input waveform).
     """
-    self.output = 'spectrum'
+    self.output = 'ampl'
     
     
     
@@ -310,15 +313,14 @@ class Experiment:
     
         
     
-    self.parameter = {'parameter': 118, 'category': 3, 'min':0, 'max': 127}
-    
-    
+
     
     # Now some internal variables
     self._datetime = None
     self._is_complete = False
     self._info = ""
     self._results = None
+    self._fit_results = None
     self._waveforms_out = None
 
 
@@ -558,8 +560,8 @@ class Experiment:
     NOTES = [60]
     VARS = None
     if self.input == 'velocity':
-      #VARS = ParameterSequence.Velocities(range(0, 128, 1))
-      VARS = ParameterSequence.Velocities([127])
+      VARS = ParameterSequence.Velocities(range(0, 128, 10))
+      #VARS = ParameterSequence.Velocities([127])
     else:
       VARS = ParameterSequence.Velocities([127])
       
@@ -571,7 +573,7 @@ class Experiment:
     #PARAMS = [0,1,2]
     
     
-    PARAMS = ParameterSequence.SingleParameter(118, 3, [7,9,11,13], compare = True)
+    PARAMS = ParameterSequence.SingleParameter(29, 12, [1,2], compare = True)
     
     
     os.write(f_midi, struct.pack("8B", 0xB0, 0x00, 65, 0xB0, 0x20, 0, 0xC0, DEST-801))
@@ -613,12 +615,11 @@ class Experiment:
             VEL = VAR.velocity
           
           
-          #internal.sysex_comms_internal.set_single_parameter(self.parameter['parameter'], PARAM, category=self.parameter['category'], memory=3, parameter_set=32, fs=f_midi)
-          
           #internal.sysex_comms_internal.set_single_parameter(5, 127, category=3, memory=3, parameter_set=32, fs=f_midi)
           
           if j == 1:
-            internal.sysex_comms_internal.set_single_parameter(117, 1, category=3, memory=3, parameter_set=32, fs=f_midi)
+            #internal.sysex_comms_internal.set_single_parameter(117, 1, category=3, memory=3, parameter_set=32, fs=f_midi)
+            pass
           
           if PARAM is not None:
             try:
@@ -641,23 +642,28 @@ class Experiment:
           tot_frames = 0
 
 
-          time.sleep(0.3)
+          time.sleep(0.2)
           os.write(f_midi, struct.pack("3B", 0x90, NOTE, VEL))
-            
+          
+          if self.output == 'ampl':
+            time.sleep(0.1)
+            v = bytes()
+            tot_frames = 0
+          
             
           while tot_frames < frame_count:
             time.sleep(0.1)
 
           os.write(f_midi, struct.pack("3B", 0x80, NOTE, 0x7F))
-          time.sleep(0.6)
+          time.sleep(0.2)
 
 
           result = numpy.frombuffer(v, dtype=numpy.float32)
-          result = numpy.reshape(result[:65536], (32*1024, 2))
+          result = numpy.reshape(result[:frame_count], (frame_count//2, 2))
           result = result[:, 0]
 
 
-          if self.input == 'sine':
+          if self.waveform == 'sine':
             RESULTS[i][j][k] = self.measure_amplitude(result, RATE)
           else:
             RESULTS[i][j][k] = 0.
@@ -746,10 +752,60 @@ class Experiment:
         if j >= 1:
           RESULTS[0][j][0] = self.measure_lowpass_6db(w['spectrum_f'], w['spectrum_x']/WAVEFORMS[0]['spectrum_x'])
       
+    
+    FIT_RESULTS = None
+    
+    if self.output == 'ampl' and self.input == 'velocity' and self.compare:
       
-    
-    
-    
+      # Fit the comparison velocity
+      FIT_RESULTS = numpy.zeros_like(RESULTS)
+      
+      
+      cv = RESULTS[0][0][:]
+      
+      cx = VARS.Values
+      
+      
+      dv = []
+      dx = []
+      for i, x in enumerate(cx):
+        if x >= 20 and x != 127:
+          dv.append(cv[i])
+          dx.append(x)
+      
+      
+      
+      nn = numpy.polyfit(dx,dv,2)
+      
+      if False: # plot results
+        dy = []
+        for i,x in enumerate(cx):
+          dy.append(   numpy.poly1d(nn)(x)   )
+        plt.plot(cx,dy)
+        plt.show()
+      
+      
+      for i in range(RESULTS.shape[0]):
+        for j in range(RESULTS.shape[1]):
+          for k in range(RESULTS.shape[2]):
+            if j > 0: # otherwise it's the comparison
+              
+              
+              
+              # Find the roots
+              
+              roots = [x for x in (numpy.poly1d(nn) - RESULTS[i][j][k]).roots if x >= 0.]
+              if len(roots) == 1:
+                if roots[0] > 129.:
+                  # No solution found
+                  pass
+                elif roots[0] > 127.:
+                  FIT_RESULTS[i][j][k] = 127
+                else:
+                  FIT_RESULTS[i][j][k] = int(numpy.round(roots[0]))
+              
+
+    self._fit_results = FIT_RESULTS
     self._results = RESULTS
     self._var1 = PARAMS
     self._var2 = VARS
@@ -781,15 +837,49 @@ class Experiment:
           for _ in range(self._var1.width):
             f1.write(",")
           for X in self._var2.Values:
-            f1.write("{0},".format(X))
+            if X is None:
+              f1.write("Compare,")
+            else:
+              f1.write("{0},".format(X))
           f1.write("\n")
           
           for j, Y in enumerate(self._var1.Values):
-            f1.write("{0},".format(Y))
+            if Y is None:
+              f1.write("Compare,")
+            else:
+              f1.write("{0},".format(Y))
             for k, X in enumerate(self._var2.Values):
               f1.write("{0},".format(self._results[i][j][k]))
 
             f1.write("\n")
+
+
+
+        if self._fit_results is not None:
+          for i, NOTE in enumerate([60]):
+            f1.write("\n\n\nFIT RESULTS\n-----------\n\nNOTE:\n")
+
+
+            for _ in range(self._var1.width):
+              f1.write(",")
+            for X in self._var2.Values:
+              if X is None:
+                f1.write("Compare,")
+              else:
+                f1.write("{0},".format(X))
+            f1.write("\n")
+            
+            for j, Y in enumerate(self._var1.Values):
+              if Y is None:
+                f1.write("Compare,")
+              else:
+                f1.write("{0},".format(Y))
+              for k, X in enumerate(self._var2.Values):
+                f1.write("{0},".format(self._fit_results[i][j][k]))
+
+              f1.write("\n")
+
+
 
 
               
