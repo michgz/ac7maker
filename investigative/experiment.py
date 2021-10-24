@@ -112,9 +112,10 @@ class ParameterSequence:
   def __init__(self):
     self._writes = dict()
     self._type = -1
+    self._compare = False
     
   @classmethod
-  def SingleParameter(cls, parameter: int, category: int, values: list, *, block0=0):
+  def SingleParameter(cls, parameter: int, category: int, values: list, *, block0=0, compare=False):
     self = ParameterSequence()
     self._type = 1
     self._parameter = {'parameter': parameter, 'category': category, 'default': 0}
@@ -126,6 +127,7 @@ class ParameterSequence:
     else:
       self._parameter_set = 0
       self._memory=1
+    self._compare = compare
     return self
     
   @classmethod
@@ -173,27 +175,44 @@ class ParameterSequence:
         return 0x7F
   
   def __len__(self):
+    the_length = 0
     if self._type == 1:
-      return len(self._values)
+      the_length = len(self._values)
+      if self._compare:
+        the_length += 1
     elif self._type == 2:
-      return len(self._parameters)
+      the_length = len(self._parameters)
     elif self._type == 3:
-      return len(self._velocities)
+      the_length = len(self._velocities)
     else:
       raise Exception
+      
+    return the_length
     
   
   @property
   def Writes(self):
     if self._type == 1:
-      return iter(
-        [
-          ParameterSequence.ParameterSequenceValue(
-            {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
-            None
-          )
-          for x in self._values
-        ])
+      if self._compare:
+        return iter(
+          [None] + 
+          [
+            ParameterSequence.ParameterSequenceValue(
+              {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
+              None
+            )
+            for x in self._values
+          ])
+
+      else:
+        return iter(
+          [
+            ParameterSequence.ParameterSequenceValue(
+              {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
+              None
+            )
+            for x in self._values
+          ])
     elif self._type == 2:
       return iter(
         [
@@ -253,7 +272,7 @@ class Experiment:
                  measuring frequency response/filter response. 'sine' is better
                  for measuring frequency and amplitude.
     """
-    self.waveform = 'sine'
+    self.waveform = 'white'
     
     
     
@@ -268,7 +287,7 @@ class Experiment:
     """
     input:       the value to vary. Can be 'velocity' or 'note'.
     """
-    self.input = 'velocity'
+    self.input = 'note'
     
     
     
@@ -277,11 +296,21 @@ class Experiment:
                  (amplitude).
                  'ampl_env': amplitude envelope
                  'pitch_env': pitch envelope
+                 'spectrum':   frequency spectrum (only with 'white' input waveform).
     """
-    self.output = 'ampl_env'
+    self.output = 'spectrum'
     
     
-    self.parameter = {'parameter': 5, 'category': 3, 'min':0, 'max': 127}
+    
+    """
+    compare:     a boolean, indicating if readings need to be compared against
+                 subsequent readings. Useful for example with spectrum readings.    
+    """
+    self.compare = True
+    
+        
+    
+    self.parameter = {'parameter': 118, 'category': 3, 'min':0, 'max': 127}
     
     
     
@@ -349,6 +378,16 @@ class Experiment:
     # number
     return numpy.average(ex) 
     
+
+  @staticmethod
+  def measure_lowpass_6db(freq, rel_ampl):
+    
+    for i, x in enumerate(rel_ampl):
+      if x < 0.1:   # Doesn't this make it -20dB?? 
+        return freq[i]
+    # If we get here we haven't found any result
+    return freq[-1]
+
 
 
   @staticmethod
@@ -521,6 +560,9 @@ class Experiment:
     if self.input == 'velocity':
       #VARS = ParameterSequence.Velocities(range(0, 128, 1))
       VARS = ParameterSequence.Velocities([127])
+    else:
+      VARS = ParameterSequence.Velocities([127])
+      
       
     PARAMS = None
     #PARAMS = [44,64,84]
@@ -529,7 +571,7 @@ class Experiment:
     #PARAMS = [0,1,2]
     
     
-    PARAMS = ParameterSequence.SingleParameter(20, 3, [0x180,0x1C0,0x200,0x240], block0 = 2)
+    PARAMS = ParameterSequence.SingleParameter(118, 3, [7,9,11,13], compare = True)
     
     
     os.write(f_midi, struct.pack("8B", 0xB0, 0x00, 65, 0xB0, 0x20, 0, 0xC0, DEST-801))
@@ -575,12 +617,16 @@ class Experiment:
           
           #internal.sysex_comms_internal.set_single_parameter(5, 127, category=3, memory=3, parameter_set=32, fs=f_midi)
           
-          try:
-            internal.sysex_comms_internal.set_single_parameter(**PARAM.set_write, fs=f_midi)
-            pass
-          except internal.sysex_comms_internal.SysexTimeoutError:
-            print("Problem writing parameter {0}".format(PARAM))
-            continue
+          if j == 1:
+            internal.sysex_comms_internal.set_single_parameter(117, 1, category=3, memory=3, parameter_set=32, fs=f_midi)
+          
+          if PARAM is not None:
+            try:
+              internal.sysex_comms_internal.set_single_parameter(**PARAM.set_write, fs=f_midi)
+              pass
+            except internal.sysex_comms_internal.SysexTimeoutError:
+              print("Problem writing parameter {0}".format(PARAM))
+              continue
           
           
           is_env = self.output.endswith("_env")
@@ -611,30 +657,74 @@ class Experiment:
           result = result[:, 0]
 
 
-      
-          RESULTS[i][j][k] = self.measure_amplitude(result, RATE)
+          if self.input == 'sine':
+            RESULTS[i][j][k] = self.measure_amplitude(result, RATE)
+          else:
+            RESULTS[i][j][k] = 0.
 
 
               
           if self.output.endswith("_env"):
                 
                 
-            bb = scipy.signal.butter(100., 4, btype='high', output='sos', fs=48000.)
+            
             
             if self.output == "pitch_env":
               fs = 48000.
-              dx = numpy.diff(numpy.unwrap(numpy.angle(scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))))) / (2.0*numpy.pi) * fs
-              ex = scipy.signal.savgol_filter(dx, 481, 1)  # Smooth the signal
+
             else:
-              dx = scipy.signal.decimate(numpy.abs(scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))), 480, ftype='fir')
-              i_1 = min([x for x in range(0, len(dx)) if dx[x] > 0.02])
-              i_2 = max([x for x in range(0, len(dx)) if dx[x] > 0.02])
-              ex = dx[i_1:i_2]
-              
-              
-            WAVEFORMS.append(ex)
+              pass
+            
+            fs = 48000.
+            
+            # Calculate the hilbert signal, with a bit of high-pass filtering. The filtering
+            # requires a pitch of at least about C-2.
+            bb = scipy.signal.butter(100., 4, btype='high', output='sos', fs=fs)
+            hx = scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))
+            
+            # Get the amplitude
+            WAVE_RATE = 100.   # samples per second
+            dx = scipy.signal.decimate(numpy.abs(hx), int(numpy.round(fs/WAVE_RATE)), ftype='fir')
+            
+            # Align with the first -6dB point
+            max_d = numpy.max(dx)
+            i_3 = max(0, min([x for x in range(0, len(dx)) if dx[x] > (max_d/2.)])-48)
+            i_4 = len(dx)
+            
+            # Get the pitch
+            fx = numpy.diff(numpy.unwrap(numpy.angle(hx))) / (2.0*numpy.pi) * fs
+            gx = scipy.signal.savgol_filter(fx, 481, 1)  # Smooth the signal. Is this needed?
+            ix = scipy.signal.decimate(gx, int(numpy.round(fs/WAVE_RATE)), ftype='fir')
+            
+            
+            # Amplitude aligned with the -6dB point
+            jx = dx[i_3:i_4]
+            tx = numpy.array(range(len(jx)))/WAVE_RATE
+            
+            if len(ix) != len(dx):
+              raise Exception
+            
+            
+            for ii in range(len(ix)):
+              # Clear values that are too quiet to be sure
+              if dx[ii] < 0.02:
+                ix[ii] = numpy.nan
+            kx = ix[i_3:i_4]
+            
+           
+            print(kx)
+            
+            WAVEFORMS.append({'ampl_t': tx, 'ampl_x': jx, 'freq_t': tx, 'freq_x': kx})
 
-
+          elif self.output == 'spectrum':
+            
+            fs = 48000.
+            
+            
+            f, Px = scipy.signal.welch(result, fs=fs, nperseg = 2*1024)
+            WAVEFORMS.append({'spectrum_f': f, 'spectrum_x': Px})
+            
+            
           #internal.sysex_comms_internal.set_single_parameter(PARAM, 0, category=12, memory=3, parameter_set=0, fs=f_midi)
 
     x.stop_stream()
@@ -647,6 +737,18 @@ class Experiment:
     #                            {'name': 'velocity_sense', 'parameter': {'parameter': 5, 'category': 3, 'min':0, 'max': 127}, 'values': PARAMS.Values},
     #                            {'name': 'velocity', 'parameter': None, 'values': VARS}],
     #                 'output': {'name': 'amplitude', 'values': RESULTS} }
+    
+    if self.output == 'spectrum' and self.compare:
+      # Fill in the Results matrix with compared values
+      
+      for j, w in enumerate(WAVEFORMS):
+        
+        if j >= 1:
+          RESULTS[0][j][0] = self.measure_lowpass_6db(w['spectrum_f'], w['spectrum_x']/WAVEFORMS[0]['spectrum_x'])
+      
+      
+    
+    
     
     self._results = RESULTS
     self._var1 = PARAMS
@@ -694,11 +796,20 @@ class Experiment:
       if self._waveforms_out is not None:
 
         plt.clf()
-        for w in self._waveforms_out:
-          t = numpy.array(range(0,len(w)))/(48000./480.)
-          plt.plot(t,w)
+        for j, w in enumerate(self._waveforms_out):
+          if self.output == 'spectrum':
+            if self.compare:
+              if j >= 1:
+                plt.semilogy(w['spectrum_f'], w['spectrum_x']/self._waveforms_out[0]['spectrum_x'])
+            else:
+              plt.semilogy(w['spectrum_f'], w['spectrum_x'])
+          else:
+            #t = numpy.array(range(0,len(w)))/(48000./480.)
+            plt.plot(w['ampl_t'], w['ampl_x'])
         if self.output == "pitch_env":
           plt.ylim([0,600])
+        if self.output == 'spectrum':
+          plt.xlim([0,6000])
         plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
             
               
@@ -713,7 +824,6 @@ if __name__=="__main__":
   ex.notes = range(0,128)
   ex.run()
   ex.save_results()
-
   if False: # only for velocity test
     pp = numpy.polyfit(ex._var2.Values, numpy.sqrt(ex._results[0][0][:]), 1)
     print(pp)
