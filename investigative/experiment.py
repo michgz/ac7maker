@@ -115,12 +115,13 @@ class ParameterSequence:
     self._compare = False
     
   @classmethod
-  def SingleParameter(cls, parameter: int, category: int, values: list, *, block0=0, compare=False):
+  def SingleParameter(cls, parameter: int, category: int, values: list, *, block0=0, block1=0, compare=False):
     self = ParameterSequence()
     self._type = 1
     self._parameter = {'parameter': parameter, 'category': category, 'default': 0}
     self._values = values
     self._block0 = block0
+    self._block1 = block1
     if category == 3:
       self._parameter_set = 32
       self._memory=3
@@ -131,12 +132,13 @@ class ParameterSequence:
     return self
     
   @classmethod
-  def SingleValue(cls, parameters: list, category:int, value: int, default=0, *, block0=0):
+  def SingleValue(cls, parameters: list, category:int, value: int, default=0, *, block0=0, block1=0):
     self = ParameterSequence()
     self._type = 2
     self._parameters = [{'parameter': x, 'category': category, 'default': default} for x in parameters]
     self._value = value
     self._block0 = block0
+    self._block1 = block1
     if category == 3:
       self._parameter_set = 32
       self._memory=3
@@ -198,7 +200,7 @@ class ParameterSequence:
           [None] + 
           [
             ParameterSequence.ParameterSequenceValue(
-              {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
+              {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': self._block1},
               None
             )
             for x in self._values
@@ -208,7 +210,7 @@ class ParameterSequence:
         return iter(
           [
             ParameterSequence.ParameterSequenceValue(
-              {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
+              {'parameter': self._parameter["parameter"], 'data': x, 'category': self._parameter["category"], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': self._block1},
               None
             )
             for x in self._values
@@ -217,8 +219,8 @@ class ParameterSequence:
       return iter(
         [
           ParameterSequence.ParameterSequenceValue(
-            {'parameter': x['parameter'], 'data': self._value, 'category': x['category'], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0},
-            {'parameter': x['parameter'], 'data': x['default'], 'category': x['category'], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': 0}
+            {'parameter': x['parameter'], 'data': self._value, 'category': x['category'], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': self._block1},
+            {'parameter': x['parameter'], 'data': x['default'], 'category': x['category'], 'memory': self._memory, 'parameter_set': self._parameter_set, 'block0': self._block0, 'block1': self._block1}
           )
           for x in self._parameters
         ])
@@ -267,7 +269,7 @@ class Experiment:
                    12 (Split):  only parameters in categories 12, 5 & 3 can be changed.
                    15 (Waveform):only parameters in categories 15, 12, 5 & 3 can be changed.
     """
-    self.end_category = 12
+    self.end_category = 3
 
 
     """
@@ -290,7 +292,7 @@ class Experiment:
     """
     input:       the value to vary. Can be 'velocity' or 'note'.
     """
-    self.input = 'velocity'
+    self.input = 'note'
     
     
     
@@ -301,7 +303,16 @@ class Experiment:
                  'pitch_env': pitch envelope
                  'spectrum':   frequency spectrum (only with 'white' input waveform).
     """
-    self.output = 'ampl'
+    self.output = 'ampl_env'
+    
+    
+    
+    """
+    stage:       only for use with envelope outputs. Determines the stage of the
+                 envelope to experiment on, starting at 1. For amplitude envelope
+                 takes values 1..6, for pitch takes values 1..2.
+    """
+    self.stage = 2
     
     
     
@@ -309,10 +320,16 @@ class Experiment:
     compare:     a boolean, indicating if readings need to be compared against
                  subsequent readings. Useful for example with spectrum readings.    
     """
-    self.compare = True
+    self.compare = False
     
         
     
+    """
+    parameter_sequence:   The sequence used for the second sweep type. None means
+                          use a default
+    """
+    self.parameter_sequence = None
+
 
     
     # Now some internal variables
@@ -326,9 +343,12 @@ class Experiment:
 
 
 
+
   # Some pre-set split/waveform values
   SPLIT_SINE = 1
   WAVEFORM_SINE = 1
+  SPLIT_WHITE = 7
+  WAVEFORM_WHITE = 3
   
   
 
@@ -424,6 +444,49 @@ class Experiment:
 
     return numpy.average(bx)
 
+  @staticmethod
+  def measure_release_time(t, data, stage=2):
+    
+    if stage == 2:  # exponential decay after initial attack
+    
+      max_i = numpy.argmax(data)
+      min_i = numpy.argmin(data[max_i:]) + max_i
+      
+      if (min_i - max_i) < 4:
+        # Not enough data
+        return None
+
+      #print(t)
+      #print(data)
+      #print(numpy.log(data))
+
+      pp = numpy.polyfit(t[max_i+2:min_i-1], numpy.log(data[max_i+2:min_i-1]), 1)
+      #print(pp)
+    
+    elif stage == 1:
+      # Linear attack
+      
+      max_i = numpy.argmax(data)
+      min_i = max_i
+      while min_i > 0:  # Find -10dB point
+        min_i -= 1
+        if data[min_i] < 0.1*data[max_i]:
+          min_i += 1
+          break
+        else:
+          pass
+      if (max_i - min_i) < 4:
+        # Not enough data
+        return None
+        
+      pp = numpy.polyfit(t[min_i+1:max_i-2], data[min_i+1:max_i-2], 1)
+      #print(pp)
+
+    else:
+      raise Exception ("Only stages 1 & 2 supported at this time")
+    
+    return pp
+
 
 
   def run(self):
@@ -512,13 +575,16 @@ class Experiment:
                           b'\x80\x02\x60\x00'
       else:
         # Amplitude envelope with an obvious shape.
-        cat3[0x60:0x7C] = b'\x80\x02\xA0\x00' \
-                          b'\x80\x01\xFF\x00' \
+        cat3[0x60:0x7C] = b'\x80\x02\x00\x00' \
+                          b'\x00\x02\xFF\x00' \
                           b'\x80\x01\x20\x00' \
                           b'\xFF\x03\x80\x00' \
                           b'\x00\x02\x60\x00' \
                           b'\x00\x02\x80\x00' \
                           b'\x00\x02\x80\x00'
+        if self.stage != 1:
+          # Not testing the first stage, so just make it as quick as possible
+          cat3[0x62] = 0x80
 
     internal.sysex_comms_internal.upload_ac7_internal(DEST-801, cat3, category=3, memory=1, fs=f_midi)
 
@@ -531,8 +597,17 @@ class Experiment:
       else:
         if self.waveform == 'sine':
           cat5[0x00:0x02] = struct.pack("<H", self.SPLIT_SINE)
+        elif self.waveform == 'white':
+          cat5[0x00:0x02] = struct.pack("<H", self.SPLIT_WHITE)
         else:
           raise Exception
+
+      if self.waveform == 'white':
+        # Correct a few data items for this other waveform:
+        cat5[0x36] = 0x40
+        cat5[0x42] = 0x80
+        cat5[0x44] = 0x00
+
       internal.sysex_comms_internal.upload_ac7_internal(0, cat5, category=5, memory=1, fs=f_midi)
 
 
@@ -541,6 +616,8 @@ class Experiment:
       cat12 = bytearray(CAT12_BASIC)
       if self.waveform == 'sine':
         cat12[0x10:0x12] = struct.pack("<H", self.WAVEFORM_SINE)
+      elif self.waveform == 'white':
+        cat12[0x10:0x12] = struct.pack("<H", self.WAVEFORM_WHITE)
       else:
         raise Exception
       internal.sysex_comms_internal.upload_ac7_internal(0, cat12, category=12, memory=1, fs=f_midi)
@@ -560,7 +637,7 @@ class Experiment:
     NOTES = [60]
     VARS = None
     if self.input == 'velocity':
-      VARS = ParameterSequence.Velocities(range(0, 128, 10))
+      VARS = ParameterSequence.Velocities(range(0, 128, 1))
       #VARS = ParameterSequence.Velocities([127])
     else:
       VARS = ParameterSequence.Velocities([127])
@@ -573,7 +650,10 @@ class Experiment:
     #PARAMS = [0,1,2]
     
     
-    PARAMS = ParameterSequence.SingleParameter(29, 12, [1,2], compare = True)
+    if self.parameter_sequence is None:
+      PARAMS = ParameterSequence.SingleParameter(29, 12, [1], compare = True)
+    else:
+      PARAMS = self.parameter_sequence
     
     
     os.write(f_midi, struct.pack("8B", 0xB0, 0x00, 65, 0xB0, 0x20, 0, 0xC0, DEST-801))
@@ -605,6 +685,10 @@ class Experiment:
 
     RESULTS = numpy.zeros((len(NOTES), len(PARAMS), len(VARS)))
     WAVEFORMS = []
+    FRAME_COUNTS = []
+
+
+    #internal.sysex_comms_internal.set_single_parameter(42, 0, category=12, memory=1, parameter_set=0, block0=0, fs=f_midi)
 
     for i, NOTE in enumerate(NOTES):   # Try at various different pitches
       for j, PARAM in enumerate(PARAMS.Writes):
@@ -628,6 +712,10 @@ class Experiment:
             except internal.sysex_comms_internal.SysexTimeoutError:
               print("Problem writing parameter {0}".format(PARAM))
               continue
+            #internal.sysex_comms_internal.set_single_parameter(45, j, category=12, memory=1, parameter_set=0, fs=f_midi)
+            #internal.sysex_comms_internal.set_single_parameter(46, j, category=12, memory=1, parameter_set=0, fs=f_midi)
+            #internal.sysex_comms_internal.set_single_parameter(47, j, category=12, memory=1, parameter_set=0, fs=f_midi)
+            #internal.sysex_comms_internal.set_single_parameter(48, j, category=12, memory=1, parameter_set=0, fs=f_midi)
           
           
           is_env = self.output.endswith("_env")
@@ -635,7 +723,7 @@ class Experiment:
 
           frame_count = 64*1024
           if self.output == 'ampl':
-            frame_count = 2*1024
+            frame_count = 8*1024
 
 
           v = bytes()
@@ -669,7 +757,9 @@ class Experiment:
             RESULTS[i][j][k] = 0.
 
 
-              
+          
+          FRAME_COUNTS.append(frame_count)
+          
           if self.output.endswith("_env"):
                 
                 
@@ -684,7 +774,7 @@ class Experiment:
             fs = 48000.
             
             # Calculate the hilbert signal, with a bit of high-pass filtering. The filtering
-            # requires a pitch of at least about C-2.
+            # requires a pitch of at least about C-2 (100Hz)
             bb = scipy.signal.butter(100., 4, btype='high', output='sos', fs=fs)
             hx = scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))
             
@@ -694,7 +784,7 @@ class Experiment:
             
             # Align with the first -6dB point
             max_d = numpy.max(dx)
-            i_3 = max(0, min([x for x in range(0, len(dx)) if dx[x] > (max_d/2.)])-48)
+            i_3 = max(0, min([x for x in range(0, len(dx)) if dx[x] > (max_d/2.)])-10)
             i_4 = len(dx)
             
             # Get the pitch
@@ -718,7 +808,9 @@ class Experiment:
             kx = ix[i_3:i_4]
             
            
-            print(kx)
+            #print(kx)
+            #print(f"Start point = {i_3}")
+            #print(f"Max val = {max_d}")
             
             WAVEFORMS.append({'ampl_t': tx, 'ampl_x': jx, 'freq_t': tx, 'freq_x': kx})
 
@@ -776,6 +868,7 @@ class Experiment:
       
       
       nn = numpy.polyfit(dx,dv,2)
+      self._info += "  Got a quadratic fit between velocity and amplitude for the comparison trace. Fit parameters:   " + str(nn)   + "\n"
       
       if False: # plot results
         dy = []
@@ -805,12 +898,33 @@ class Experiment:
                   FIT_RESULTS[i][j][k] = int(numpy.round(roots[0]))
               
 
+    elif self.output == 'ampl_env' and len(WAVEFORMS) > 0:
+      # Fit the second stage in the attack. With the settings above, it should be
+      # a falling exponential
+      
+      
+      FIT_RESULTS = numpy.zeros((1, len(WAVEFORMS), 2))
+      
+      for i,w in enumerate(WAVEFORMS):
+      
+        p = self.measure_release_time(w['ampl_t'], w['ampl_x'], self.stage)
+        print(p)
+        
+        FIT_RESULTS[0][i] = p
+
+
     self._fit_results = FIT_RESULTS
     self._results = RESULTS
     self._var1 = PARAMS
     self._var2 = VARS
     if len(WAVEFORMS) > 0:
       self._waveforms_out = WAVEFORMS
+    dt_finished = datetime.datetime.now()
+    self._info += "Finished: " + dt_finished.isoformat() + "   (total {0:0.2f} seconds)\n\n".format((dt_finished - self._datetime).total_seconds())
+    self._info += "Frame counts:  "
+    for ff in FRAME_COUNTS:
+      self._info += "{0}  ".format(ff)
+    self._info += "\n\n"
     
   
   def save_results(self, output_dir=None):
@@ -874,12 +988,48 @@ class Experiment:
                 f1.write("Compare,")
               else:
                 f1.write("{0},".format(Y))
-              for k, X in enumerate(self._var2.Values):
+              if self.output == 'ampl_env':
+                _i = enumerate([0,1]) # In this case, the last axis is slope/intercept
+              else:
+                _i = enumerate(self._var2.Values)
+              for k, X in _i:
                 f1.write("{0},".format(self._fit_results[i][j][k]))
 
               f1.write("\n")
 
 
+        if self._waveforms_out is not None:
+        
+          max_len = -1
+          try:
+            max_len = max([len(x['ampl_x']) for x in self._waveforms_out])
+          except KeyError:
+            pass
+
+          if max_len < 0:
+            try:
+              max_len = max([len(x['spectrum_x']) for x in self._waveforms_out])
+            except KeyError:
+              pass
+
+
+          if self.output == 'ampl':
+            for i in range(max_len):
+              if i >= len(self._waveforms_out[0]['ampl_t']):
+                f1.write(",")
+              else:
+                f1.write("{0},".format(self._waveforms_out[0]['ampl_t'][i]))
+              for x in self._waveforms_out:
+                if i >= len(x['ampl_x']):
+                  f1.write(",")
+                else:
+                  try:
+                    f1.write("{0},".format(x['ampl_x'][i]))
+                  except KeyError:
+                    print(i)
+                    print(x)
+                    raise
+            f1.write("\n")
 
 
               
@@ -895,11 +1045,29 @@ class Experiment:
               plt.semilogy(w['spectrum_f'], w['spectrum_x'])
           else:
             #t = numpy.array(range(0,len(w)))/(48000./480.)
-            plt.plot(w['ampl_t'], w['ampl_x'])
+            gg = plt.plot(w['ampl_t'], w['ampl_x'])
+            
+            # Now fit an exponential, and draw it as dots of the same colour
+            cc = gg[0].get_color()
+            
+            p = self._fit_results[0][j][:]
+            
+            if self.stage == 2:
+              tt = numpy.array([0.1, 0.2, 0.3, 0.4, 0.5])
+              xx = numpy.exp(p[0]*tt + p[1])
+            elif self.stage == 1:
+              tt = numpy.array([0.08, 0.1, 0.12])
+              xx = p[0]*tt + p[1]
+            #print(tt)
+            #print(xx)
+            plt.plot(tt, xx, '.', color=cc)
+            
+            
+            
         if self.output == "pitch_env":
           plt.ylim([0,600])
         if self.output == 'spectrum':
-          plt.xlim([0,6000])
+          plt.xlim([0,12000])
         plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
             
               
