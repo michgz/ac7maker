@@ -309,7 +309,8 @@ class Experiment:
     """
     output:      the output value to measure. Can be 'freq' (frequency) or 'ampl'
                  (amplitude).
-                 'ampl_env': amplitude envelope
+                 'ampl_env': amplitude envelope (measuring slopes and rise/fall times)
+                 'ampl_ampl_env': amplitude envelope (measuring amplitudes)
                  'pitch_env': pitch envelope
                  'spectrum':   frequency spectrum (only with 'white' input waveform).
     """
@@ -604,6 +605,16 @@ class Experiment:
         cat3[0x00:0x0C] = b'\x00\x02\x60\x00' \
                           b'\x80\x02\xA0\x00' \
                           b'\x80\x02\x60\x00'
+      elif self.output == "ampl_ampl_env":
+
+        cat3[0x60:0x7C] = b'\x00\x02\x00\x00' \
+                          b'\x00\x02\x00\x00' \
+                          b'\x00\x02\x00\x00' \
+                          b'\x00\x02\x00\x00' \
+                          b'\x00\x02\x00\x00' \
+                          b'\x00\x02\x00\x00' \
+                          b'\x00\x02\x00\x00'
+      
       else:
         # Amplitude envelope with an obvious shape.
         cat3[0x60:0x7C] = b'\x80\x02\x00\x00' \
@@ -757,10 +768,17 @@ class Experiment:
             except internal.sysex_comms_internal.SysexTimeoutError:
               print("Problem writing parameter {0}".format(PARAM))
               continue
-            #internal.sysex_comms_internal.set_single_parameter(45, j, category=12, memory=1, parameter_set=0, fs=f_midi)
-            #internal.sysex_comms_internal.set_single_parameter(46, j, category=12, memory=1, parameter_set=0, fs=f_midi)
-            #internal.sysex_comms_internal.set_single_parameter(47, j, category=12, memory=1, parameter_set=0, fs=f_midi)
-            #internal.sysex_comms_internal.set_single_parameter(48, j, category=12, memory=1, parameter_set=0, fs=f_midi)
+              
+            #if self.output == "ampl_ampl_env":
+            #  PARAM_1 = PARAM.set_write
+            #  PARAM_1['block0'] = PARAM_1['block0'] + 1
+            #  internal.sysex_comms_internal.set_single_parameter(**PARAM_1, fs=f_midi)
+            #  PARAM_1['block0'] = PARAM_1['block0'] + 1
+            #  internal.sysex_comms_internal.set_single_parameter(**PARAM_1, fs=f_midi)
+            #  PARAM_1['block0'] = PARAM_1['block0'] + 1
+            #  internal.sysex_comms_internal.set_single_parameter(**PARAM_1, fs=f_midi)
+            #  PARAM_1['block0'] = PARAM_1['block0'] + 1
+            #  internal.sysex_comms_internal.set_single_parameter(**PARAM_1, fs=f_midi)
           
           
           is_env = self.output.endswith("_env")
@@ -843,7 +861,11 @@ class Experiment:
             # Align zero in time to the start of the initial slope.
             max_d = numpy.max(dx)
             i_7 = min([x for x in range(0, len(dx)) if dx[x] > (max_d*0.80)])
-            i_8 = max([x for x in range(0, i_7) if dx[x] < (max_d*0.20)])+1
+            try:
+              i_8 = max([x for x in range(0, i_7) if dx[x] < (max_d*0.20)])+1
+            except ValueError:
+              # Probably a constant signal.
+              i_8 = i_7
             if len(range(i_8, i_7)) <= 2:
               # Slope is too steep. Just count it as immediate.
               i_2 = i_8
@@ -980,6 +1002,24 @@ class Experiment:
       
         p = self.measure_attack_time(w['ampl_t'], w['ampl_x'], self.stage)
         FIT_RESULTS[i//AXIS_1_LEN][i%AXIS_1_LEN] = p
+
+    elif self.output == 'ampl_ampl_env' and len(WAVEFORMS) > 0:
+      # Fit the maximum amplitude
+      
+      
+      AXIS_1_LEN = len(WAVEFORMS)//len(NOTES)
+      FIT_RESULTS = numpy.zeros((len(NOTES), AXIS_1_LEN, 1))
+      
+      for i,w in enumerate(WAVEFORMS):
+      
+      
+        if self.stage == 4:
+          p = numpy.median(w['ampl_x'])  # Median removes extraneous peaks
+        else:
+          p = numpy.max(w['ampl_x'])
+        FIT_RESULTS[i//AXIS_1_LEN][i%AXIS_1_LEN][0] = p
+
+
 
 
     self._fit_results = FIT_RESULTS
@@ -1125,27 +1165,28 @@ class Experiment:
                     plt.semilogy(w['spectrum_f'], w['spectrum_x']/self._waveforms_out[0]['spectrum_x'])
                 else:
                   plt.semilogy(w['spectrum_f'], w['spectrum_x'])
-              else:
+              elif self.output == 'ampl_env' or self.output == 'ampl_ampl_env':
                 #t = numpy.array(range(0,len(w)))/(48000./480.)
                 gg = plt.plot(w['ampl_t'], w['ampl_x'])
                 
                 # Now fit an exponential, and draw it as dots of the same colour
-                cc = gg[0].get_color()
-                
-                p = self._fit_results[i][j%AXIS_1_LEN][:]
-                
-                if self.stage == 2:
-                  tt = numpy.array([0.1, 0.2, 0.3, 0.4, 0.5])
-                  xx = numpy.exp(-p[0]*tt + p[1])
-                elif self.stage == 1:
-                  tt = numpy.array([0.02, 0.04, 0.06])
-                  xx = p[0]*tt + p[1]
-                else:
-                  tt = numpy.array([0.25,0.3,0.35])
-                  xx = numpy.exp(-p[0]*tt + p[1])
-                #print(tt)
-                #print(xx)
-                plt.plot(tt, xx, '.', color=cc)
+                if self.output != 'ampl_ampl_env':
+                  cc = gg[0].get_color()
+                  
+                  p = self._fit_results[i][j%AXIS_1_LEN][:]
+                  
+                  if self.stage == 2:
+                    tt = numpy.array([0.1, 0.2, 0.3, 0.4, 0.5])
+                    xx = numpy.exp(-p[0]*tt + p[1])
+                  elif self.stage == 1:
+                    tt = numpy.array([0.02, 0.04, 0.06])
+                    xx = p[0]*tt + p[1]
+                  else:
+                    tt = numpy.array([0.25,0.3,0.35])
+                    xx = numpy.exp(-p[0]*tt + p[1])
+                  #print(tt)
+                  #print(xx)
+                  plt.plot(tt, xx, '.', color=cc)
               
             
             
@@ -1191,6 +1232,24 @@ class Experiment:
         plt.legend()
         plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
           
+      elif self.output == "ampl_ampl_env":
+        
+        plt.clf()
+        for i, NOTE in enumerate(self.notes):
+          
+          if isinstance(self.parameter_sequence, list):
+            PARAM = self.parameter_sequence[i]
+          else:
+            PARAM = self.parameter_sequence
+          
+          yy = []
+          for k in range(self._fit_results.shape[1]):
+            yy.append(self._fit_results[i][k][0])
+          
+          plt.plot(list(PARAM.Values), yy, '.-', label="NOTE {0}".format(NOTE))
+        
+        plt.legend()
+        plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
           
         
   

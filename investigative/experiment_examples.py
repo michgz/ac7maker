@@ -36,13 +36,12 @@ Example 2:     Measures attack time
 
 def Example2():
   expt = Experiment()
-  expt.end_category = 12
+  expt.end_category = 3
   expt.waveform = 'sine'
-  expt.output = 'ampl_env'
-  expt.stage = 2  # 1 or 2 supported at this stage.
-  expt.notes = [60, 106]
-  expt.parameter_sequence = [ParameterSequence.SingleParameter(56, 12, [0x1a0, 0x1c0,0x1e0, 0x200], block0=0, block1=expt.stage),
-                                       ParameterSequence.SingleParameter(56, 12, [0x210, 0x230,0x250, 0x270], block0=0, block1=expt.stage)]
+  expt.output = 'ampl_ampl_env'
+  expt.stage = 5  # 1 or 2 supported at this stage.
+  expt.notes = [60]
+  expt.parameter_sequence =  ParameterSequence.SingleParameter(19, 3, list(range(0,256,20)), block1=0, block0=expt.stage)
 
   expt.run()
   expt.save_results()
