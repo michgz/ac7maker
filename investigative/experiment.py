@@ -461,6 +461,8 @@ class Experiment:
       #print(numpy.log(data))
 
       pp = numpy.polyfit(t[max_i+2:min_i-1], numpy.log(data[max_i+2:min_i-1]), 1)
+      pp[0] = -pp[0]
+      
       #print(pp)
     
     elif stage == 1:
@@ -1092,7 +1094,7 @@ class Experiment:
                 
                 if self.stage == 2:
                   tt = numpy.array([0.1, 0.2, 0.3, 0.4, 0.5])
-                  xx = numpy.exp(p[0]*tt + p[1])
+                  xx = numpy.exp(-p[0]*tt + p[1])
                 elif self.stage == 1:
                   tt = numpy.array([0.02, 0.04, 0.06])
                   xx = p[0]*tt + p[1]

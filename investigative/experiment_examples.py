@@ -39,10 +39,10 @@ def Example2():
   expt.end_category = 12
   expt.waveform = 'sine'
   expt.output = 'ampl_env'
-  expt.stage = 1  # 1 or 2 supported at this stage.
-  expt.notes = [60,106]
-  expt.parameter_sequence = [ParameterSequence.SingleParameter(56, 12, [0x140, 0x160, 0x180, 0x1e0], block0=0, block1=expt.stage),
-                                                ParameterSequence.SingleParameter(56, 12, [0x1f0, 0x210, 0x230, 0x240], block0=0, block1=expt.stage)]
+  expt.stage = 2  # 1 or 2 supported at this stage.
+  expt.notes = [60, 106]
+  expt.parameter_sequence = [ParameterSequence.SingleParameter(56, 12, [0x1a0, 0x1c0,0x1e0, 0x200], block0=0, block1=expt.stage),
+                                       ParameterSequence.SingleParameter(56, 12, [0x210, 0x230,0x250, 0x270], block0=0, block1=expt.stage)]
 
   expt.run()
   expt.save_results()
