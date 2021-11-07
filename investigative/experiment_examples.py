@@ -40,7 +40,9 @@ def Example2():
   expt.waveform = 'sine'
   expt.output = 'ampl_env'
   expt.stage = 1  # 1 or 2 supported at this stage.
-  expt.parameter_sequence = ParameterSequence.SingleParameter(56, 12, [0x180, 0x1C0, 0x1E0], block0=0, block1=expt.stage)
+  expt.notes = [60,106]
+  expt.parameter_sequence = [ParameterSequence.SingleParameter(56, 12, [0x140, 0x160, 0x180, 0x1e0], block0=0, block1=expt.stage),
+                                                ParameterSequence.SingleParameter(56, 12, [0x1f0, 0x210, 0x230, 0x240], block0=0, block1=expt.stage)]
 
   expt.run()
   expt.save_results()
@@ -68,4 +70,4 @@ def Example3():
 
 
 if __name__=="__main__":
-  Example3()
+  Example2()

@@ -285,7 +285,7 @@ class Experiment:
     """
     notes:       MIDI note numbers to use. Can be a range, e.g. range(0,128).
     """
-    self.notes = [60]
+    self.notes = [60,106]
     
     
     
@@ -445,7 +445,7 @@ class Experiment:
     return numpy.average(bx)
 
   @staticmethod
-  def measure_release_time(t, data, stage=2):
+  def measure_attack_time(t, data, stage=2):
     
     if stage == 2:  # exponential decay after initial attack
     
@@ -628,13 +628,13 @@ class Experiment:
     # Open PyAudio for doing the recording
 
     SAMPLE_TIME = 1.0   # units of seconds. Used to scale FFT bins to Hz
-    RATE = 44100    # units of Hz. Probably only certain values are allowed, e.g.
+    RATE = 48000    # units of Hz. Probably only certain values are allowed, e.g.
                     #  24000, 44100, 48000, 96000, ....
     FRAMES = 1024
 
     p = pyaudio.PyAudio()
 
-    NOTES = [60]
+    NOTES = self.notes
     VARS = None
     if self.input == 'velocity':
       VARS = ParameterSequence.Velocities(range(0, 128, 1))
@@ -650,8 +650,15 @@ class Experiment:
     #PARAMS = [0,1,2]
     
     
+    Param_Is_List = False
+    
     if self.parameter_sequence is None:
       PARAMS = ParameterSequence.SingleParameter(29, 12, [1], compare = True)
+    elif isinstance(self.parameter_sequence, list):
+      Param_Is_List = True
+      if len(NOTES) != len(self.parameter_sequence):
+        raise Exception("A list-type parameter must be same length as the notes list")
+      PARAMS = self.parameter_sequence[0]
     else:
       PARAMS = self.parameter_sequence
     
@@ -691,6 +698,8 @@ class Experiment:
     #internal.sysex_comms_internal.set_single_parameter(42, 0, category=12, memory=1, parameter_set=0, block0=0, fs=f_midi)
 
     for i, NOTE in enumerate(NOTES):   # Try at various different pitches
+      if Param_Is_List:
+        PARAMS = self.parameter_sequence[i]
       for j, PARAM in enumerate(PARAMS.Writes):
         for k, VAR in enumerate(VARS.Writes):
           
@@ -766,25 +775,41 @@ class Experiment:
             
             
             if self.output == "pitch_env":
-              fs = 48000.
+              fs = float(RATE)
 
             else:
               pass
             
-            fs = 48000.
+            fs = float(RATE)
             
             # Calculate the hilbert signal, with a bit of high-pass filtering. The filtering
             # requires a pitch of at least about C-2 (100Hz)
             bb = scipy.signal.butter(100., 4, btype='high', output='sos', fs=fs)
             hx = scipy.signal.hilbert(scipy.signal.sosfilt(bb, result))
             
-            # Get the amplitude
-            WAVE_RATE = 100.   # samples per second
+            # Get the amplitude.
+            # First we down-sample the hilbert signal. For high-frequency inputs 
+            #  (>>1kHz) we down-sample to 1kHz, otherwise to 100Hz.
+            if NOTE >= 95:
+              WAVE_RATE = 1000.  # samples per second
+            else:
+              WAVE_RATE = 100.   # samples per second
             dx = scipy.signal.decimate(numpy.abs(hx), int(numpy.round(fs/WAVE_RATE)), ftype='fir')
             
-            # Align with the first -6dB point
+            # Align zero in time to the start of the initial slope.
             max_d = numpy.max(dx)
-            i_3 = max(0, min([x for x in range(0, len(dx)) if dx[x] > (max_d/2.)])-10)
+            i_7 = min([x for x in range(0, len(dx)) if dx[x] > (max_d*0.80)])
+            i_8 = max([x for x in range(0, i_7) if dx[x] < (max_d*0.20)])+1
+            if len(range(i_8, i_7)) <= 2:
+              # Slope is too steep. Just count it as immediate.
+              i_2 = i_8
+              t_zero = i_2
+            else:
+              # Fit a linear regression and find the zero crossing.
+              pp = numpy.polyfit( range(i_8, i_7),   dx[i_8:i_7],  1)
+              t_zero = -pp[1] / pp[0]
+              i_2 = int(numpy.floor(t_zero))
+
             i_4 = len(dx)
             
             # Get the pitch
@@ -793,9 +818,10 @@ class Experiment:
             ix = scipy.signal.decimate(gx, int(numpy.round(fs/WAVE_RATE)), ftype='fir')
             
             
-            # Amplitude aligned with the -6dB point
+            # Amplitude aligned with the start point
+            i_3 = max(0, i_2-12)
             jx = dx[i_3:i_4]
-            tx = numpy.array(range(len(jx)))/WAVE_RATE
+            tx = (numpy.array(range(len(jx)))   -   (t_zero-i_3) )/WAVE_RATE
             
             if len(ix) != len(dx):
               raise Exception
@@ -903,19 +929,18 @@ class Experiment:
       # a falling exponential
       
       
-      FIT_RESULTS = numpy.zeros((1, len(WAVEFORMS), 2))
+      AXIS_1_LEN = len(WAVEFORMS)//len(NOTES)
+      FIT_RESULTS = numpy.zeros((len(NOTES), AXIS_1_LEN, 2))
       
       for i,w in enumerate(WAVEFORMS):
       
-        p = self.measure_release_time(w['ampl_t'], w['ampl_x'], self.stage)
-        print(p)
-        
-        FIT_RESULTS[0][i] = p
+        p = self.measure_attack_time(w['ampl_t'], w['ampl_x'], self.stage)
+        FIT_RESULTS[i//AXIS_1_LEN][i%AXIS_1_LEN] = p
 
 
     self._fit_results = FIT_RESULTS
     self._results = RESULTS
-    self._var1 = PARAMS
+    self._var1 = self.parameter_sequence
     self._var2 = VARS
     if len(WAVEFORMS) > 0:
       self._waveforms_out = WAVEFORMS
@@ -944,11 +969,14 @@ class Experiment:
       with open(os.path.join(output_dir, "Results.csv"), "w") as f1:
         
 
-        for i, NOTE in enumerate([60]):
+        for i, NOTE in enumerate(self.notes):
           f1.write("\n\nNOTE:\n")
+          if isinstance(self._var1, list):
+            VAR1 = self._var1[i]
+          else:
+            VAR1 = self._var1
 
-
-          for _ in range(self._var1.width):
+          for _ in range(VAR1.width):
             f1.write(",")
           for X in self._var2.Values:
             if X is None:
@@ -957,7 +985,7 @@ class Experiment:
               f1.write("{0},".format(X))
           f1.write("\n")
           
-          for j, Y in enumerate(self._var1.Values):
+          for j, Y in enumerate(VAR1.Values):
             if Y is None:
               f1.write("Compare,")
             else:
@@ -970,11 +998,16 @@ class Experiment:
 
 
         if self._fit_results is not None:
-          for i, NOTE in enumerate([60]):
+          for i, NOTE in enumerate(self.notes):
+            
+            if isinstance(self._var1, list):
+              VAR1 = self._var1[i]
+            else:
+              VAR1 = self._var1
             f1.write("\n\n\nFIT RESULTS\n-----------\n\nNOTE:\n")
 
 
-            for _ in range(self._var1.width):
+            for _ in range(VAR1.width):
               f1.write(",")
             for X in self._var2.Values:
               if X is None:
@@ -983,7 +1016,7 @@ class Experiment:
                 f1.write("{0},".format(X))
             f1.write("\n")
             
-            for j, Y in enumerate(self._var1.Values):
+            for j, Y in enumerate(VAR1.Values):
               if Y is None:
                 f1.write("Compare,")
               else:
@@ -1035,42 +1068,75 @@ class Experiment:
               
       if self._waveforms_out is not None:
 
-        plt.clf()
-        for j, w in enumerate(self._waveforms_out):
+        AXIS_1_LEN = len(self._waveforms_out)//len(self.notes)
+
+        for i, NOTE in enumerate(self.notes):
+
+          plt.clf()
+          for j, w in enumerate(self._waveforms_out):
+            if j//AXIS_1_LEN == i:  # Make sure it's for the relevant note
+              if self.output == 'spectrum':
+                if self.compare:
+                  if j >= 1:
+                    plt.semilogy(w['spectrum_f'], w['spectrum_x']/self._waveforms_out[0]['spectrum_x'])
+                else:
+                  plt.semilogy(w['spectrum_f'], w['spectrum_x'])
+              else:
+                #t = numpy.array(range(0,len(w)))/(48000./480.)
+                gg = plt.plot(w['ampl_t'], w['ampl_x'])
+                
+                # Now fit an exponential, and draw it as dots of the same colour
+                cc = gg[0].get_color()
+                
+                p = self._fit_results[i][j%AXIS_1_LEN][:]
+                
+                if self.stage == 2:
+                  tt = numpy.array([0.1, 0.2, 0.3, 0.4, 0.5])
+                  xx = numpy.exp(p[0]*tt + p[1])
+                elif self.stage == 1:
+                  tt = numpy.array([0.02, 0.04, 0.06])
+                  xx = p[0]*tt + p[1]
+                #print(tt)
+                #print(xx)
+                plt.plot(tt, xx, '.', color=cc)
+              
+            
+            
+          if self.output == "pitch_env":
+            plt.ylim([0,600])
           if self.output == 'spectrum':
-            if self.compare:
-              if j >= 1:
-                plt.semilogy(w['spectrum_f'], w['spectrum_x']/self._waveforms_out[0]['spectrum_x'])
-            else:
-              plt.semilogy(w['spectrum_f'], w['spectrum_x'])
-          else:
-            #t = numpy.array(range(0,len(w)))/(48000./480.)
-            gg = plt.plot(w['ampl_t'], w['ampl_x'])
-            
-            # Now fit an exponential, and draw it as dots of the same colour
-            cc = gg[0].get_color()
-            
-            p = self._fit_results[0][j][:]
-            
-            if self.stage == 2:
-              tt = numpy.array([0.1, 0.2, 0.3, 0.4, 0.5])
-              xx = numpy.exp(p[0]*tt + p[1])
-            elif self.stage == 1:
-              tt = numpy.array([0.08, 0.1, 0.12])
-              xx = p[0]*tt + p[1]
-            #print(tt)
-            #print(xx)
-            plt.plot(tt, xx, '.', color=cc)
-            
-            
-            
-        if self.output == "pitch_env":
-          plt.ylim([0,600])
-        if self.output == 'spectrum':
-          plt.xlim([0,12000])
-        plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
+            plt.xlim([0,12000])
+          if len(self.notes) > 1:
+            plt.title("NOTE: {0}".format(NOTE))
+          plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
             
               
+      if self.output == "ampl_env":
+        
+        plt.clf()
+        for i, NOTE in enumerate(self.notes):
+          
+          if isinstance(self.parameter_sequence, list):
+            PARAM = self.parameter_sequence[i]
+          else:
+            PARAM = self.parameter_sequence
+          
+          yy = []
+          for k in range(self._fit_results.shape[1]):
+            yy.append(self._fit_results[i][k][0])
+          
+          plt.plot(list(PARAM.Values), yy, '.-', label="NOTE {0}".format(NOTE))
+        
+        xx_2 = numpy.linspace(plt.axis()[0], plt.axis()[1], 50)
+        pp_2 = [0.01, -5]   # Current best fit of amplitude envelope slope
+        yy_2 = numpy.exp(pp_2[0]* xx_2 + pp_2[1])
+        plt.plot(xx_2, yy_2, 'k--', label="_")
+        
+        plt.legend()
+        plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
+          
+          
+        
   
 
 
