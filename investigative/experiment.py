@@ -34,8 +34,8 @@ as zero; at least 1 needs to be set to something else for this to be useable.
 CAT5_BASIC = b'\x00\x00\x00\x7f\x00\x7f\x00\x00\x00\x7f\x00\x7f\x00\x00\x00\x7f' \
              b'\x00\x7f\x00\x00\x00\x7f\x00\x7f\x00\x00\x00\x7f\x00\x7f\x00\x00' \
              b'\x00\x7f\x00\x7f\x00\x00\x00\x7f\x00\x7f\x00\x00\x00\x7f\x00\x7f' \
-             b'\x40\x40\x40\x80\x4a\x4a\x40\x40\x40\x80\x40\x40\x40\x40\x80\x40' \
-             b'\x40\x00\x50\x02\x02\x00'
+             b'\x40\x40\x40\x80\x4a\x40\x40\x40\x40\x80\x40\x40\x40\x40\x80\x40' \
+             b'\x40\x00\x80\x02\x00\x00'
 
 
 
@@ -252,6 +252,16 @@ class ParameterSequence:
   @property
   def width(self):
     return 1
+    
+  @property
+  def category(self):
+    if self._type == 1:
+      return self._parameter['category']
+    elif self._type == 2:
+      return self._parameters[0]['category']
+    else:
+      return None
+    
 
 
 class Experiment:
@@ -477,13 +487,32 @@ class Experiment:
           break
         else:
           pass
-      if (max_i - min_i) < 4:
+      if (max_i - min_i) < 5:
         # Not enough data
         return None
         
       pp = numpy.polyfit(t[min_i+1:max_i-2], data[min_i+1:max_i-2], 1)
       #print(pp)
 
+    elif stage >= 5:
+
+      max_d = numpy.max(data)
+      
+      i_4 = max([x for x in range(len(data)) if data[x] > max_d*0.8])+1
+      try:
+        i_5 = min([x for x in range(len(data)) if x > i_4 and data[x] < max_d*0.05])
+      except ValueError:
+        # Probably just never gets to the noise floor (max_d*0.05). Use the end, ignoring the
+        # last few values.
+        i_5 = len(data) - 4
+
+      if i_5 - i_4 < 3:
+        raise Exception("Not enough points")
+
+      pp = numpy.polyfit(t[i_4:i_5], numpy.log(data[i_4:i_5]), 1)
+      pp[0] = -pp[0]
+
+      return pp
     else:
       raise Exception ("Only stages 1 & 2 supported at this time")
     
@@ -587,7 +616,18 @@ class Experiment:
         if self.stage != 1:
           # Not testing the first stage, so just make it as quick as possible
           cat3[0x62] = 0x80
-
+          
+        if self.stage >= 5:
+          # Not testing anything until the release, so just make it default
+          cat3[0x60:0x7C] = b'\x00\x02\x80\x00' \
+                            b'\x00\x02\x80\x00' \
+                            b'\x00\x02\x80\x00' \
+                            b'\x00\x02\x80\x00' \
+                            b'\x00\x02\x80\x00' \
+                            b'\x00\x02\x80\x00' \
+                            b'\x00\x02\x80\x00'
+                          
+                          
     internal.sysex_comms_internal.upload_ac7_internal(DEST-801, cat3, category=3, memory=1, fs=f_midi)
 
     
@@ -603,12 +643,6 @@ class Experiment:
           cat5[0x00:0x02] = struct.pack("<H", self.SPLIT_WHITE)
         else:
           raise Exception
-
-      if self.waveform == 'white':
-        # Correct a few data items for this other waveform:
-        cat5[0x36] = 0x40
-        cat5[0x42] = 0x80
-        cat5[0x44] = 0x00
 
       internal.sysex_comms_internal.upload_ac7_internal(0, cat5, category=5, memory=1, fs=f_midi)
 
@@ -730,6 +764,7 @@ class Experiment:
           
           
           is_env = self.output.endswith("_env")
+          is_env_release = is_env and self.stage >= 5
           
 
           frame_count = 64*1024
@@ -749,12 +784,19 @@ class Experiment:
             v = bytes()
             tot_frames = 0
           
-            
-          while tot_frames < frame_count:
-            time.sleep(0.1)
+          if is_env_release:
+            time.sleep(0.2)
+          else:
+            while tot_frames < frame_count:
+              time.sleep(0.1)
 
           os.write(f_midi, struct.pack("3B", 0x80, NOTE, 0x7F))
-          time.sleep(0.2)
+          
+          if is_env_release:
+            while tot_frames < frame_count:
+              time.sleep(0.1)
+          else:
+            time.sleep(0.2)
 
 
           result = numpy.frombuffer(v, dtype=numpy.float32)
@@ -1098,6 +1140,9 @@ class Experiment:
                 elif self.stage == 1:
                   tt = numpy.array([0.02, 0.04, 0.06])
                   xx = p[0]*tt + p[1]
+                else:
+                  tt = numpy.array([0.25,0.3,0.35])
+                  xx = numpy.exp(-p[0]*tt + p[1])
                 #print(tt)
                 #print(xx)
                 plt.plot(tt, xx, '.', color=cc)
@@ -1130,9 +1175,18 @@ class Experiment:
           plt.plot(list(PARAM.Values), yy, '.-', label="NOTE {0}".format(NOTE))
         
         xx_2 = numpy.linspace(plt.axis()[0], plt.axis()[1], 50)
-        pp_2 = [0.01, -5]   # Current best fit of amplitude envelope slope
-        yy_2 = numpy.exp(pp_2[0]* xx_2 + pp_2[1])
-        plt.plot(xx_2, yy_2, 'k--', label="_")
+        
+        CAT = self.parameter_sequence.category
+        pp_2 = None
+        if CAT==12:        
+          pp_2 = [0.01, -3.9]   # Current best fit of amplitude envelope slope for Category 12 Parameter 56
+          if self.stage >= 5:
+            pp_2 = [0.01, -2.0]
+        elif CAT==3:
+          pp_2  = [0.02166, -11.]    # Current best fit of amplitude envelope slope for Category 3 Parameter 20
+        if pp_2:
+          yy_2 = numpy.exp(pp_2[0]* xx_2 + pp_2[1])
+          plt.plot(xx_2, yy_2, 'k--', label="_")
         
         plt.legend()
         plt.savefig(os.path.join(output_dir, "{0}.png".format(random.randint(0, 0xFFFFFF))))
