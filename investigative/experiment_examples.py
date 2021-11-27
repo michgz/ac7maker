@@ -1,4 +1,6 @@
 from experiment import Experiment, ParameterSequence
+import pickle
+
 
 
 """
@@ -23,9 +25,8 @@ def Example1():
   # one value (90) is written.
   expt.parameter_sequence = ParameterSequence.SingleParameter(29, 12, [90], compare = True)
 
-  print(type(expt))
-
   expt.run()
+  expt.analyse()
   expt.save_results()
 
 
@@ -65,8 +66,25 @@ def Example3():
 
 
 
+"""
+Low-pass filter
+"""
 
+def Example4():
+  expt = Experiment()
+  expt.end_category = 3
+  expt.waveform = 'white'
+  expt.output = 'spectrum'
+  expt.compare = True
+  expt.parameter_sequence = ParameterSequence.SingleParameter(14, 3, [40, 60, 80, 100], compare=True)
+  expt.notes = [60]
+
+  expt.run()
+  expt.save_results()
+  
+  
+  
 
 
 if __name__=="__main__":
-  Example2()
+  Example1()
