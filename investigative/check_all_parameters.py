@@ -83,11 +83,11 @@ def main():
     logger.info(" ....  Doing Category 0 .... \n")
     print("Category 0:")
     
-    lens = [-1] * 12
-    is_still_going = [True] * 12
+    lens = [-1] * 33
+    is_still_going = [True] * 33
     
     for l in range(1, 31):
-        for p in range(17):
+        for p in range(33):
             if is_still_going[p]:
                 q = get_single_parameter(p, category=0, memory=3, length=l)
                 logging.info("> " + bytes(q).hex(" ").upper() + "\n")
