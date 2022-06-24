@@ -25,11 +25,11 @@ Atom #     Length    Support    Meaning
 0x17           5      7/3/5     Delay send, parts 1-5
 0x18           5      7/3/5     Pitch bend per part
 0x19           5        3/5     Part on/off, parts 1-5 (0=on, 1=off)
-0x1A           5      7/3/5     
+0x1A           5      7/3/5      (effects on/off?)
 0x1F           7        3/5     Mixer for parts 8-47: part number, volume, reverb send, ?, delay send, on/off (0=on, 1=off). FF means "no change"
 0x20           1      7/3/5     Upper split
 0x21           1      7/3/5     Split point
-0x22           4      7/3/5     
+0x22           4      7/3/5      (split on/off?)
 0x23           4      7/3/5     Octave transpose U1, U2, L1, L2
 0x25           4      7/3/5     
 0x26           1        3/5     Split point
@@ -45,8 +45,9 @@ Atom #     Length    Support    Meaning
 0x3E           5        3/5     
 0x3F           5        3/5     Pedal 1 per-part
 0x40           1      7/3/5     Accomp volume
+0x46           1      CDP-S only Keyboard volume (CDP-S360)
 0x5E           2      7         Reverb type, chorus type
- "             3        3/5        "       ,    "       , delay type
+ "             3        3/5/CDP-S     "       ,    "       , delay type
 0x70           1      CDP-S only
 0x71           1      CDP-S only
 0x72           2      CDP-S only
