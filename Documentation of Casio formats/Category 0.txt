@@ -1,0 +1,41 @@
+Parameters from Category 0, Memory 3.
+
+Parameter         Length (bytes)        Format           Meaning
+---------         --------------        ------------     ----------
+   0                   14               ASCII            Keyboard model (e.g. "CT-X3000      ")
+   1                    8               ASCII            Model SKU (e.g. "MX-871A ")
+   2                    8               ASCII            
+   3                    1               Binary           
+   4                    5               ASCII            Firmware short version (e.g. "0108 " is V1.08)
+   5                   10               ASCII            
+   6                    5               ASCII            
+   7                   10               ASCII            
+   8                    5               Binary           
+   9                   10               Binary           
+  48                    1               Binary           
+  49                    1               Binary           
+  50                    1               Binary           
+  51                    1               Binary           
+  52                    1               Binary           
+  53                    1               Binary           
+  54                    1               Binary           
+  55                    1               Binary           
+  56                    1               Binary           
+  58                    1               Binary           
+  59                    1               Binary           
+  60                    1               Binary           
+  61                    1               Binary           
+  62                    1               Binary           
+  63                    1               Binary           
+  64                    1               Binary           
+  65                    1               Binary           
+  66                    1               Binary           
+  67                    1               Binary           
+  68                    1               Binary           
+  69                    1               Binary           
+  70                    1               Binary           
+  71                    1               Binary           
+  72                    1               Binary           
+  73                    1               Binary           
+  74                    1               Binary           
+  75                    1               Binary           
