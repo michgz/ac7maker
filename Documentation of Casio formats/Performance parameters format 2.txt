@@ -60,16 +60,16 @@ number          HBR                                 OBR/OBS
 
 
 135             E03h (bits 0-4)     5               2               
-160             058h (bits 0-2)     3               1               System equaliser settings
-161             059h (bits 0-4)     5               1                
-162             05Ah                5               1               
-163             05Bh (bits 0-3)     4               1                
-164             05Ch (bits 0-3)     4               1                
-165             05Dh                5               1               
-166             05Eh (bits 0-2)     3               1                
-167             05Fh (bits 0-4)     5               1               Tone control
-168             060h                7               1               
-169             061h                7               1               
+160             058h (bits 0-2)     3               1               System equaliser Bass frequency
+161             059h (bits 0-4)     5               1               System equaliser Bass gain
+162             05Ah                5               1               System equaliser Mid-1 frequency
+163             05Bh (bits 0-3)     4               1               System equaliser Mid-1 gain
+164             05Ch (bits 0-3)     4               1               System equaliser Mid-2 frequency
+165             05Dh                5               1               System equaliser Mid-2 gain
+166             05Eh (bits 0-2)     3               1               System equaliser Treble frequency
+167             05Fh (bits 0-4)     5               1               System equaliser Treble gain
+168             060h                7               1               -6 to +6dB boost
+169             061h                7               1               Overall gain
 192             062h                7               1                
 193             063h                7               1                
 194             064h                7               1               Overall gain
