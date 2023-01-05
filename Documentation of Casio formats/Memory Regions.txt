@@ -1,0 +1,39 @@
+For CT-X3000 firmware version 1.08::
+
+
+00000000h-0000FFFFh      Read only           Boot controller
+10000000h-1000FFFFh      Read only           Mirror of 00000000h-0000FFFFh
+11000000h-1101FFFFh      Read/Write          RAM region for use by boot controller
+20000000h-2000FFFFh      Read/Write          RAM region for general use
+3000FCC0h-400007FFh      Read only
+40080000h-4008FFFFh      Read only
+60000000h-6FFFFFFFh      Read as zero/Write ignored
+80000000h-81FFFFFFh      Read only           Main firmware
+E0000000h-E000200Fh      Read only           ARM Core registers
+
+
+Specific usages:
+
+
+    800F9AC8h-800F9AD5h      CAT 1 MEM 0
+    800F9AD8h-80154F77h      CAT 3 MEM 0
+    80154F78h-8015C835h      CAT 4 MEM 0
+    8015C836h-8016BE4Dh      CAT 5 MEM 0
+    8016BE4Eh-802402F5h      CAT 6 MEM 0
+    802402F6h-802AC655h      CAT 7 MEM 0
+    802AC656h-802ADF69h      CAT 10 MEM 0
+    802ADF6Ah-802ADF79h      CAT 11 MEM 0
+    802ADF7Ah-8039FAA9h      CAT 12 MEM 0
+    8039FAAAh-803CF461h      CAT 13 MEM 0
+    803CF462h-803D8101h      CAT 14 MEM 0
+    803D8102h-803D8741h      CAT 15 MEM 0
+    803D8748h-803DABFFh      CAT 16 MEM 0
+    803DAC00h-803DB855h      CAT 17 MEM 0
+    803DB856h-803DBBC9h      CAT 18 MEM 0
+    803DBBCAh-803E6BC9h      CAT 19 MEM 0
+    803E6BCAh-803E73C9h      CAT 20 MEM 0
+    803E73CAh-803E75C9h      CAT 21 MEM 0
+    803E75CAh-803E7B49h      CAT 22 MEM 0
+    80595510h-8059950Fh      "Key follow" curve data
+    805BD2E8h-805BDDAFh      MIDI Bank/Patch allocation
+
