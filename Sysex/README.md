@@ -1,3 +1,5 @@
+## MASTERVOL.MID
+
 A standard MIDI file to set the CT-X keyboard to 40% volume (irrespectively of the setting
 of the volume knob). To try it out do the following sequence:
 
@@ -6,7 +8,7 @@ of the volume knob). To try it out do the following sequence:
 * Play/send this .MID file to the keyboard USB MIDI port
 * Play a note on the keyboard. You should now hear something, even though the volume knob is still at minimum
 
-This is often useful to do for making recordings with repeatable levels (place this file at the 00:00:00.0 time
+A file like this is often useful for making recordings with repeatable levels (place the file at the 00:00:00.0 time
 of your DAW project).
 
 A hex dump of the file looks like this:
