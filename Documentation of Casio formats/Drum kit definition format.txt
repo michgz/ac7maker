@@ -55,7 +55,8 @@ Some parameter meanings affecting the overall sound (all layers affected):
 Implementation document.)
 --
 0:  mute group. Values 1-127, or 0 for none.
-5:  high-pass filter cutoff (values 0-65535)
+2:  note-off (0=sustain, 1=note off)
+5:  coarse/fine tuning (-32768 -- 32767. Units semitone/512)
 6:  [low-pass?] filter cutoff (values 0-255)
 7:  [low-pass?] filter resonance (values 0-255)
 9:  volume
@@ -92,6 +93,53 @@ The following are per-filter (2 filters possible):
 
 
 
+
+===
+
+Parameter 0:    Values 0-127
+Parameter 1:    Values 0-2
+Parameter 2:    Values 0-1
+Parameter 3:    Values 0-3
+Parameter 4:    Values 0-1
+Parameter 28:   Values 0-1
+Parameter 34:   Values 0-3   * Indexed by Block1
+
+
+
+Parameter 0:       Offset  0xAE*I + 0xA4.   Bit offsets 7-14
+Parameter 1:       Offset  0xAE*I + 0xA4.   Bit offsets 5-6
+Parameter 2:       Offset  0xAE*I + 0xA4.   Bit offset  4
+Parameter 3:       Offset  0xAE*I + 0xA4.   Bit offsets 2-3
+Parameter 4:       Offset  0xAE*I + 0xA4.   Bit offset  1
+Parameter 28:      Offset  0xAE*I + 0x18.   Bit offset  0
+
+
+Parameter 5        Offset  0xAE*I + 0x00.   Bit offsets 0-14.
+Parameter 6        Offset  0xAE*I + 0xA6.
+Parameter 7        Offset  0xAE*I + 0xA7.
+Parameter 8        Offset  0xAE*I + 0xA8.
+Parameter 9        Offset  0xAE*I + 0xA9.
+Parameter 10       Offset  0xAE*I + 0xAA.
+Parameter 11       Offset  0xAE*I + 0xAB.
+Parameter 12       Offset  0xAE*I + 0xAC.
+Parameter 13       Offset  0xAE*I + 0xAD.
+Parameter 14       Offset  0xAE*I + 0xA4.   Bit offset  0
+Parameter 15       Offset  0xAE*I + 0xA2.   Bit offsets 0-15. Values 1-566.
+Parameter 16       Offset  0xAE*I + 0x04.     * Indexed by Block1
+Parameter 18       Offset  0xAE*I + 0x0E.
+Parameter 19       Offset  0xAE*I + 0x0F.
+Parameter 20       Offset  0xAE*I + 0x10.
+Parameter 21       Offset  0xAE*I + 0x11.
+Parameter 22       Offset  0xAE*I + 0x12.
+Parameter 23       Offset  0xAE*I + 0x13.
+Parameter 24       Offset  0xAE*I + 0x14.
+Parameter 25       Offset  0xAE*I + 0x15.
+Parameter 26       Offset  0xAE*I + 0x16.
+Parameter 27       Offset  0xAE*I + 0x17.
+
+
+
+===
 
 
 Secret kits
