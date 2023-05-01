@@ -50,11 +50,11 @@ number          HBR                                 OBR/OBS
 ======= The following indexed by Block0 taking values 0..1 =======
 =======    (period 0x0C)
 128             044h                5               1               Reverb type (affects 044h - 048h)
-129             045h                7               1               Reverb time
-130             046h                7               1               
-131             047h                7               1               
+129             045h                7               1               Reverb decay time
+130             046h                7               1               Reverb filter resonance
+131             047h                7               1               Reverb filter sweep time
 132             048h                7               1               
-133             040h               19               3                
+133             040h               19               3               Reverb amplitude of first echo
 134             049h                7               1               Reverb send return
 ==================================================================
 
