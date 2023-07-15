@@ -67,11 +67,11 @@ Category    Parameters        +-------------- Parameter sets -----------------+ 
   
    35         0-2                       0-999                                             >0x122          Phrase sets
 
-   36         0-2                       0-9                                                 Big           Relates to user-recorded songs [Parameter 0 = text "No Title"]
+   36         0-2                       0-9                                                 Big           User-recorded songs [Parameter 0 = text "No Title"]. Accepts write of .MID/.MRF, read of .MRF only
 
-   37         0-2                       0-9                                                 Big           Relates to user-recorded songs [Parameter 0 = text "No Title"]
+   37         0-2                       0-9                                                 Big           User-recorded songs [Parameter 0 = text "No Title"]. Accepts write of .MRF only, read of .MRF only
 
-   38         0-2                        0                                                  Big           Relates to user-recorded songs [Parameter 0 = text "No Title"]
+   38         0-2                        0                                                  Big           User-recorded songs [Parameter 0 = text "No Title"]. Accepts write of .MRF only, read of .MRF only
 
    40         0-1                                                  0                       0x181
    
