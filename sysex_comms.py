@@ -21,8 +21,8 @@ __version__ = "0.0.0"
 #
 ## Functions:
 #
-#   upload_ac7(dest_num, data)
-#   ==========================
+#   upload_ac7(dest_num, data, *, fd=None)
+#   ======================================
 #
 # Uploads an AC7 rhythm to the keyboard. Parameters:
 #
@@ -32,6 +32,8 @@ __version__ = "0.0.0"
 #               format, which is identical to the format of an .AC7 file
 #               as saved by the keyboard. It should be possible to just
 #               read an .AC7 file and upload it with no modification.
+#   fd:        <Optional> the device filename to use. If not specified,
+#               a default of "/dev/midi1" will be used.
 #
 # Example:
 #
@@ -40,13 +42,15 @@ __version__ = "0.0.0"
 #    upload_ac7(294, x)
 #
 #
-#   download_ac7(src_num)
-#   =====================
+#   download_ac7(src_num, *, fd=None)
+#   =================================
 #
 # Downloads an AC7 rhythm from the keyboard. Parameter:
 #
 #   src_num:   Number of the source. Must lie in the user area, i.e.
 #               values 294-343 inclusive.
+#   fd:        <Optional> the device filename to use. If not specified,
+#               a default of "/dev/midi1" will be used.
 #
 #       Returns:
 #
@@ -66,22 +70,22 @@ from internal.sysex_comms_internal import download_ac7_internal
 from internal.sysex_comms_internal import upload_ac7_internal
 
 
-def upload_ac7(dest_num, data):
+def upload_ac7(dest_num, data, *, fd=None):
 
   if dest_num >= 294 and dest_num <= 343:
     # Uploading to user memory area
-    upload_ac7_internal(dest_num - 294, data)
+    upload_ac7_internal(dest_num - 294, data, fd=fd)
   else:
     # Cannot do bulk uploads to preset locations
     raise Exception("Wrong destination number: cannot do bulk uploads to preset location")
 
 
 
-def download_ac7(src_num):
+def download_ac7(src_num, *, fd=None):
 
   if src_num >= 294 and src_num <= 343:
     # Download from user memory
-    return download_ac7_internal(src_num - 294)
+    return download_ac7_internal(src_num - 294, fd=fd)
   else:
     # Cannot do bulk download from preset locations
     sys.stderr.write("Wrong source number: Cannot do bulk download from preset location")

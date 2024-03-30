@@ -323,9 +323,12 @@ def make_packet(tx=False,
 
 
 
-def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0, block0=0, block1=0, *, fd=DEVICE_NAME, fs=None, _debug=False):
+def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0, block0=0, block1=0, *, fd=None, fs=None, _debug=False):
 
   global type_1_rxed
+
+  if fd is None:
+    fd = DEVICE_NAME
 
   # Open the device (if needed)
   if fs is None:
@@ -410,9 +413,12 @@ def set_single_parameter(parameter, data, category=3, memory=3, parameter_set=0,
 
 
 
-def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block0=0, block1=0, length=0, *, fd=DEVICE_NAME, fs=None, _debug=False):
+def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block0=0, block1=0, length=0, *, fd=None, fs=None, _debug=False):
 
   global type_1_rxed
+
+  if fd is None:
+    fd = DEVICE_NAME
 
   # Open the device (if needed)
   if fs is None:
@@ -493,7 +499,10 @@ def get_single_parameter(parameter, category=3, memory=3, parameter_set=0, block
 
 
 
-def upload_ac7_internal(param_set, data, memory=1, category=30, *, fd=DEVICE_NAME, fs=None, _debug=False):
+def upload_ac7_internal(param_set, data, memory=1, category=30, *, fd=None, fs=None, _debug=False):
+
+  if fd is None:
+    fd = DEVICE_NAME
 
   # Open the device (if needed)
   if fs is None:
@@ -553,10 +562,13 @@ def upload_ac7_internal(param_set, data, memory=1, category=30, *, fd=DEVICE_NAM
 
 
 
-def download_ac7_internal(param_set, memory=1, category=30, *, fd=DEVICE_NAME, fs=None, _debug=False):
+def download_ac7_internal(param_set, memory=1, category=30, *, fd=None, fs=None, _debug=False):
 
   global have_got_ess
   global total_rxed
+
+  if fd is None:
+    fd = DEVICE_NAME
 
   # Open the device (if needed)
   if fs is None:
