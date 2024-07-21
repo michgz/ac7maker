@@ -9,7 +9,7 @@
 8               01Eh (bit 4)        1               1                
 9               035h                7               1
 10              036h                7               1
-11              037h                7               1               
+11              037h                7               1                Audio in volume
 12              038h                4               1                
 13              01Eh (bit 5)        1               1                
 14              01Eh (bit 6)        1               1                
