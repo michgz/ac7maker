@@ -4,7 +4,9 @@ For CT-X3000 firmware version 1.08::
 00000000h-0000FFFFh      Read only           Boot controller
 10000000h-1000FFFFh      Read only           Mirror of 00000000h-0000FFFFh
 11000000h-1101FFFFh      Read/Write          RAM region for use by boot controller
-20000000h-2000FFFFh      Read/Write          RAM region for general use
+20000000h-20007FFFh      Read/Write          RAM region for general use
+20008000h-2000FFFFh      Read only
+22000000h-221FFFFFh      Read only
 3000FCC0h-400007FFh      Read only
 40080000h-4008FFFFh      Read only
 60000000h-6FFFFFFFh      Read as zero/Write ignored
