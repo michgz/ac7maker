@@ -9,7 +9,7 @@
 8               01Eh (bit 4)        1               1                
 9               035h                7               1
 10              036h                7               1
-11              037h                7               1                Audio in volume
+11              037h                7               1                "Audio in" (analogue input) level
 12              038h                4               1                
 13              01Eh (bit 5)        1               1                
 14              01Eh (bit 6)        1               1                
@@ -58,7 +58,7 @@
 70              01Ch (bits 1-2)     2               1                
 71              01Ch (bit 0)        1               1                
 72              000h                7               2                
-73              001h                7               1                
+73              001h                7               1                Audio playback (USB) level
 74              002h                7               1                
 75              004h (bit 0)        1               1                
 76              004h (bits 1-4)     4               1                
