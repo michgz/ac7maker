@@ -3,7 +3,7 @@ Category 1
 Parameter    Offset in bulk       Default      Meaning
 ---------    --------------       -------      -------
 16              0 (bits 0-1)       1           Unknown
-17              1                  127         Rhythm/Song/MIDI IN levels
+17              1                  127         Rhythm/Song/MIDI IN/Audio Play (USB) levels
 18              2 (bits 0-1)       2           Unknown
 19              3                  127         Unknown
 20              4 (bits 0-1)       2           Unknown
